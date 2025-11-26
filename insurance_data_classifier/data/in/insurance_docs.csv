@@ -1,0 +1,2566 @@
+string,label
+"INSURANCE CLAIM
+Reference: CL-16843
+Loss Date: 2024-07-17
+Claim Details: Theft
+Claimant: Ilan Smith",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-86468
+Policy Holder: Anna Williams
+Incident Date: 2020-04-02
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: CL-55689
+Loss Date: 2023-06-30
+Claim Details: Water damage
+Claimant: Ilan Baker",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-17088
+Policy Holder: Ilan Williams
+Incident Date: 2024-12-10
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-16717
+Loss Date: 2024-01-11
+Claim Details: Theft
+Claimant: John Jones",claim_form
+"INSURANCE CLAIM
+Reference: CL-62294
+Loss Date: 2024-06-05
+Claim Details: Theft
+Claimant: Anna Davis",claim_form
+"INSURANCE CLAIM
+Reference: CL-82517
+Loss Date: 2024-06-13
+Claim Details: Fire damage
+Claimant: Lana Davis",claim_form
+"INSURANCE CLAIM
+Reference: IC-29042
+Loss Date: 2022-12-14
+Claim Details: Vehicle accident
+Claimant: Robert Smith",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-57662
+Policy Holder: Lana Jones
+Incident Date: 2020-04-28
+Damage: Water damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-70663
+Policy Holder: Anna Baker
+Incident Date: 2020-09-20
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-98467
+Loss Date: 2020-05-20
+Claim Details: Vehicle accident
+Claimant: Anna Smith",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-07943
+Policy Holder: Ilan Baker
+Incident Date: 2020-03-31
+Damage: Vehicle accident",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-63070
+Policy Holder: Robert Baker
+Incident Date: 2020-03-17
+Damage: Theft",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-54535
+Policy Holder: Ilan Jones
+Incident Date: 2020-01-08
+Damage: Water damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-82231
+Policy Holder: Ilan Williams
+Incident Date: 2022-11-14
+Damage: Theft",claim_form
+"CLAIM FORM
+Policy Number: IC-59512
+Date of Loss: 2021-12-10
+Description: Fire damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-01907
+Policy Holder: Lana Davis
+Incident Date: 2020-01-30
+Damage: Theft",claim_form
+"INSURANCE CLAIM
+Reference: IC-03821
+Loss Date: 2021-09-21
+Claim Details: Theft
+Claimant: Anna Williams",claim_form
+"CLAIM FORM
+Policy Number: IC-91063
+Date of Loss: 2024-04-28
+Description: Fire damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-47876
+Policy Holder: Lana Williams
+Incident Date: 2022-12-11
+Damage: Vehicle accident",claim_form
+"CLAIM FORM
+Policy Number: IC-21310
+Date of Loss: 2023-05-09
+Description: Theft",claim_form
+"CLAIM FORM
+Policy Number: CL-31480
+Date of Loss: 2020-12-08
+Description: Theft",claim_form
+"CLAIM FORM
+Policy Number: CL-62130
+Date of Loss: 2021-04-26
+Description: Vehicle accident",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-59708
+Policy Holder: Robert Jones
+Incident Date: 2020-10-10
+Damage: Theft",claim_form
+"CLAIM FORM
+Policy Number: IC-09387
+Date of Loss: 2020-04-04
+Description: Vehicle accident",claim_form
+"CLAIM FORM
+Policy Number: IC-47427
+Date of Loss: 2024-05-23
+Description: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: CL-60066
+Loss Date: 2021-07-13
+Claim Details: Vehicle accident
+Claimant: Robert Baker",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-68156
+Policy Holder: Ilan Davis
+Incident Date: 2024-10-26
+Damage: Theft",claim_form
+"INSURANCE CLAIM
+Reference: IC-77883
+Loss Date: 2022-01-11
+Claim Details: Fire damage
+Claimant: Ilan Baker",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-12754
+Policy Holder: Robert Davis
+Incident Date: 2024-02-04
+Damage: Water damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-21254
+Policy Holder: John Baker
+Incident Date: 2024-04-21
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: CL-89283
+Loss Date: 2024-06-14
+Claim Details: Theft
+Claimant: Ilan Williams",claim_form
+"CLAIM FORM
+Policy Number: IC-26058
+Date of Loss: 2021-09-21
+Description: Vehicle accident",claim_form
+"CLAIM FORM
+Policy Number: IC-01274
+Date of Loss: 2020-01-30
+Description: Vehicle accident",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-36910
+Policy Holder: Ilan Davis
+Incident Date: 2020-04-26
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: CL-55105
+Loss Date: 2024-06-23
+Claim Details: Vehicle accident
+Claimant: Robert Jones",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-25901
+Policy Holder: Ilan Baker
+Incident Date: 2023-05-06
+Damage: Water damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-12150
+Policy Holder: Lana Smith
+Incident Date: 2024-11-07
+Damage: Theft",claim_form
+"CLAIM FORM
+Policy Number: IC-56689
+Date of Loss: 2020-05-31
+Description: Fire damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-75561
+Policy Holder: Ilan Smith
+Incident Date: 2021-01-29
+Damage: Theft",claim_form
+"INSURANCE CLAIM
+Reference: CL-18742
+Loss Date: 2021-06-24
+Claim Details: Vehicle accident
+Claimant: Ilan Davis",claim_form
+"INSURANCE CLAIM
+Reference: IC-48981
+Loss Date: 2023-07-27
+Claim Details: Fire damage
+Claimant: John Baker",claim_form
+"INSURANCE CLAIM
+Reference: IC-65705
+Loss Date: 2021-03-02
+Claim Details: Theft
+Claimant: Lana Davis",claim_form
+"INSURANCE CLAIM
+Reference: CL-44619
+Loss Date: 2022-12-19
+Claim Details: Water damage
+Claimant: Ilan Baker",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-08128
+Policy Holder: Robert Baker
+Incident Date: 2023-03-02
+Damage: Vehicle accident",claim_form
+"INSURANCE CLAIM
+Reference: IC-03806
+Loss Date: 2023-05-13
+Claim Details: Theft
+Claimant: John Jones",claim_form
+"CLAIM FORM
+Policy Number: IC-00854
+Date of Loss: 2020-01-12
+Description: Water damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-75100
+Policy Holder: Ilan Williams
+Incident Date: 2022-12-20
+Damage: Fire damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-17417
+Loss Date: 2021-06-06
+Claim Details: Vehicle accident
+Claimant: Lana Davis",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-92894
+Policy Holder: John Jones
+Incident Date: 2020-05-09
+Damage: Theft",claim_form
+"CLAIM FORM
+Policy Number: IC-12902
+Date of Loss: 2022-07-09
+Description: Theft",claim_form
+"INSURANCE CLAIM
+Reference: IC-76314
+Loss Date: 2023-03-07
+Claim Details: Water damage
+Claimant: Lana Baker",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-69165
+Policy Holder: Robert Davis
+Incident Date: 2024-11-29
+Damage: Fire damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-56774
+Policy Holder: Robert Williams
+Incident Date: 2023-01-05
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: CL-58885
+Loss Date: 2021-12-06
+Claim Details: Water damage
+Claimant: Ilan Williams",claim_form
+"CLAIM FORM
+Policy Number: CL-82107
+Date of Loss: 2021-12-10
+Description: Fire damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-41930
+Policy Holder: Robert Jones
+Incident Date: 2022-07-01
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-55381
+Loss Date: 2024-10-17
+Claim Details: Theft
+Claimant: Lana Smith",claim_form
+"INSURANCE CLAIM
+Reference: CL-63630
+Loss Date: 2022-10-30
+Claim Details: Water damage
+Claimant: Lana Smith",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-74782
+Policy Holder: Robert Jones
+Incident Date: 2024-02-15
+Damage: Water damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-13335
+Policy Holder: Anna Baker
+Incident Date: 2024-03-05
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-85762
+Loss Date: 2020-09-03
+Claim Details: Fire damage
+Claimant: John Smith",claim_form
+"CLAIM FORM
+Policy Number: CL-64142
+Date of Loss: 2023-08-05
+Description: Water damage",claim_form
+"CLAIM FORM
+Policy Number: CL-07393
+Date of Loss: 2024-04-30
+Description: Vehicle accident",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-33495
+Policy Holder: Anna Smith
+Incident Date: 2023-12-26
+Damage: Water damage",claim_form
+"CLAIM FORM
+Policy Number: IC-56615
+Date of Loss: 2024-12-06
+Description: Theft",claim_form
+"INSURANCE CLAIM
+Reference: CL-90777
+Loss Date: 2023-10-05
+Claim Details: Theft
+Claimant: Anna Jones",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-28656
+Policy Holder: John Smith
+Incident Date: 2022-04-03
+Damage: Theft",claim_form
+"CLAIM FORM
+Policy Number: CL-35805
+Date of Loss: 2022-07-18
+Description: Vehicle accident",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-44458
+Policy Holder: Robert Davis
+Incident Date: 2024-02-23
+Damage: Fire damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-67430
+Loss Date: 2023-08-22
+Claim Details: Water damage
+Claimant: Anna Smith",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-80886
+Policy Holder: Lana Davis
+Incident Date: 2020-08-02
+Damage: Vehicle accident",claim_form
+"CLAIM FORM
+Policy Number: IC-81934
+Date of Loss: 2023-08-13
+Description: Theft",claim_form
+"CLAIM FORM
+Policy Number: CL-68010
+Date of Loss: 2020-04-23
+Description: Water damage",claim_form
+"CLAIM FORM
+Policy Number: CL-59662
+Date of Loss: 2024-01-17
+Description: Vehicle accident",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-35198
+Policy Holder: Robert Davis
+Incident Date: 2024-08-04
+Damage: Fire damage",claim_form
+"CLAIM FORM
+Policy Number: IC-39807
+Date of Loss: 2023-03-30
+Description: Vehicle accident",claim_form
+"INSURANCE CLAIM
+Reference: CL-12750
+Loss Date: 2022-11-16
+Claim Details: Vehicle accident
+Claimant: Ilan Davis",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-54184
+Policy Holder: John Davis
+Incident Date: 2021-08-22
+Damage: Vehicle accident",claim_form
+"CLAIM FORM
+Policy Number: CL-94130
+Date of Loss: 2024-05-17
+Description: Theft",claim_form
+"CLAIM FORM
+Policy Number: IC-33320
+Date of Loss: 2024-08-07
+Description: Theft",claim_form
+"INSURANCE CLAIM
+Reference: IC-40840
+Loss Date: 2022-06-25
+Claim Details: Fire damage
+Claimant: Robert Jones",claim_form
+"CLAIM FORM
+Policy Number: IC-17316
+Date of Loss: 2021-04-15
+Description: Fire damage",claim_form
+"CLAIM FORM
+Policy Number: IC-34859
+Date of Loss: 2021-12-28
+Description: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: CL-29062
+Loss Date: 2020-06-23
+Claim Details: Vehicle accident
+Claimant: John Baker",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-09604
+Policy Holder: John Williams
+Incident Date: 2020-10-01
+Damage: Fire damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-10272
+Policy Holder: Anna Williams
+Incident Date: 2022-09-21
+Damage: Fire damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-49361
+Loss Date: 2022-07-09
+Claim Details: Fire damage
+Claimant: John Baker",claim_form
+"INSURANCE CLAIM
+Reference: CL-52457
+Loss Date: 2023-07-18
+Claim Details: Vehicle accident
+Claimant: Ilan Davis",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-04052
+Policy Holder: Ilan Baker
+Incident Date: 2022-03-10
+Damage: Theft",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-62629
+Policy Holder: Anna Williams
+Incident Date: 2024-09-18
+Damage: Fire damage",claim_form
+"INSURANCE CLAIM
+Reference: CL-32240
+Loss Date: 2022-03-04
+Claim Details: Water damage
+Claimant: John Smith",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-04141
+Policy Holder: Ilan Baker
+Incident Date: 2021-05-23
+Damage: Water damage",claim_form
+"INSURANCE CLAIM
+Reference: IC-61056
+Loss Date: 2022-04-28
+Claim Details: Theft
+Claimant: Lana Jones",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-06305
+Policy Holder: Anna Williams
+Incident Date: 2021-07-16
+Damage: Water damage",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-36219
+Policy Holder: Anna Davis
+Incident Date: 2022-09-03
+Damage: Fire damage",claim_form
+"CLAIM FORM
+Policy Number: CL-72018
+Date of Loss: 2022-01-01
+Description: Theft",claim_form
+"CLAIM FORM
+Policy Number: CL-69501
+Date of Loss: 2021-10-13
+Description: Theft",claim_form
+"CLAIM SUBMISSION
+Claim Number: CL-86681
+Policy Holder: John Williams
+Incident Date: 2022-12-28
+Damage: Theft",claim_form
+"CLAIM SUBMISSION
+Claim Number: IC-23571
+Policy Holder: John Williams
+Incident Date: 2023-04-21
+Damage: Fire damage",claim_form
+"STATEMENT OF ACCOUNT
+Invoice: INV-16826
+Amount Due: $619.90
+Issue Date: 2024-07-22
+Description: Medical services",invoice
+"INVOICE
+Invoice Number: INV-49007
+Amount: $870.35
+Services: Medical services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-57492
+Amount Due: $725.52
+Issue Date: 2020-09-16
+Description: Medical services",invoice
+"BILLING STATEMENT
+Account: INV-15129
+Total Due: $1,303.41
+Due Date: 2023-03-06",invoice
+"BILLING STATEMENT
+Account: INV-67559
+Total Due: $792.89
+Due Date: 2022-12-07",invoice
+"INVOICE
+Invoice Number: IC-53356
+Amount: $1,273.31
+Services: Vehicle repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-32156
+Amount Due: $813.16
+Issue Date: 2023-11-05
+Description: Medical services",invoice
+"INVOICE
+Invoice Number: INV-86237
+Amount: $937.95
+Services: Property repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-97992
+Amount Due: $689.45
+Issue Date: 2023-05-10
+Description: Vehicle repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-98187
+Amount Due: $708.12
+Issue Date: 2021-11-02
+Description: Property repairs",invoice
+"INVOICE
+Invoice Number: IC-09399
+Amount: $871.42
+Services: Property repairs",invoice
+"INVOICE
+Invoice Number: INV-74725
+Amount: $1,107.27
+Services: Property repairs",invoice
+"INVOICE
+Invoice Number: IC-23163
+Amount: $1,406.24
+Services: Vehicle repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-27240
+Amount Due: $775.98
+Issue Date: 2023-02-02
+Description: Legal services",invoice
+"BILLING STATEMENT
+Account: INV-60558
+Total Due: $826.87
+Due Date: 2023-04-02",invoice
+"INVOICE
+Invoice Number: IC-64878
+Amount: $516.90
+Services: Vehicle repairs",invoice
+"INVOICE
+Invoice Number: IC-02282
+Amount: $1,269.83
+Services: Medical services",invoice
+"BILLING STATEMENT
+Account: IC-74147
+Total Due: $585.71
+Due Date: 2021-12-30",invoice
+"BILLING STATEMENT
+Account: INV-50450
+Total Due: $1,008.66
+Due Date: 2024-11-30",invoice
+"INVOICE
+Invoice Number: INV-25508
+Amount: $1,139.14
+Services: Legal services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-93523
+Amount Due: $548.16
+Issue Date: 2020-02-04
+Description: Property repairs",invoice
+"INVOICE
+Invoice Number: INV-00932
+Amount: $635.61
+Services: Medical services",invoice
+"INVOICE
+Invoice Number: INV-50651
+Amount: $1,463.90
+Services: Vehicle repairs",invoice
+"BILLING STATEMENT
+Account: INV-50760
+Total Due: $1,227.83
+Due Date: 2022-08-05",invoice
+"INVOICE
+Invoice Number: IC-57012
+Amount: $984.88
+Services: Legal services",invoice
+"INVOICE
+Invoice Number: IC-33294
+Amount: $669.06
+Services: Vehicle repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-44139
+Amount Due: $1,247.86
+Issue Date: 2020-07-25
+Description: Medical services",invoice
+"INVOICE
+Invoice Number: INV-22727
+Amount: $1,493.01
+Services: Property repairs",invoice
+"BILLING STATEMENT
+Account: IC-21776
+Total Due: $1,045.54
+Due Date: 2021-04-18",invoice
+"BILLING STATEMENT
+Account: INV-56770
+Total Due: $1,385.11
+Due Date: 2020-10-17",invoice
+"INVOICE
+Invoice Number: IC-73751
+Amount: $1,220.91
+Services: Vehicle repairs",invoice
+"INVOICE
+Invoice Number: INV-82536
+Amount: $880.07
+Services: Medical services",invoice
+"BILLING STATEMENT
+Account: IC-49197
+Total Due: $1,233.47
+Due Date: 2023-07-20",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-41334
+Amount Due: $1,402.79
+Issue Date: 2020-12-25
+Description: Medical services",invoice
+"BILLING STATEMENT
+Account: IC-52669
+Total Due: $1,358.47
+Due Date: 2024-04-25",invoice
+"BILLING STATEMENT
+Account: IC-85419
+Total Due: $976.20
+Due Date: 2021-08-07",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-85096
+Amount Due: $566.03
+Issue Date: 2023-07-03
+Description: Legal services",invoice
+"BILLING STATEMENT
+Account: IC-88430
+Total Due: $915.92
+Due Date: 2024-01-23",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-89143
+Amount Due: $519.20
+Issue Date: 2023-02-20
+Description: Property repairs",invoice
+"BILLING STATEMENT
+Account: INV-78503
+Total Due: $612.42
+Due Date: 2023-06-05",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-06599
+Amount Due: $1,429.47
+Issue Date: 2021-03-12
+Description: Medical services",invoice
+"INVOICE
+Invoice Number: IC-55618
+Amount: $1,341.44
+Services: Medical services",invoice
+"BILLING STATEMENT
+Account: IC-55734
+Total Due: $1,294.34
+Due Date: 2023-12-08",invoice
+"BILLING STATEMENT
+Account: IC-75454
+Total Due: $1,305.03
+Due Date: 2021-04-09",invoice
+"INVOICE
+Invoice Number: INV-64515
+Amount: $635.81
+Services: Property repairs",invoice
+"INVOICE
+Invoice Number: IC-29679
+Amount: $1,382.60
+Services: Medical services",invoice
+"INVOICE
+Invoice Number: IC-20751
+Amount: $915.33
+Services: Legal services",invoice
+"INVOICE
+Invoice Number: IC-40740
+Amount: $1,275.28
+Services: Property repairs",invoice
+"BILLING STATEMENT
+Account: IC-67803
+Total Due: $727.46
+Due Date: 2023-03-23",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-18130
+Amount Due: $1,102.86
+Issue Date: 2024-12-06
+Description: Vehicle repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-95667
+Amount Due: $784.05
+Issue Date: 2020-05-22
+Description: Medical services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-81356
+Amount Due: $725.49
+Issue Date: 2021-06-10
+Description: Legal services",invoice
+"BILLING STATEMENT
+Account: INV-10225
+Total Due: $1,107.40
+Due Date: 2021-02-11",invoice
+"BILLING STATEMENT
+Account: INV-10991
+Total Due: $741.21
+Due Date: 2022-03-04",invoice
+"BILLING STATEMENT
+Account: INV-35721
+Total Due: $1,320.45
+Due Date: 2020-06-28",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-00585
+Amount Due: $587.92
+Issue Date: 2021-10-05
+Description: Medical services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-80026
+Amount Due: $996.37
+Issue Date: 2020-01-08
+Description: Medical services",invoice
+"INVOICE
+Invoice Number: IC-55079
+Amount: $826.12
+Services: Property repairs",invoice
+"BILLING STATEMENT
+Account: IC-19360
+Total Due: $1,314.54
+Due Date: 2024-01-29",invoice
+"INVOICE
+Invoice Number: INV-71106
+Amount: $866.82
+Services: Legal services",invoice
+"BILLING STATEMENT
+Account: IC-47270
+Total Due: $1,365.73
+Due Date: 2022-03-11",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-96812
+Amount Due: $1,493.85
+Issue Date: 2021-06-10
+Description: Property repairs",invoice
+"INVOICE
+Invoice Number: IC-24159
+Amount: $1,285.51
+Services: Vehicle repairs",invoice
+"BILLING STATEMENT
+Account: INV-76438
+Total Due: $793.50
+Due Date: 2020-06-11",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-22326
+Amount Due: $708.22
+Issue Date: 2023-10-27
+Description: Property repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-89445
+Amount Due: $903.14
+Issue Date: 2021-04-19
+Description: Medical services",invoice
+"BILLING STATEMENT
+Account: INV-18076
+Total Due: $968.46
+Due Date: 2020-05-03",invoice
+"INVOICE
+Invoice Number: IC-28885
+Amount: $1,173.30
+Services: Vehicle repairs",invoice
+"BILLING STATEMENT
+Account: INV-23608
+Total Due: $1,177.90
+Due Date: 2022-09-16",invoice
+"BILLING STATEMENT
+Account: INV-36150
+Total Due: $1,273.92
+Due Date: 2020-03-03",invoice
+"BILLING STATEMENT
+Account: IC-80984
+Total Due: $816.09
+Due Date: 2021-10-17",invoice
+"INVOICE
+Invoice Number: IC-50806
+Amount: $701.98
+Services: Property repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-42199
+Amount Due: $599.42
+Issue Date: 2021-06-19
+Description: Vehicle repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-02886
+Amount Due: $758.69
+Issue Date: 2020-06-14
+Description: Medical services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-22261
+Amount Due: $685.81
+Issue Date: 2021-07-07
+Description: Medical services",invoice
+"INVOICE
+Invoice Number: IC-84208
+Amount: $1,347.73
+Services: Vehicle repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-48463
+Amount Due: $963.28
+Issue Date: 2020-11-14
+Description: Vehicle repairs",invoice
+"INVOICE
+Invoice Number: IC-17736
+Amount: $892.72
+Services: Vehicle repairs",invoice
+"BILLING STATEMENT
+Account: INV-38673
+Total Due: $919.96
+Due Date: 2022-08-16",invoice
+"INVOICE
+Invoice Number: IC-07529
+Amount: $1,267.89
+Services: Legal services",invoice
+"BILLING STATEMENT
+Account: INV-56203
+Total Due: $726.73
+Due Date: 2020-12-13",invoice
+"BILLING STATEMENT
+Account: IC-06148
+Total Due: $1,405.61
+Due Date: 2023-07-18",invoice
+"INVOICE
+Invoice Number: INV-28263
+Amount: $758.71
+Services: Legal services",invoice
+"BILLING STATEMENT
+Account: INV-10401
+Total Due: $1,086.08
+Due Date: 2024-12-17",invoice
+"BILLING STATEMENT
+Account: IC-43590
+Total Due: $920.92
+Due Date: 2023-10-16",invoice
+"BILLING STATEMENT
+Account: INV-43196
+Total Due: $1,003.72
+Due Date: 2021-09-19",invoice
+"INVOICE
+Invoice Number: INV-68751
+Amount: $750.79
+Services: Vehicle repairs",invoice
+"INVOICE
+Invoice Number: IC-28000
+Amount: $1,216.76
+Services: Legal services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-76758
+Amount Due: $851.94
+Issue Date: 2024-01-01
+Description: Vehicle repairs",invoice
+"INVOICE
+Invoice Number: INV-74637
+Amount: $858.30
+Services: Legal services",invoice
+"INVOICE
+Invoice Number: INV-85439
+Amount: $1,342.57
+Services: Property repairs",invoice
+"INVOICE
+Invoice Number: INV-06851
+Amount: $740.27
+Services: Medical services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-08507
+Amount Due: $540.01
+Issue Date: 2021-07-16
+Description: Property repairs",invoice
+"BILLING STATEMENT
+Account: IC-86929
+Total Due: $803.58
+Due Date: 2024-11-26",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-22627
+Amount Due: $1,265.08
+Issue Date: 2021-09-07
+Description: Medical services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-10709
+Amount Due: $1,435.27
+Issue Date: 2024-06-18
+Description: Medical services",invoice
+"INVOICE
+Invoice Number: IC-34179
+Amount: $930.97
+Services: Property repairs",invoice
+"STATEMENT OF ACCOUNT
+Invoice: IC-08671
+Amount Due: $1,388.21
+Issue Date: 2020-12-30
+Description: Medical services",invoice
+"STATEMENT OF ACCOUNT
+Invoice: INV-08840
+Amount Due: $860.05
+Issue Date: 2020-04-01
+Description: Vehicle repairs",invoice
+"INVOICE
+Invoice Number: INV-17769
+Amount: $1,191.11
+Services: Vehicle repairs",invoice
+"LEGAL NOTICE
+Reference: LEG-62221
+Date: 2023-02-07
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-03003
+Date: 2022-08-21
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-21632
+Dear Sir/Madam,
+We represent Lana Baker in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-44525
+Date: 2020-03-28
+We are pleased to offer a settlement amount of $1,416.53...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-18233
+Date: 2024-02-19
+We are pleased to offer a settlement amount of $831.57...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-64360
+Date: 2021-10-08
+We are pleased to offer a settlement amount of $1,392.75...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-69790...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-47507
+Dear Sir/Madam,
+We represent Anna Williams in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-74023
+Date: 2021-05-03
+We are pleased to offer a settlement amount of $1,217.87...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-19178
+Date: 2021-04-10
+We are pleased to offer a settlement amount of $1,272.45...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-63863
+Date: 2024-12-02
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-87006...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-40761
+Date: 2020-11-27
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-04749...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-37933...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-23567
+Date: 2021-06-12
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-06362
+Date: 2023-08-28
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-59940
+Date: 2023-02-02
+We are pleased to offer a settlement amount of $1,023.16...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-13604...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-20966
+Date: 2023-05-25
+We are pleased to offer a settlement amount of $1,219.53...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-35960...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-41959
+Date: 2021-03-25
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-86961
+Dear Sir/Madam,
+We represent Robert Jones in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-11022
+Date: 2022-06-21
+We are pleased to offer a settlement amount of $1,491.74...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-94966
+Dear Sir/Madam,
+We represent Anna Davis in the matter of the insurance claim...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-84705
+Date: 2024-12-20
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-94006
+Dear Sir/Madam,
+We represent Ilan Smith in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-50922
+Dear Sir/Madam,
+We represent John Smith in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-56403
+Dear Sir/Madam,
+We represent Lana Smith in the matter of the insurance claim...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-66659
+Date: 2022-01-12
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-69837...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-30047
+Date: 2022-12-01
+We are pleased to offer a settlement amount of $1,205.22...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-11872
+Date: 2020-04-14
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-98508
+Date: 2023-10-04
+We are pleased to offer a settlement amount of $1,261.87...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-69266
+Date: 2020-01-05
+We are pleased to offer a settlement amount of $908.98...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-55403
+Date: 2023-12-19
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-44929
+Dear Sir/Madam,
+We represent Anna Baker in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-69132
+Date: 2024-11-16
+We are pleased to offer a settlement amount of $891.53...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-12010...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-49403
+Dear Sir/Madam,
+We represent Ilan Smith in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-81527
+Dear Sir/Madam,
+We represent Anna Jones in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-69041
+Date: 2020-07-10
+We are pleased to offer a settlement amount of $1,194.14...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-90987...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-59686
+Date: 2021-03-07
+We are pleased to offer a settlement amount of $735.60...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-13357
+Date: 2021-11-08
+We are pleased to offer a settlement amount of $1,477.91...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-51287
+Dear Sir/Madam,
+We represent Lana Baker in the matter of the insurance claim...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-58937...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-29917
+Date: 2024-09-10
+We are pleased to offer a settlement amount of $820.15...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-66307...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-20192
+Date: 2024-10-12
+We are pleased to offer a settlement amount of $959.48...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-29826
+Date: 2022-03-19
+We are pleased to offer a settlement amount of $1,050.64...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-87337...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-02452...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-61261...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-57480
+Dear Sir/Madam,
+We represent Anna Davis in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-34619
+Date: 2024-12-14
+We are pleased to offer a settlement amount of $1,010.36...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-37721...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-47179
+Dear Sir/Madam,
+We represent Lana Davis in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-73378
+Dear Sir/Madam,
+We represent Lana Jones in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-96187
+Dear Sir/Madam,
+We represent Robert Smith in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-93369
+Date: 2022-02-27
+We are pleased to offer a settlement amount of $886.05...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-96236
+Date: 2020-07-13
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-82216
+Date: 2023-05-02
+We are pleased to offer a settlement amount of $541.77...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-82946...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-79803
+Dear Sir/Madam,
+We represent Lana Williams in the matter of the insurance claim...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-31249
+Date: 2020-01-12
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-93635
+Dear Sir/Madam,
+We represent Ilan Smith in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-77732
+Date: 2022-02-14
+We are pleased to offer a settlement amount of $676.28...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-54934
+Date: 2020-09-04
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-04239
+Dear Sir/Madam,
+We represent Ilan Baker in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-47475
+Dear Sir/Madam,
+We represent Ilan Jones in the matter of the insurance claim...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-13572...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-12179
+Date: 2023-09-21
+We are pleased to offer a settlement amount of $691.73...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-54557
+Date: 2020-04-03
+We are pleased to offer a settlement amount of $1,420.53...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-43052
+Date: 2020-10-30
+We are pleased to offer a settlement amount of $673.76...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-21439
+Date: 2021-05-21
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-63829
+Dear Sir/Madam,
+We represent John Davis in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-46054
+Dear Sir/Madam,
+We represent Anna Jones in the matter of the insurance claim...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-62451
+Date: 2021-02-02
+We are pleased to offer a settlement amount of $1,277.62...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-62185
+Dear Sir/Madam,
+We represent Ilan Williams in the matter of the insurance claim...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-48123...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-50436
+Date: 2021-08-20
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LEG-30246
+Date: 2024-02-26
+We are pleased to offer a settlement amount of $645.40...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-72055
+Date: 2021-09-27
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-00715
+Dear Sir/Madam,
+We represent John Smith in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-65918
+Dear Sir/Madam,
+We represent Robert Smith in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-23895
+Dear Sir/Madam,
+We represent Ilan Jones in the matter of the insurance claim...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LEG-75393
+Dear Sir/Madam,
+We represent Anna Davis in the matter of the insurance claim...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-76457
+Date: 2020-12-20
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-49216
+Date: 2024-08-26
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"SETTLEMENT OFFER
+Claim Number: LC-93194
+Date: 2024-08-16
+We are pleased to offer a settlement amount of $596.57...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-06425
+Date: 2024-02-18
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-91428
+Date: 2023-06-21
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"LEGAL NOTICE
+Reference: LEG-17728
+Date: 2021-06-08
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LC-47275...",legal_correspondence
+"ATTORNEY CORRESPONDENCE
+Re: Claim LC-98127
+Dear Sir/Madam,
+We represent John Davis in the matter of the insurance claim...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-48893
+Date: 2023-12-29
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-59097...",legal_correspondence
+"To Whom It May Concern,
+We are writing regarding our recent claim submission for policy LEG-16673...",legal_correspondence
+"LEGAL NOTICE
+Reference: LC-01667
+Date: 2021-05-15
+This letter confirms the receipt of coverage and outlines the terms...",legal_correspondence
+"HEALTH ASSESSMENT
+Patient ID: MR-33942
+Name: Anna Smith
+Assessment Date: 2020-10-09
+Diagnosis: Normal examination",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-49098
+Name: Lana Jones
+Assessment Date: 2022-09-08
+Diagnosis: Normal examination",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-22431
+Patient: Anna Davis
+Treatment Date: 2022-08-22
+Procedures: Soft tissue injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-28986
+Patient: Lana Baker
+Treatment Date: 2021-02-01
+Procedures: Normal examination",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-37047
+Name: Ilan Baker
+Assessment Date: 2020-07-05
+Diagnosis: Normal examination",medical_report
+"MEDICAL REPORT
+HPW Number: MR-88045
+Patient: Ilan Davis
+Diagnosis: Soft tissue injury
+Treatment: Physical therapy",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-46149
+Name: Anna Jones
+Assessment Date: 2020-04-30
+Diagnosis: Whiplash injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-96707
+Patient: Robert Baker
+Treatment Date: 2023-01-09
+Procedures: Soft tissue injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Ilan Williams
+Findings: Normal examination
+Date: 2020-02-24",medical_report
+"MEDICAL REPORT
+HPW Number: MR-47722
+Patient: Lana Jones
+Diagnosis: Normal examination
+Treatment: Physical therapy",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-63999
+Name: Ilan Smith
+Assessment Date: 2024-11-07
+Diagnosis: Whiplash injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Davis
+Findings: Fractured arm
+Date: 2023-10-26",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Robert Davis
+Findings: Fractured arm
+Date: 2020-02-04",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Davis
+Findings: Fractured arm
+Date: 2023-12-05",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-04266
+Patient: Lana Baker
+Treatment Date: 2024-05-11
+Procedures: Whiplash injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-55023
+Patient: Lana Williams
+Treatment Date: 2023-02-12
+Procedures: Normal examination",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Davis
+Findings: Soft tissue injury
+Date: 2022-05-30",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Robert Baker
+Findings: Whiplash injury
+Date: 2023-11-03",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-22937
+Patient: Robert Smith
+Treatment Date: 2024-11-24
+Procedures: Whiplash injury",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-91477
+Name: Anna Williams
+Assessment Date: 2020-05-30
+Diagnosis: Soft tissue injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-61700
+Patient: Robert Jones
+Treatment Date: 2021-10-15
+Procedures: Soft tissue injury",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-56163
+Name: Robert Jones
+Assessment Date: 2023-07-03
+Diagnosis: Whiplash injury",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-57731
+Name: Anna Smith
+Assessment Date: 2022-06-14
+Diagnosis: Whiplash injury",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-73901
+Name: Ilan Williams
+Assessment Date: 2021-08-18
+Diagnosis: Soft tissue injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Davis
+Findings: Fractured arm
+Date: 2022-06-02",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: John Davis
+Findings: Soft tissue injury
+Date: 2024-08-14",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-77575
+Name: Ilan Smith
+Assessment Date: 2021-10-02
+Diagnosis: Whiplash injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-79449
+Patient: Anna Jones
+Treatment Date: 2024-11-16
+Procedures: Soft tissue injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Jones
+Findings: Soft tissue injury
+Date: 2021-12-06",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-65770
+Name: Lana Williams
+Assessment Date: 2022-12-26
+Diagnosis: Normal examination",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-71625
+Patient: John Davis
+Treatment Date: 2023-09-19
+Procedures: Normal examination",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-72108
+Name: Anna Baker
+Assessment Date: 2024-08-17
+Diagnosis: Soft tissue injury",medical_report
+"MEDICAL REPORT
+HPW Number: MED-83261
+Patient: John Baker
+Diagnosis: Normal examination
+Treatment: Physical therapy",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-23472
+Patient: John Baker
+Treatment Date: 2023-08-24
+Procedures: Fractured arm",medical_report
+"MEDICAL REPORT
+HPW Number: MED-36804
+Patient: Ilan Jones
+Diagnosis: Normal examination
+Treatment: Physical therapy",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-90934
+Name: Lana Jones
+Assessment Date: 2023-11-30
+Diagnosis: Normal examination",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Ilan Davis
+Findings: Normal examination
+Date: 2022-09-29",medical_report
+"MEDICAL REPORT
+HPW Number: MED-57281
+Patient: Ilan Davis
+Diagnosis: Whiplash injury
+Treatment: Physical therapy",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Williams
+Findings: Normal examination
+Date: 2020-12-29",medical_report
+"MEDICAL REPORT
+HPW Number: MR-13906
+Patient: Anna Smith
+Diagnosis: Whiplash injury
+Treatment: Physical therapy",medical_report
+"MEDICAL REPORT
+HPW Number: MED-78300
+Patient: Lana Baker
+Diagnosis: Whiplash injury
+Treatment: Physical therapy",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-90334
+Patient: John Jones
+Treatment Date: 2024-12-21
+Procedures: Fractured arm",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-44304
+Patient: Anna Smith
+Treatment Date: 2022-08-29
+Procedures: Whiplash injury",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-21878
+Name: Anna Smith
+Assessment Date: 2024-03-24
+Diagnosis: Soft tissue injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-80481
+Patient: Lana Williams
+Treatment Date: 2021-03-13
+Procedures: Whiplash injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Ilan Davis
+Findings: Fractured arm
+Date: 2022-08-21",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Jones
+Findings: Normal examination
+Date: 2021-04-11",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-92589
+Name: Anna Davis
+Assessment Date: 2022-01-25
+Diagnosis: Fractured arm",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-49723
+Patient: Ilan Jones
+Treatment Date: 2023-04-27
+Procedures: Normal examination",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-13544
+Name: Ilan Williams
+Assessment Date: 2020-06-10
+Diagnosis: Whiplash injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-19741
+Patient: John Williams
+Treatment Date: 2022-08-16
+Procedures: Normal examination",medical_report
+"MEDICAL REPORT
+HPW Number: MED-47051
+Patient: Ilan Jones
+Diagnosis: Whiplash injury
+Treatment: Physical therapy",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-07753
+Patient: Anna Smith
+Treatment Date: 2023-01-01
+Procedures: Normal examination",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-84488
+Patient: John Smith
+Treatment Date: 2021-07-29
+Procedures: Fractured arm",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Baker
+Findings: Fractured arm
+Date: 2021-08-10",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-92829
+Name: Lana Baker
+Assessment Date: 2020-07-13
+Diagnosis: Fractured arm",medical_report
+"MEDICAL REPORT
+HPW Number: MR-03063
+Patient: Anna Davis
+Diagnosis: Fractured arm
+Treatment: Physical therapy",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Ilan Baker
+Findings: Soft tissue injury
+Date: 2023-12-05",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-23990
+Name: Ilan Williams
+Assessment Date: 2020-06-30
+Diagnosis: Soft tissue injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-47960
+Patient: Lana Davis
+Treatment Date: 2020-02-06
+Procedures: Soft tissue injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Lana Jones
+Findings: Soft tissue injury
+Date: 2022-03-05",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Davis
+Findings: Normal examination
+Date: 2023-10-22",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-99696
+Name: Ilan Davis
+Assessment Date: 2022-11-16
+Diagnosis: Normal examination",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Lana Davis
+Findings: Soft tissue injury
+Date: 2021-11-07",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-39543
+Name: Robert Davis
+Assessment Date: 2020-10-03
+Diagnosis: Soft tissue injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Lana Jones
+Findings: Normal examination
+Date: 2021-09-12",medical_report
+"MEDICAL REPORT
+HPW Number: MR-70480
+Patient: Anna Davis
+Diagnosis: Whiplash injury
+Treatment: Physical therapy",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Robert Jones
+Findings: Soft tissue injury
+Date: 2021-08-17",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-58384
+Name: Lana Williams
+Assessment Date: 2023-05-23
+Diagnosis: Whiplash injury",medical_report
+"MEDICAL REPORT
+HPW Number: MR-17958
+Patient: Ilan Smith
+Diagnosis: Soft tissue injury
+Treatment: Physical therapy",medical_report
+"MEDICAL REPORT
+HPW Number: MED-82484
+Patient: Robert Davis
+Diagnosis: Soft tissue injury
+Treatment: Physical therapy",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-36531
+Patient: John Williams
+Treatment Date: 2020-02-04
+Procedures: Whiplash injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: John Williams
+Findings: Soft tissue injury
+Date: 2022-08-17",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-32630
+Name: Lana Williams
+Assessment Date: 2024-07-22
+Diagnosis: Fractured arm",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-87275
+Patient: Anna Smith
+Treatment Date: 2024-11-29
+Procedures: Normal examination",medical_report
+"MEDICAL REPORT
+HPW Number: MED-22367
+Patient: Robert Williams
+Diagnosis: Normal examination
+Treatment: Physical therapy",medical_report
+"MEDICAL REPORT
+HPW Number: MED-89302
+Patient: John Smith
+Diagnosis: Soft tissue injury
+Treatment: Physical therapy",medical_report
+"MEDICAL REPORT
+HPW Number: MR-01388
+Patient: Lana Davis
+Diagnosis: Soft tissue injury
+Treatment: Physical therapy",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: John Davis
+Findings: Fractured arm
+Date: 2022-06-17",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-34535
+Patient: Ilan Baker
+Treatment Date: 2023-07-19
+Procedures: Normal examination",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MED-01963
+Name: Robert Baker
+Assessment Date: 2020-09-01
+Diagnosis: Fractured arm",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Anna Baker
+Findings: Fractured arm
+Date: 2024-10-08",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Robert Jones
+Findings: Fractured arm
+Date: 2021-02-21",medical_report
+"MEDICAL REPORT
+HPW Number: MED-69318
+Patient: Anna Williams
+Diagnosis: Soft tissue injury
+Treatment: Physical therapy",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: John Baker
+Findings: Normal examination
+Date: 2024-10-31",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-35242
+Patient: Robert Smith
+Treatment Date: 2024-08-02
+Procedures: Whiplash injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: John Baker
+Findings: Whiplash injury
+Date: 2023-12-12",medical_report
+"MEDICAL REPORT
+HPW Number: MED-21281
+Patient: Anna Davis
+Diagnosis: Normal examination
+Treatment: Physical therapy",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: John Smith
+Findings: Normal examination
+Date: 2021-08-16",medical_report
+"MEDICAL REPORT
+HPW Number: MED-78371
+Patient: Ilan Smith
+Diagnosis: Soft tissue injury
+Treatment: Physical therapy",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-09803
+Patient: Ilan Williams
+Treatment Date: 2020-05-17
+Procedures: Whiplash injury",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Lana Jones
+Findings: Fractured arm
+Date: 2022-12-31",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-64693
+Name: John Baker
+Assessment Date: 2021-08-07
+Diagnosis: Fractured arm",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-68323
+Patient: John Williams
+Treatment Date: 2023-05-21
+Procedures: Soft tissue injury",medical_report
+"HEALTH ASSESSMENT
+Patient ID: MR-43661
+Name: Ilan Baker
+Assessment Date: 2021-10-19
+Diagnosis: Normal examination",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Ilan Baker
+Findings: Soft tissue injury
+Date: 2022-10-26",medical_report
+"MEDICAL REPORT
+HPW Number: MR-20924
+Patient: Lana Baker
+Diagnosis: Whiplash injury
+Treatment: Physical therapy",medical_report
+"TREATMENT SUMMARY
+Medical Record: MR-59404
+Patient: Robert Smith
+Treatment Date: 2023-02-19
+Procedures: Soft tissue injury",medical_report
+"TREATMENT SUMMARY
+Medical Record: MED-91605
+Patient: Lana Smith
+Treatment Date: 2023-08-29
+Procedures: Fractured arm",medical_report
+"MEDICAL EXAMINATION REPORT
+Patient: Ilan Jones
+Findings: Normal examination
+Date: 2020-02-03",medical_report
+"POLICY APPLICATION FORM
+Applicant: Anna Baker
+Policy Number: POL-70777
+Coverage Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Jones
+Application Date: 2020-10-16
+Reference: POL-24871",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Williams
+Policy Number: CV-09476
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Jones
+Policy Number: CV-00729
+Coverage Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Lana Smith
+Application Date: 2021-08-08
+Reference: CV-29476",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Anna Williams
+Submission Date: 2022-08-16
+Policy Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Anna Smith
+Application Date: 2024-07-05
+Reference: CV-69676",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Lana Jones
+Application Date: 2023-08-25
+Reference: POL-17801",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Baker
+Policy Number: POL-63355
+Coverage Type: Auto Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Davis
+Policy Number: CV-51792
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Baker
+Policy Number: POL-06940
+Coverage Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Anna Baker
+Submission Date: 2024-04-27
+Policy Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Jones
+Policy Number: CV-64353
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Davis
+Policy Number: POL-96391
+Coverage Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Lana Baker
+Application Date: 2022-03-26
+Reference: POL-95181",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Ilan Williams
+Application Date: 2022-05-21
+Reference: CV-54187",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Williams
+Application Date: 2022-07-21
+Reference: POL-74211",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Anna Davis
+Submission Date: 2023-02-01
+Policy Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: John Baker
+Submission Date: 2023-09-28
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Williams
+Application Date: 2020-11-16
+Reference: POL-04156",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Davis
+Policy Number: CV-38272
+Coverage Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Lana Williams
+Submission Date: 2023-06-10
+Policy Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Jones
+Policy Number: POL-64898
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Robert Smith
+Submission Date: 2021-04-12
+Policy Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Ilan Davis
+Policy Number: CV-41394
+Coverage Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: John Williams
+Submission Date: 2021-11-03
+Policy Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Davis
+Application Date: 2023-12-16
+Reference: POL-31449",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Williams
+Policy Number: POL-14962
+Coverage Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: John Davis
+Submission Date: 2022-11-25
+Policy Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Jones
+Policy Number: CV-12565
+Coverage Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Jones
+Application Date: 2022-01-04
+Reference: CV-51791",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Smith
+Policy Number: POL-03669
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Lana Smith
+Submission Date: 2023-11-07
+Policy Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Williams
+Application Date: 2022-06-25
+Reference: POL-77145",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Ilan Davis
+Application Date: 2024-07-02
+Reference: POL-87433",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Davis
+Application Date: 2022-07-23
+Reference: CV-27530",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Smith
+Policy Number: POL-66947
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Davis
+Policy Number: CV-75289
+Coverage Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Williams
+Application Date: 2024-10-28
+Reference: POL-46062",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Robert Davis
+Submission Date: 2021-11-21
+Policy Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Davis
+Application Date: 2022-10-19
+Reference: CV-20942",policy_form
+"POLICY APPLICATION FORM
+Applicant: Ilan Davis
+Policy Number: CV-29343
+Coverage Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Ilan Smith
+Application Date: 2023-05-13
+Reference: CV-36968",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Ilan Jones
+Application Date: 2023-08-25
+Reference: POL-73096",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Jones
+Application Date: 2022-06-11
+Reference: POL-33761",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Williams
+Application Date: 2024-08-05
+Reference: CV-59910",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Williams
+Policy Number: POL-85045
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Smith
+Policy Number: POL-37955
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Robert Davis
+Submission Date: 2024-10-21
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Lana Jones
+Application Date: 2020-02-27
+Reference: POL-90984",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Smith
+Policy Number: POL-15952
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: John Davis
+Submission Date: 2021-03-18
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Lana Jones
+Application Date: 2024-11-06
+Reference: POL-81756",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Davis
+Policy Number: CV-57423
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Jones
+Policy Number: POL-37080
+Coverage Type: Auto Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Jones
+Policy Number: POL-13521
+Coverage Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Davis
+Application Date: 2020-12-21
+Reference: POL-43817",policy_form
+"POLICY APPLICATION FORM
+Applicant: Ilan Williams
+Policy Number: CV-38434
+Coverage Type: Auto Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Smith
+Policy Number: CV-03392
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Robert Baker
+Submission Date: 2022-11-20
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Williams
+Application Date: 2024-02-25
+Reference: CV-55683",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Lana Baker
+Submission Date: 2021-10-13
+Policy Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Ilan Jones
+Submission Date: 2022-07-25
+Policy Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Davis
+Policy Number: CV-48046
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Jones
+Policy Number: POL-22623
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Jones
+Policy Number: CV-00755
+Coverage Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Ilan Smith
+Application Date: 2021-11-30
+Reference: POL-22716",policy_form
+"COVERAGE APPLICATION
+Applicant Name: John Davis
+Submission Date: 2022-01-26
+Policy Type: Auto Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Williams
+Policy Number: CV-86513
+Coverage Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: John Williams
+Submission Date: 2024-01-02
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Williams
+Application Date: 2022-06-22
+Reference: POL-94666",policy_form
+"POLICY APPLICATION FORM
+Applicant: Robert Davis
+Policy Number: CV-96394
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Ilan Williams
+Submission Date: 2020-04-23
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Baker
+Application Date: 2024-01-11
+Reference: CV-95136",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Smith
+Policy Number: CV-85100
+Coverage Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Smith
+Policy Number: POL-27096
+Coverage Type: Auto Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: Ilan Smith
+Policy Number: POL-52531
+Coverage Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Davis
+Application Date: 2024-03-12
+Reference: POL-06722",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Williams
+Application Date: 2023-11-16
+Reference: POL-30667",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Baker
+Policy Number: POL-48316
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Anna Smith
+Submission Date: 2021-12-04
+Policy Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Lana Smith
+Submission Date: 2024-08-07
+Policy Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Anna Baker
+Submission Date: 2021-01-22
+Policy Type: Homeowners Insurance",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Baker
+Policy Number: CV-46323
+Coverage Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Ilan Smith
+Application Date: 2021-03-18
+Reference: CV-17606",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Baker
+Application Date: 2021-07-23
+Reference: CV-30990",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Baker
+Application Date: 2021-12-16
+Reference: POL-45040",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Jones
+Policy Number: CV-89577
+Coverage Type: Homeowners Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Ilan Davis
+Submission Date: 2020-09-26
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Davis
+Application Date: 2024-10-13
+Reference: POL-75509",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Davis
+Policy Number: CV-49343
+Coverage Type: Auto Insurance",policy_form
+"COVERAGE APPLICATION
+Applicant Name: Robert Davis
+Submission Date: 2022-03-11
+Policy Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Lana Baker
+Application Date: 2023-04-03
+Reference: CV-50101",policy_form
+"POLICY APPLICATION FORM
+Applicant: Anna Jones
+Policy Number: POL-08999
+Coverage Type: Homeowners Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: John Baker
+Application Date: 2023-03-03
+Reference: CV-11952",policy_form
+"POLICY APPLICATION FORM
+Applicant: Lana Jones
+Policy Number: CV-02595
+Coverage Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Ilan Jones
+Application Date: 2023-05-12
+Reference: CV-81863",policy_form
+"POLICY APPLICATION FORM
+Applicant: John Baker
+Policy Number: POL-16134
+Coverage Type: Auto Insurance",policy_form
+"INSURANCE APPLICATION
+Proposed Insured: Robert Williams
+Application Date: 2020-08-23
+Reference: CV-93875",policy_form
+"POLICY APPLICATION FORM
+Applicant: Ilan Williams
+Policy Number: POL-57522
+Coverage Type: Homeowners Insurance",policy_form
+"INCIDENT REPORT
+Report Number: PR-96800
+Date: 2021-02-06
+Incident Type: Theft incident",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-74510
+Reporting Officer: Lana Davis
+Incident Details: Vandalism report
+Date: 2021-10-17",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-92102
+Reporting Officer: Lana Williams
+Incident Details: Traffic collision
+Date: 2021-01-14",police_report
+"INCIDENT REPORT
+Report Number: IR-73031
+Date: 2024-06-12
+Incident Type: Theft incident",police_report
+"POLICE REPORT
+Case Number: PR-62144
+Incident: Theft incident
+Officer: Ilan Baker",police_report
+"POLICE REPORT
+Case Number: IR-54136
+Incident: Traffic collision
+Officer: Anna Davis",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-00957
+Reporting Officer: Anna Jones
+Incident Details: Theft incident
+Date: 2021-03-19",police_report
+"INCIDENT REPORT
+Report Number: IR-53858
+Date: 2022-04-04
+Incident Type: Theft incident",police_report
+"INCIDENT REPORT
+Report Number: IR-89646
+Date: 2020-05-03
+Incident Type: Theft incident",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-95840
+Reporting Officer: Anna Baker
+Incident Details: Traffic collision
+Date: 2022-07-28",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-60250
+Reporting Officer: John Jones
+Incident Details: Traffic collision
+Date: 2023-05-25",police_report
+"INCIDENT REPORT
+Report Number: IR-09426
+Date: 2024-10-03
+Incident Type: Theft incident",police_report
+"INCIDENT REPORT
+Report Number: IR-28726
+Date: 2020-12-01
+Incident Type: Vandalism report",police_report
+"POLICE REPORT
+Case Number: IR-23668
+Incident: Vandalism report
+Officer: Ilan Smith",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-91752
+Reporting Officer: Robert Williams
+Incident Details: Vandalism report
+Date: 2021-07-21",police_report
+"INCIDENT REPORT
+Report Number: IR-62045
+Date: 2023-09-29
+Incident Type: Traffic collision",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-25908
+Reporting Officer: Ilan Jones
+Incident Details: Vandalism report
+Date: 2020-04-02",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-27315
+Reporting Officer: John Baker
+Incident Details: Vandalism report
+Date: 2020-10-18",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-71329
+Reporting Officer: Anna Baker
+Incident Details: Vandalism report
+Date: 2022-12-12",police_report
+"POLICE REPORT
+Case Number: IR-02317
+Incident: Vandalism report
+Officer: Robert Baker",police_report
+"POLICE REPORT
+Case Number: PR-11353
+Incident: Theft incident
+Officer: Anna Jones",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-89977
+Reporting Officer: Ilan Davis
+Incident Details: Theft incident
+Date: 2021-07-09",police_report
+"INCIDENT REPORT
+Report Number: IR-99492
+Date: 2021-08-16
+Incident Type: Theft incident",police_report
+"POLICE REPORT
+Case Number: PR-24408
+Incident: Theft incident
+Officer: Lana Davis",police_report
+"INCIDENT REPORT
+Report Number: PR-78945
+Date: 2024-10-08
+Incident Type: Theft incident",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-84328
+Reporting Officer: Lana Baker
+Incident Details: Vandalism report
+Date: 2021-06-11",police_report
+"POLICE REPORT
+Case Number: IR-49484
+Incident: Traffic collision
+Officer: Lana Smith",police_report
+"INCIDENT REPORT
+Report Number: IR-44918
+Date: 2022-04-26
+Incident Type: Vandalism report",police_report
+"INCIDENT REPORT
+Report Number: IR-43245
+Date: 2021-07-27
+Incident Type: Vandalism report",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-13524
+Reporting Officer: John Davis
+Incident Details: Traffic collision
+Date: 2021-07-16",police_report
+"POLICE REPORT
+Case Number: PR-85859
+Incident: Vandalism report
+Officer: Robert Smith",police_report
+"INCIDENT REPORT
+Report Number: IR-59413
+Date: 2024-12-02
+Incident Type: Traffic collision",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-14477
+Reporting Officer: John Williams
+Incident Details: Vandalism report
+Date: 2021-06-13",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-61026
+Reporting Officer: Lana Jones
+Incident Details: Theft incident
+Date: 2020-02-18",police_report
+"INCIDENT REPORT
+Report Number: IR-55116
+Date: 2023-08-21
+Incident Type: Theft incident",police_report
+"INCIDENT REPORT
+Report Number: IR-00679
+Date: 2024-04-13
+Incident Type: Traffic collision",police_report
+"INCIDENT REPORT
+Report Number: IR-16563
+Date: 2020-02-25
+Incident Type: Vandalism report",police_report
+"INCIDENT REPORT
+Report Number: IR-95910
+Date: 2021-10-05
+Incident Type: Traffic collision",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-68063
+Reporting Officer: Anna Davis
+Incident Details: Theft incident
+Date: 2024-06-09",police_report
+"INCIDENT REPORT
+Report Number: PR-63156
+Date: 2021-10-21
+Incident Type: Vandalism report",police_report
+"POLICE REPORT
+Case Number: PR-51497
+Incident: Traffic collision
+Officer: Anna Jones",police_report
+"INCIDENT REPORT
+Report Number: PR-39357
+Date: 2020-05-23
+Incident Type: Traffic collision",police_report
+"POLICE REPORT
+Case Number: IR-19649
+Incident: Vandalism report
+Officer: Anna Davis",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-19122
+Reporting Officer: Lana Baker
+Incident Details: Vandalism report
+Date: 2022-01-29",police_report
+"POLICE REPORT
+Case Number: IR-60796
+Incident: Vandalism report
+Officer: John Baker",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-57667
+Reporting Officer: John Jones
+Incident Details: Theft incident
+Date: 2023-08-13",police_report
+"INCIDENT REPORT
+Report Number: IR-70221
+Date: 2022-08-25
+Incident Type: Vandalism report",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-96600
+Reporting Officer: Robert Davis
+Incident Details: Vandalism report
+Date: 2020-10-21",police_report
+"INCIDENT REPORT
+Report Number: PR-20314
+Date: 2022-05-13
+Incident Type: Vandalism report",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-62151
+Reporting Officer: Ilan Baker
+Incident Details: Traffic collision
+Date: 2023-12-01",police_report
+"POLICE REPORT
+Case Number: IR-46244
+Incident: Theft incident
+Officer: John Baker",police_report
+"POLICE REPORT
+Case Number: IR-79118
+Incident: Traffic collision
+Officer: Lana Davis",police_report
+"INCIDENT REPORT
+Report Number: IR-44659
+Date: 2022-12-18
+Incident Type: Vandalism report",police_report
+"INCIDENT REPORT
+Report Number: IR-34437
+Date: 2022-09-18
+Incident Type: Traffic collision",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-65071
+Reporting Officer: Ilan Baker
+Incident Details: Vandalism report
+Date: 2024-06-30",police_report
+"POLICE REPORT
+Case Number: PR-37234
+Incident: Theft incident
+Officer: Ilan Jones",police_report
+"INCIDENT REPORT
+Report Number: PR-27365
+Date: 2021-07-01
+Incident Type: Traffic collision",police_report
+"POLICE REPORT
+Case Number: PR-25505
+Incident: Theft incident
+Officer: John Jones",police_report
+"INCIDENT REPORT
+Report Number: IR-53030
+Date: 2021-01-29
+Incident Type: Vandalism report",police_report
+"POLICE REPORT
+Case Number: PR-76313
+Incident: Traffic collision
+Officer: Lana Jones",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-64472
+Reporting Officer: Lana Baker
+Incident Details: Vandalism report
+Date: 2022-08-18",police_report
+"POLICE REPORT
+Case Number: IR-53157
+Incident: Vandalism report
+Officer: Lana Williams",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-70406
+Reporting Officer: Robert Williams
+Incident Details: Traffic collision
+Date: 2024-10-06",police_report
+"INCIDENT REPORT
+Report Number: PR-83774
+Date: 2023-08-25
+Incident Type: Theft incident",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-77577
+Reporting Officer: Robert Baker
+Incident Details: Theft incident
+Date: 2022-08-08",police_report
+"POLICE REPORT
+Case Number: PR-24845
+Incident: Traffic collision
+Officer: Lana Williams",police_report
+"POLICE REPORT
+Case Number: IR-86603
+Incident: Traffic collision
+Officer: Ilan Davis",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-93743
+Reporting Officer: Robert Jones
+Incident Details: Traffic collision
+Date: 2020-01-02",police_report
+"INCIDENT REPORT
+Report Number: IR-29706
+Date: 2023-12-12
+Incident Type: Theft incident",police_report
+"POLICE REPORT
+Case Number: PR-30163
+Incident: Vandalism report
+Officer: Ilan Davis",police_report
+"INCIDENT REPORT
+Report Number: PR-00189
+Date: 2022-01-12
+Incident Type: Vandalism report",police_report
+"INCIDENT REPORT
+Report Number: PR-28660
+Date: 2023-11-26
+Incident Type: Vandalism report",police_report
+"INCIDENT REPORT
+Report Number: PR-41430
+Date: 2021-05-14
+Incident Type: Traffic collision",police_report
+"INCIDENT REPORT
+Report Number: PR-09297
+Date: 2023-01-22
+Incident Type: Theft incident",police_report
+"POLICE REPORT
+Case Number: PR-03376
+Incident: Vandalism report
+Officer: Ilan Davis",police_report
+"INCIDENT REPORT
+Report Number: PR-60945
+Date: 2020-02-14
+Incident Type: Theft incident",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-17848
+Reporting Officer: Anna Jones
+Incident Details: Theft incident
+Date: 2020-12-04",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-99439
+Reporting Officer: Lana Davis
+Incident Details: Vandalism report
+Date: 2023-02-28",police_report
+"INCIDENT REPORT
+Report Number: IR-02700
+Date: 2022-04-12
+Incident Type: Theft incident",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-60887
+Reporting Officer: Ilan Smith
+Incident Details: Traffic collision
+Date: 2022-06-30",police_report
+"INCIDENT REPORT
+Report Number: PR-04465
+Date: 2023-07-21
+Incident Type: Vandalism report",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-77997
+Reporting Officer: John Davis
+Incident Details: Vandalism report
+Date: 2021-06-21",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-05858
+Reporting Officer: John Davis
+Incident Details: Traffic collision
+Date: 2024-04-22",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-25320
+Reporting Officer: Anna Baker
+Incident Details: Vandalism report
+Date: 2024-12-31",police_report
+"POLICE REPORT
+Case Number: IR-27019
+Incident: Vandalism report
+Officer: Anna Smith",police_report
+"POLICE REPORT
+Case Number: IR-60595
+Incident: Vandalism report
+Officer: Lana Williams",police_report
+"INCIDENT REPORT
+Report Number: PR-09530
+Date: 2023-08-16
+Incident Type: Vandalism report",police_report
+"POLICE REPORT
+Case Number: IR-92778
+Incident: Vandalism report
+Officer: Anna Williams",police_report
+"POLICE REPORT
+Case Number: PR-73693
+Incident: Vandalism report
+Officer: Ilan Baker",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-33011
+Reporting Officer: Lana Jones
+Incident Details: Vandalism report
+Date: 2021-02-23",police_report
+"INCIDENT REPORT
+Report Number: IR-41168
+Date: 2022-08-23
+Incident Type: Vandalism report",police_report
+"INCIDENT REPORT
+Report Number: IR-72234
+Date: 2023-09-27
+Incident Type: Traffic collision",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-18887
+Reporting Officer: Robert Williams
+Incident Details: Vandalism report
+Date: 2023-04-17",police_report
+"LAW ENFORCEMENT REPORT
+Case: IR-62465
+Reporting Officer: Lana Smith
+Incident Details: Theft incident
+Date: 2022-05-14",police_report
+"POLICE REPORT
+Case Number: PR-86647
+Incident: Traffic collision
+Officer: Lana Williams",police_report
+"POLICE REPORT
+Case Number: PR-50576
+Incident: Traffic collision
+Officer: Ilan Baker",police_report
+"INCIDENT REPORT
+Report Number: PR-33202
+Date: 2021-09-27
+Incident Type: Theft incident",police_report
+"INCIDENT REPORT
+Report Number: IR-84780
+Date: 2022-12-06
+Incident Type: Vandalism report",police_report
+"INCIDENT REPORT
+Report Number: PR-09511
+Date: 2022-01-22
+Incident Type: Theft incident",police_report
+"LAW ENFORCEMENT REPORT
+Case: PR-99132
+Reporting Officer: John Davis
+Incident Details: Theft incident
+Date: 2020-03-01",police_report

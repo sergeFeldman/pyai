@@ -1,0 +1,24 @@
+model:
+  name: "distilbert-base-uncased"
+  num_labels: 6
+  max_length: 512
+
+training:
+  batch_size: 16
+  epochs: 5
+  learning_rate: 3e-5
+  out_path: "./models/insurance_classifier"
+
+data:
+  in_data_path: "./data/in/insurance_docs.csv"
+  out_data_path: "./data/out/"
+  test_size: 0.2
+  random_state: 42
+
+classes:
+  - "claim_form"
+  - "invoice"
+  - "legal_correspondence"
+  - "medical_report"
+  - "police_report"
+  - "policy_form"
