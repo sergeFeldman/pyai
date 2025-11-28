@@ -1,0 +1,11 @@
+dgl
+matplotlib
+networkx
+numpy
+pandas
+plotly
+pyvis
+pyyaml
+scikit-learn
+torch>=1.9.0
+tqdm
