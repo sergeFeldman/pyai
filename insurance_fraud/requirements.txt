@@ -1,11 +1,16 @@
-dgl
-matplotlib
-networkx
-numpy
-pandas
-plotly
-pyvis
-pyyaml
-scikit-learn
-torch>=1.9.0
-tqdm
+# Requires Python 3.10.*
+
+dgl==2.0.0
+matplotlib>=3.7
+networkx>=3.4.*
+numpy==1.24.3
+pandas==2.3.3
+plotly>=5.18
+pyvis>=0.3.2
+pyyaml>=6.0
+scikit-learn==1.7.2
+setuptools==80.3.1
+torch==2.0.1
+torchvision==0.15.2
+torchaudio==2.0.2
+tqdm>=4.66

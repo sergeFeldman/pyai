@@ -57,8 +57,20 @@ class Claim:
     status: str
     is_fraud: bool = False
 
+    def __repr__(self):
+        return (f"Claim(claim_id='{self.claim_id}', "
+                f"claim_type='{self.claim_type}', "
+                f"customer_id='{self.customer_id}', "
+                f"amount={self.amount:.2f}, "
+                f"date='{self.date}', "
+                f"repair_shop='{self.repair_shop}', "
+                f"status='{self.status}', "
+                f"is_fraud={self.is_fraud})")
+
     def to_dict(self) -> dict:
-        """Convert to dictionary for compatibility with original code"""
+        """
+        Convert to dictionary for compatibility with original code.
+        """
         return {
             'claim_id': self.claim_id,
             'customer_id': self.customer_id,

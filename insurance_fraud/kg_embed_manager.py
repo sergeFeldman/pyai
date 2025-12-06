@@ -20,12 +20,12 @@ class EmbeddingManager(Configurable):
         super().__init__(config)
 
         self.model: Optional[nn.Module] = None
+        self.entity_emb: Optional[nn.Embedding] = None  # ADD THIS
         self.entity_embeddings: Optional[np.ndarray] = None
         self.relation_embeddings: Optional[np.ndarray] = None
         self.entity_mapping: Dict[str, int] = {}
         self.relation_mapping: Dict[str, int] = {}
         self.graph: Optional[DGLGraph] = None
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # Ensure directories exist.
         os.makedirs(self.config.data.data_path, exist_ok=True)
@@ -47,37 +47,28 @@ class EmbeddingManager(Configurable):
                 return False
 
             num_entities = len(self.entity_mapping)
-            num_relations = len(self.relation_mapping)  # FIXED: Use actual relation count
+            num_relations = len(self.relation_mapping)
+            print(f"Training on {self.graph.num_edges()} triples with {num_entities} entities and {num_relations} relations")
 
-            print(
-                f"Training on {self.graph.num_edges()} triples with {num_entities} entities and {num_relations} relations")
-
-            # Create model using DGL's implementations
+            # Create model using DGL's implementations.
             if kg_embed_config.model_name == 'DistMult':
-                self.model = dglnn.DistMult(
-                    num_entities,
-                    num_relations,  # FIXED: Use actual relation count
-                    kg_embed_config.hidden_dim
-                )
+                self.model = dglnn.DistMult(num_entities, num_relations, kg_embed_config.hidden_dim)
             else:  # TransE
-                self.model = dglnn.TransE(
-                    num_entities,
-                    num_relations,  # FIXED: Use actual relation count
-                    kg_embed_config.hidden_dim,
-                    kg_embed_config.gamma
-                )
+                self.model = dglnn.TransE(num_rels=num_relations, feats=kg_embed_config.hidden_dim, p=1)
 
-            self.model = self.model.to(self.device)
-            self.optimizer = optim.Adam(self.model.parameters(), lr=kg_embed_config.learning_rate)
+            # Add entity embeddings layer.
+            self.entity_emb = nn.Embedding(num_entities, kg_embed_config.hidden_dim)
 
-            print(
-                f"Created {kg_embed_config.model_name} model with {num_entities} entities and {num_relations} relations")
+            # Combine entity emb + model params.
+            self.optimizer = optim.Adam(
+                list(self.entity_emb.parameters()) + list(self.model.parameters()),
+                lr=kg_embed_config.learning_rate)
 
-            # Train the model using custom training loop
+            # Train the model using custom training loop.
             print("Starting training with DGL...")
             self._train_model(kg_embed_config.max_step)
 
-            # Extract and save embeddings
+            # Extract and save embeddings.
             self._extract_embeddings()
             self._write()
 
@@ -85,43 +76,54 @@ class EmbeddingManager(Configurable):
             return True
 
         except Exception as e:
-            print(f"Training failed: {e}")
+            print(f"Training failed: {str(e)}")  # Convert to string
+            import traceback
+            traceback.print_exc()  # Print full traceback
             return False
 
     def _train_model(self, max_steps: int):
-        """Custom training loop for DGL models."""
+        """
+        Custom training loop for DGL models.
+        """
+        kg_embed_config = self.config.kg_embedding
+
         self.model.train()
+        self.entity_emb.train()
 
         for step in range(max_steps):
             self.optimizer.zero_grad()
 
-            # Get edge data
+            # Get edge data.
             edges = torch.arange(self.graph.num_edges())
-            src, dst = self.graph.edges()
+            head, tail = self.graph.edges()
             rel = self.graph.edata['etype']
 
-            # Sample a batch
+            # Sample a batch.
             batch_size = min(1024, len(edges))
             batch_edges = edges[torch.randperm(len(edges))[:batch_size]]
 
-            batch_src = src[batch_edges]
-            batch_dst = dst[batch_edges]
+            batch_head = head[batch_edges]
+            batch_tail = tail[batch_edges]
             batch_rel = rel[batch_edges]
 
-            # Move to device
-            batch_src = batch_src.to(self.device)
-            batch_dst = batch_dst.to(self.device)
-            batch_rel = batch_rel.to(self.device)
+            # Get entity embeddings for the batch.
+            emb_head = self.entity_emb(batch_head)
+            emb_tail = self.entity_emb(batch_tail)
 
-            # Positive scores
-            pos_scores = self.model(batch_src, batch_rel, batch_dst)
+            # Generate positive and negative scores.
+            pos_scores = self.model(emb_head, emb_tail, batch_rel)
+            neg_head, neg_rel, neg_tail = self._generate_negative_samples(batch_head, batch_rel, batch_tail)
 
-            # Generate negative samples
-            neg_scores = self._generate_negative_scores(batch_src, batch_rel, batch_dst)
+            # Get embeddings for negative samples.
+            neg_emb_head = self.entity_emb(neg_head)
+            neg_emb_tail = self.entity_emb(neg_tail)
 
-            # Compute loss
-            if isinstance(self.model, dglnn.DistMult):
-                # DistMult uses BCE loss
+            # Generate negative scores.
+            neg_scores = self.model(neg_emb_head, neg_emb_tail, neg_rel)
+
+            # Compute loss.
+            if kg_embed_config.model_name == 'DistMult':
+                # DistMult uses BCE loss.
                 pos_labels = torch.ones_like(pos_scores)
                 neg_labels = torch.zeros_like(neg_scores)
 
@@ -131,7 +133,7 @@ class EmbeddingManager(Configurable):
                     neg_scores, neg_labels)
                 loss = (pos_loss + neg_loss) / 2
             else:
-                # TransE uses margin ranking loss
+                # TransE uses margin ranking loss.
                 loss = torch.clamp(neg_scores - pos_scores + self.config.kg_embedding.gamma, min=0).mean()
 
             loss.backward()
@@ -140,27 +142,28 @@ class EmbeddingManager(Configurable):
             if step % 100 == 0:
                 print(f"Step {step}/{max_steps}, Loss: {loss.item():.4f}")
 
-    def _generate_negative_scores(self, src, rel, dst):
-        """Generate negative samples and compute their scores."""
-        batch_size = src.size(0)
+    def _generate_negative_samples(self, head, rel, tail):
+        """
+        Generate negative samples and compute their scores.
+        """
+        batch_size = head.size(0)
 
-        # Corrupt either head or tail
+        # Corrupt either head or tail.
         corrupt_head = torch.rand(batch_size) > 0.5
-        neg_src = src.clone()
-        neg_dst = dst.clone()
+        neg_head = head.clone()
+        neg_tail = tail.clone()
+        neg_rel = rel.clone()
 
-        # Randomly replace heads or tails
-        num_corrupt_head = corrupt_head.sum()
-        num_corrupt_tail = batch_size - num_corrupt_head
+        # Randomly replace heads or tails.
+        num_entities = len(self.entity_mapping)
 
-        if num_corrupt_head > 0:
-            neg_src[corrupt_head] = torch.randint(
-                0, len(self.entity_mapping), (num_corrupt_head,), device=self.device)
-        if num_corrupt_tail > 0:
-            neg_dst[~corrupt_head] = torch.randint(
-                0, len(self.entity_mapping), (num_corrupt_tail,), device=self.device)
+        if corrupt_head.sum() > 0:
+            neg_head[corrupt_head] = torch.randint(0, num_entities, (corrupt_head.sum().item(),))
 
-        return self.model(neg_src, rel, neg_dst)
+        if (~corrupt_head).sum() > 0:
+            neg_tail[~corrupt_head] = torch.randint(0, num_entities, ((~corrupt_head).sum().item(),))
+
+        return neg_head, neg_rel, neg_tail
 
     def _load_knowledge_graph(self):
         """
@@ -177,28 +180,24 @@ class EmbeddingManager(Configurable):
                 return
 
             # Read mappings with original naming
-            self._read_mapping("entity")  # FIXED: Use original naming
-            self._read_mapping("relation")  # FIXED: Use original naming
+            self._read_mapping("entity")
+            self._read_mapping("relation")
 
-            # Create DGL graph from triples
+            # Create DGL graph from triples.
             triples = []
             with open(train_file, 'r') as f:
                 for line in f:
                     if line.strip():
                         head, relation, tail = line.strip().split('\t')
-                        triples.append((
-                            self.entity_mapping[head],
-                            self.relation_mapping[relation],
-                            self.entity_mapping[tail]
-                        ))
+                        triples.append((self.entity_mapping[head],
+                                        self.relation_mapping[relation],
+                                        self.entity_mapping[tail]))
 
-            # Create DGL graph
-            src = [t[0] for t in triples]
-            rel = [t[1] for t in triples]
-            dst = [t[2] for t in triples]
+            # Create DGL graph.
+            heads, relations, tails = map(list, zip(*triples))
 
-            self.graph = dgl.graph((src, dst), num_nodes=len(self.entity_mapping))
-            self.graph.edata['etype'] = torch.tensor(rel)
+            self.graph = dgl.graph((heads, tails), num_nodes=len(self.entity_mapping))
+            self.graph.edata['etype'] = torch.tensor(relations)
 
             print(f"Created DGL graph with {self.graph.num_nodes()} nodes and {self.graph.num_edges()} edges")
 
@@ -235,20 +234,30 @@ class EmbeddingManager(Configurable):
             return
 
         try:
-            # Extract entity embeddings
-            if hasattr(self.model, 'emb'):
-                self.entity_embeddings = self.model.emb.weight.data.cpu().numpy()
-            elif hasattr(self.model, 'entity_emb'):
-                self.entity_embeddings = self.model.entity_emb.weight.data.cpu().numpy()
+            if isinstance(self.model, dglnn.TransE):
+                # TransE: entity embeddings are in our separate layer
+                if self.entity_emb is not None:
+                    self.entity_embeddings = self.entity_emb.weight.data.cpu().numpy()
+                else:
+                    print("Warning: entity_emb is None for TransE")
+            else:
+                # DistMult: check model for entity embeddings
+                if hasattr(self.model, 'emb'):
+                    self.entity_embeddings = self.model.emb.weight.data.cpu().numpy()
+                elif hasattr(self.model, 'entity_emb'):
+                    self.entity_embeddings = self.model.entity_emb.weight.data.cpu().numpy()
+                else:
+                    print("Warning: Could not find entity embeddings in DistMult model")
 
-            # Extract relation embeddings
+            # Extract relation embeddings (TransE has rel_emb, DistMult has w_relation)
             if hasattr(self.model, 'w_relation'):
                 self.relation_embeddings = self.model.w_relation.weight.data.cpu().numpy()
             elif hasattr(self.model, 'rel_emb'):
                 self.relation_embeddings = self.model.rel_emb.weight.data.cpu().numpy()
+            else:
+                print("Warning: Could not find relation embeddings in model")
 
-            print(
-                f"Extracted {len(self.entity_embeddings)} entity embeddings and {len(self.relation_embeddings)} relation embeddings")
+            print(f"Extracted {len(self.entity_embeddings) if self.entity_embeddings is not None else 0} entity embeddings and {len(self.relation_embeddings) if self.relation_embeddings is not None else 0} relation embeddings")
 
         except Exception as e:
             print(f"Error extracting embeddings: {e}")

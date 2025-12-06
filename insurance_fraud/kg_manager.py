@@ -1,3 +1,4 @@
+from collections import defaultdict
 import networkx as nx
 import os
 
@@ -120,11 +121,7 @@ class KnowledgeGraphManager(Configurable):
         """
         Add relations based on shared phone numbers.
         """
-        phone_groups = {}
-        for customer in customers:
-            if customer['phone'] not in phone_groups:
-                phone_groups[customer['phone']] = []
-            phone_groups[customer['phone']].append(customer)
+        phone_groups = KnowledgeGraphManager._group_by_attr(customers, 'phone')
 
         # Add phone relation edges.
         edges_to_add = [
@@ -149,13 +146,9 @@ class KnowledgeGraphManager(Configurable):
         """
         Add relations based on shared addresses.
         """
-        address_groups = {}
-        for customer in customers:
-            if customer['address'] not in address_groups:
-                address_groups[customer['address']] = []
-            address_groups[customer['address']].append(customer)
+        address_groups = KnowledgeGraphManager._group_by_attr(customers, 'address')
 
-        # Add address relation edges
+        # Add address relation edges.
         edges_to_add = [
             (
                 customer_group[i]['customer_id'],
@@ -233,5 +226,12 @@ class KnowledgeGraphManager(Configurable):
             'total_edges': self.graph.number_of_edges(),
             'fraud_claims': len(fraud_claims),
             'normal_claims': len(normal_claims),
-            'fraud_ratio': len(fraud_claims) / (len(fraud_claims) + len(normal_claims))
+            'fraud_ratio': round(len(fraud_claims) / (len(fraud_claims) + len(normal_claims)), 2)
         }
+
+    @staticmethod
+    def _group_by_attr(input_list: list, attribute: str) -> dict:
+        grouped = defaultdict(list)
+        for item in input_list:
+            grouped[item[attribute]].append(item)
+        return dict(grouped)

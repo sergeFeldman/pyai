@@ -15,7 +15,7 @@ FRAUD_CLAIM_COUNT = 20
 # Data templates
 CUSTOMER_CONFIG = {
     "name_templates": ["Customer_{}", "Client_{}", "PolicyHolder_{}"],
-    "phone_templates": ["123-{:03d}", "718-{:03d}", "212-{:03d}"],
+    "phone_templates": ["123-{:03d}-{:04d}", "718-{:03d}-{:04d}", "212-{:03d}-{:04d}"],
     "address_templates": ["{} Main St", "{} Oak Ave", "{} Union Square", "{} Wilson Blvd"]
 }
 
@@ -79,12 +79,26 @@ def _create_customers() -> List[dm.Customer]:
     """
     Create customer data.
     """
+    # Calculate 5% of customers.
+    num_shared = max(2, int(CUSTOMER_COUNT * 0.05))
+
+    # Identify indexes of customers with shared phones and addresses.
+    phone_shared_idx = set(
+        np.random.choice(range(1, CUSTOMER_COUNT + 1), size=num_shared, replace=False))
+    address_shared_idx = set(
+        np.random.choice(range(1, CUSTOMER_COUNT + 1), size=num_shared, replace=False))
+
+    # Populate one shared phone number and address.
+    shared_phone = _create_phone()
+    shared_address = _create_address()
+
+    # Populate customers.
     return [
         dm.Customer(
             customer_id=f'cust_{idx}',
             name=_create_name(idx),
-            address=_create_address(),
-            phone=_create_phone()
+            address=_create_address() if idx not in address_shared_idx else shared_address,
+            phone=_create_phone() if idx not in phone_shared_idx else shared_phone
         ) for idx in range(1, CUSTOMER_COUNT + 1)
     ]
 
@@ -102,7 +116,7 @@ def _create_claims(customers: List[dm.Customer]) -> List[dm.Claim]:
             claim_id=f'claim_{idx}',
             customer_id=np.random.choice(customer_ids),
             claim_type=np.random.choice(CLAIM_CONFIG["normal_claims"]["types"]),
-            amount=float(_create_amount(CLAIM_CONFIG["normal_claims"]["amount_range"])),
+            amount=_create_amount(CLAIM_CONFIG["normal_claims"]["amount_range"]),
             date=_create_date(CLAIM_CONFIG["normal_claims"]["date_range"]),
             status=np.random.choice(CLAIM_CONFIG["normal_claims"]["statuses"]),
             repair_shop=np.random.choice(CLAIM_CONFIG["normal_claims"]["repair_shops"]),
@@ -117,7 +131,7 @@ def _create_claims(customers: List[dm.Customer]) -> List[dm.Claim]:
             claim_id=f'claim_{idx}',
             customer_id=np.random.choice(node_1_config["customers"]),
             claim_type=node_1_config["claim_type"],
-            amount=float(_create_amount(CLAIM_CONFIG["fraud_claims"]["amount_range"])),
+            amount=_create_amount(CLAIM_CONFIG["fraud_claims"]["amount_range"]),
             date=_create_date(CLAIM_CONFIG["fraud_claims"]["date_range"]),
             status=np.random.choice(CLAIM_CONFIG["fraud_claims"]["statuses"]),
             repair_shop=node_1_config["repair_shop"],
@@ -132,7 +146,7 @@ def _create_claims(customers: List[dm.Customer]) -> List[dm.Claim]:
             claim_id=f'claim_{idx}',
             customer_id=np.random.choice(node_2_config["customers"]),
             claim_type=node_2_config["claim_type"],
-            amount=float(_create_amount(CLAIM_CONFIG["fraud_claims"]["amount_range"])),
+            amount=_create_amount(CLAIM_CONFIG["fraud_claims"]["amount_range"]),
             date=_create_date(CLAIM_CONFIG["fraud_claims"]["date_range"]),
             status=np.random.choice(CLAIM_CONFIG["fraud_claims"]["statuses"]),
             repair_shop=node_2_config["repair_shop"],
@@ -157,7 +171,10 @@ def _create_phone() -> str:
     Create a random phone number using configuration templates.
     """
     template = np.random.choice(CUSTOMER_CONFIG["phone_templates"])
-    return template.format(np.random.randint(100, 999))
+    return template.format(
+        np.random.randint(100, 999),
+        np.random.randint(1000, 9999)
+    )
 
 
 def _create_address() -> str:
@@ -172,10 +189,10 @@ def _create_amount(amount_range: Tuple[float, float]) -> float:
     """
     Create a random claim amount.
     """
-    return max(amount_range[0], np.random.lognormal(
+    amount = max(amount_range[0], np.random.lognormal(
         np.log(amount_range[0]),
-        (np.log(amount_range[1]) - np.log(amount_range[0])) / 3
-    ))
+        (np.log(amount_range[1]) - np.log(amount_range[0])) / 3))
+    return round(amount, 2)
 
 
 def _create_date(days_range: Tuple[int, int]) -> str:
