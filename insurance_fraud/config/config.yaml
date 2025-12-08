@@ -18,7 +18,7 @@ kg_embedding:
   hidden_dim: 200
   batch_size: 512
   gamma: 12.0
-  learning_rate: 0.1
+  learning_rate: 0.001
   max_step: 1000
   neg_sample_size: 128
   regularization_coef: 1.0e-9

@@ -1,8 +1,11 @@
 from collections import defaultdict
+import logging
 import networkx as nx
 import os
 
-from config import Configurable, AppConfig
+logger = logging.getLogger(__name__)
+
+from src.config import Configurable, AppConfig
 
 
 class KnowledgeGraphManager(Configurable):
@@ -18,7 +21,7 @@ class KnowledgeGraphManager(Configurable):
             customers (list): List of customer dictionaries
             claims (list): List of claim dictionaries
         """
-        print("Building knowledge graph...")
+        logger.info("Building knowledge graph...")
 
         self.graph.add_nodes_from(
             (
@@ -66,8 +69,8 @@ class KnowledgeGraphManager(Configurable):
         # Use config to conditionally add inferred relations.
         self._add_inferred_relations(customers)
 
-        print(f"Graph built with {self.graph.number_of_nodes()} nodes "
-              f"and {self.graph.number_of_edges()} edges")
+        logger.info(f"Graph built with {self.graph.number_of_nodes()} nodes "
+                         f"and {self.graph.number_of_edges()} edges")
         return self.graph
 
     def _add_repair_shop_connections(self, claims):
@@ -107,7 +110,7 @@ class KnowledgeGraphManager(Configurable):
         """
         Add inferred suspicious relations based on config.
         """
-        print("Adding inferred relations...")
+        logger.info("Adding inferred relations...")
 
         if self.config.kg.enable_phone_relations:
             self._add_phone_relations(customers)
@@ -115,7 +118,7 @@ class KnowledgeGraphManager(Configurable):
         if self.config.kg.enable_address_relations:
             self._add_address_relations(customers)
 
-        print("Inferred relations added")
+        logger.info("Inferred relations added")
 
     def _add_phone_relations(self, customers):
         """
@@ -171,7 +174,7 @@ class KnowledgeGraphManager(Configurable):
         """
         Export graph in DGL-KE format.
         """
-        print("Exporting graph for DGL-KE training...")
+        logger.info("Exporting graph for DGL-KE training...")
 
         try:
             os.makedirs(out_path, exist_ok=True)
@@ -198,10 +201,10 @@ class KnowledgeGraphManager(Configurable):
                 for idx, relation in enumerate(relations):
                     f.write(f"{idx}\t{relation}\n")
 
-            print(f"Exported {len(entities)} entities and {len(relations)} relations")
+            logger.info(f"Exported {len(entities)} entities and {len(relations)} relations")
 
         except Exception as e:
-            print(f"Error exporting graph for DGL-KE: {e}")
+            logger.error(f"Error exporting graph for DGL-KE: {e}")
             raise
 
     def get_claims(self, is_fraud: bool = False):

@@ -1,15 +1,18 @@
 import dgl
 import dgl.nn as dglnn
 from dgl import DGLGraph
+import logging
 import numpy as np
 import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from typing import Any, Dict, Optional, Tuple
+import traceback
+from typing import Any, Dict, Optional
 
-from config import Configurable, AppConfig
+from src.config import Configurable, AppConfig
 
+logger = logging.getLogger(__name__)
 
 class EmbeddingManager(Configurable):
     """
@@ -36,19 +39,19 @@ class EmbeddingManager(Configurable):
         Train knowledge graph embeddings using DGL.
         """
         kg_embed_config = self.config.kg_embedding
-        print(f"Training {kg_embed_config.model_name} embeddings with DGL...")
+        logger.info(f"Training {kg_embed_config.model_name} embeddings with DGL...")
 
         try:
             # Load the knowledge graph
             self._load_knowledge_graph()
 
             if self.graph is None:
-                print("Failed to load knowledge graph data.")
+                logger.error("Failed to load knowledge graph data.")
                 return False
 
             num_entities = len(self.entity_mapping)
             num_relations = len(self.relation_mapping)
-            print(f"Training on {self.graph.num_edges()} triples with {num_entities} entities and {num_relations} relations")
+            logger.info(f"Training on {self.graph.num_edges()} triples with {num_entities} entities and {num_relations} relations")
 
             # Create model using DGL's implementations.
             if kg_embed_config.model_name == 'DistMult':
@@ -65,19 +68,18 @@ class EmbeddingManager(Configurable):
                 lr=kg_embed_config.learning_rate)
 
             # Train the model using custom training loop.
-            print("Starting training with DGL...")
+            logger.info("Starting training with DGL...")
             self._train_model(kg_embed_config.max_step)
 
             # Extract and save embeddings.
             self._extract_embeddings()
             self._write()
 
-            print(f"Training completed. Saved {len(self.entity_embeddings)} entity embeddings")
+            logger.info(f"Training completed. Saved {len(self.entity_embeddings)} entity embeddings")
             return True
 
         except Exception as e:
-            print(f"Training failed: {str(e)}")  # Convert to string
-            import traceback
+            logger.error(f"Training failed: {str(e)}")  # Convert to string
             traceback.print_exc()  # Print full traceback
             return False
 
@@ -140,7 +142,7 @@ class EmbeddingManager(Configurable):
             self.optimizer.step()
 
             if step % 100 == 0:
-                print(f"Step {step}/{max_steps}, Loss: {loss.item():.4f}")
+                logger.info(f"Step {step}/{max_steps}, Loss: {loss.item():.4f}")
 
     def _generate_negative_samples(self, head, rel, tail):
         """
@@ -176,7 +178,7 @@ class EmbeddingManager(Configurable):
             relation_file = f"{self.config.data.data_path}/relation.dict"  # FIXED: Use original naming
 
             if not all(os.path.exists(f) for f in [train_file, entity_file, relation_file]):
-                print("KG files not found. Please export data first.")
+                logger.warning("KG files not found. Please export data first.")
                 return
 
             # Read mappings with original naming
@@ -199,10 +201,10 @@ class EmbeddingManager(Configurable):
             self.graph = dgl.graph((heads, tails), num_nodes=len(self.entity_mapping))
             self.graph.edata['etype'] = torch.tensor(relations)
 
-            print(f"Created DGL graph with {self.graph.num_nodes()} nodes and {self.graph.num_edges()} edges")
+            logger.info(f"Created DGL graph with {self.graph.num_nodes()} nodes and {self.graph.num_edges()} edges")
 
         except Exception as e:
-            print(f"Error loading knowledge graph: {e}")
+            logger.error(f"Error loading knowledge graph: {e}")
             self.graph = None
 
     def _read_mapping(self, part_type):
@@ -218,11 +220,11 @@ class EmbeddingManager(Configurable):
                         idx, part_value = line.strip().split('\t')
                         mapping[part_value] = int(idx)
                     setattr(self, f"{part_type}_mapping", mapping)
-                print(f"Read {len(mapping)} {part_type} mapping")
+                logger.info(f"Read {len(mapping)} {part_type} mapping")
             else:
                 raise FileNotFoundError(f"{part_type} mapping file not found: {file}")
         except Exception as e:
-            print(f"Error reading {part_type} mapping: {e}")
+            logger.error(f"Error reading {part_type} mapping: {e}")
             raise
 
     def _extract_embeddings(self):
@@ -230,7 +232,7 @@ class EmbeddingManager(Configurable):
         Extract embeddings from trained DGL model.
         """
         if self.model is None:
-            print("No trained model available.")
+            logger.warning("No trained model available.")
             return
 
         try:
@@ -239,7 +241,7 @@ class EmbeddingManager(Configurable):
                 if self.entity_emb is not None:
                     self.entity_embeddings = self.entity_emb.weight.data.cpu().numpy()
                 else:
-                    print("Warning: entity_emb is None for TransE")
+                    logger.warning("Warning: entity_emb is None for TransE")
             else:
                 # DistMult: check model for entity embeddings
                 if hasattr(self.model, 'emb'):
@@ -247,7 +249,7 @@ class EmbeddingManager(Configurable):
                 elif hasattr(self.model, 'entity_emb'):
                     self.entity_embeddings = self.model.entity_emb.weight.data.cpu().numpy()
                 else:
-                    print("Warning: Could not find entity embeddings in DistMult model")
+                    logger.warning("Warning: Could not find entity embeddings in DistMult model")
 
             # Extract relation embeddings (TransE has rel_emb, DistMult has w_relation)
             if hasattr(self.model, 'w_relation'):
@@ -255,12 +257,12 @@ class EmbeddingManager(Configurable):
             elif hasattr(self.model, 'rel_emb'):
                 self.relation_embeddings = self.model.rel_emb.weight.data.cpu().numpy()
             else:
-                print("Warning: Could not find relation embeddings in model")
+                logger.warning("Warning: Could not find relation embeddings in model")
 
-            print(f"Extracted {len(self.entity_embeddings) if self.entity_embeddings is not None else 0} entity embeddings and {len(self.relation_embeddings) if self.relation_embeddings is not None else 0} relation embeddings")
+            logger.info(f"Extracted {len(self.entity_embeddings) if self.entity_embeddings is not None else 0} entity embeddings and {len(self.relation_embeddings) if self.relation_embeddings is not None else 0} relation embeddings")
 
         except Exception as e:
-            print(f"Error extracting embeddings: {e}")
+            logger.error(f"Error extracting embeddings: {e}")
 
     def _read(self):
         """
@@ -272,11 +274,11 @@ class EmbeddingManager(Configurable):
 
             if os.path.exists(entity_path):
                 self.entity_embeddings = np.load(entity_path)
-                print(f"Read {len(self.entity_embeddings)} entity embeddings")
+                logger.info(f"Read {len(self.entity_embeddings)} entity embeddings")
 
             if os.path.exists(relation_path):
                 self.relation_embeddings = np.load(relation_path)
-                print(f"Read {len(self.relation_embeddings)} relation embeddings")
+                logger.info(f"Read {len(self.relation_embeddings)} relation embeddings")
 
             # Read mappings for lookup
             self._read_mapping("entity")
@@ -294,9 +296,9 @@ class EmbeddingManager(Configurable):
             embed_path = self.config.data.embed_path
             np.save(f"{embed_path}/entity_emb.npy", self.entity_embeddings)
             np.save(f"{embed_path}/relation_emb.npy", self.relation_embeddings)
-            print(f"Embeddings written to {embed_path}")
+            logger.info(f"Embeddings written to {embed_path}")
         except Exception as e:
-            print(f"Error writing embeddings: {e}")
+            logger.error(f"Error writing embeddings: {e}")
 
     def get_entity_embedding(self, entity_id: str) -> Optional[np.ndarray]:
         """

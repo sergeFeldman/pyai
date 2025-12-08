@@ -1,7 +1,10 @@
+import logging
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.preprocessing import StandardScaler
+
+logger = logging.getLogger(__name__)  # Module-level logger
 
 
 class FraudPredictor:
@@ -29,10 +32,10 @@ class FraudPredictor:
                     'mapping': entity_to_idx
                 }
             else:
-                print("Embeddings not found in manager, using random embeddings")
+                logger.info("Embeddings not found in manager, using random embeddings")
                 return self._create_random_embeddings()
         except Exception as e:
-            print(f"Error loading embeddings from manager: {e}")
+            logger.error(f"Error loading embeddings from manager: {e}")
             return self._create_random_embeddings()
 
     def _create_random_embeddings(self):
@@ -98,7 +101,7 @@ class FraudPredictor:
         """
         Train a fraud classification model.
         """
-        print("Training fraud classifier...")
+        logger.info("Training fraud classifier...")
 
         X = []
         y = []
@@ -113,10 +116,10 @@ class FraudPredictor:
         X = np.array(X)
         y = np.array(y)
 
-        print(f"Training on {len(X)} claims ({sum(y)} fraud, {len(y) - sum(y)} normal)")
+        logger.info(f"Training on {len(X)} claims ({sum(y)} fraud, {len(y) - sum(y)} normal)")
 
         if len(X) == 0:
-            print("No claim data available for training")
+            logger.info("No claim data available for training")
             return 0.0
 
         X_scaled = self.scaler.fit_transform(X)
@@ -130,7 +133,7 @@ class FraudPredictor:
         self.classifier.fit(X_scaled, y)
 
         train_accuracy = self.classifier.score(X_scaled, y)
-        print(f"Fraud classifier trained with accuracy: {train_accuracy:.3f}")
+        logger.info(f"Fraud classifier trained with accuracy: {train_accuracy:.3f}")
 
         return train_accuracy
 
@@ -155,7 +158,7 @@ class FraudPredictor:
         Evaluate model performance.
         """
         if self.classifier is None:
-            print("Model not trained yet. Call train_fraud_classifier() first.")
+            logger.info("Model not trained yet. Call train_fraud_classifier() first.")
             return None
 
         X = []
@@ -171,17 +174,17 @@ class FraudPredictor:
                     claim_ids.append(node)
 
         if len(X) == 0:
-            print("No claim data available for evaluation")
+            logger.info("No claim data available for evaluation")
             return None
 
         X_scaled = self.scaler.transform(X)
         y_pred = self.classifier.predict(X_scaled)
         y_prob = self.classifier.predict_proba(X_scaled)[:, 1]
 
-        print("Fraud Detection Model Evaluation:")
-        print(f"AUC-ROC: {roc_auc_score(y_true, y_prob):.3f}")
-        print("\nClassification Report:")
-        print(classification_report(y_true, y_pred, target_names=['Normal', 'Fraud']))
+        logger.info("Fraud Detection Model Evaluation:")
+        logger.info(f"AUC-ROC: {roc_auc_score(y_true, y_prob):.3f}")
+        logger.info("\nClassification Report:")
+        logger.raw(classification_report(y_true, y_pred, target_names=['Normal', 'Fraud']))
 
         return {
             'auc_roc': roc_auc_score(y_true, y_prob),
