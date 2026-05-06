@@ -1,0 +1,7 @@
+# Agent configurations
+# Secrets (API keys) belong in .env — only non-secret settings here.
+
+claim_explanation:
+  llm_provider: groq
+  model: llama-3.3-70b-versatile
+  prompt_name: hwchase17/structured-chat-agent

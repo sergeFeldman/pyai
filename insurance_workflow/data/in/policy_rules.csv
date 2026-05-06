@@ -1,0 +1,10 @@
+rule_id,claim_type,attribute,value,denial_basis,next_steps,policy_section
+rule_1,auto_collision,status,denied,Insufficient damage documentation provided.,Submit repair estimates and photos within 30 days.,4.2
+rule_2,property_damage,status,denied,Claimed damage falls under policy exclusion.,Review your policy exclusions or contact your agent.,7.1
+rule_3,theft,status,denied,Police report not received or incomplete.,Submit a certified police report within 15 days.,5.3
+rule_4,auto_collision,is_fraud,true,Claim flagged due to inconsistent repair estimates.,Contact your claims representative immediately.,12.1
+rule_7,auto_collision,status,under_review,Additional documentation required to assess damage.,Provide repair estimates and supporting photos within 14 days.,4.1
+rule_8,property_damage,status,under_review,Claim requires site inspection before approval.,Schedule an inspection with your assigned adjuster within 10 days.,7.2
+rule_9,theft,status,under_review,Pending verification of police report and ownership proof.,Submit all supporting documents within 15 days.,5.2
+rule_5,property_damage,is_fraud,true,Claim flagged due to prior similar claims pattern.,Contact your claims representative immediately.,12.2
+rule_6,theft,is_fraud,true,Claim flagged due to insufficient proof of ownership.,Provide proof of ownership documentation within 10 days.,12.3
