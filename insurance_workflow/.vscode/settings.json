@@ -1,7 +1,0 @@
-{
-    "python.defaultInterpreterPath": "C:\\Users\\serge\\.conda\\envs\\pythonProject\\python.exe",
-    "python-envs.defaultEnvManager": "ms-python.python:conda",
-    "python-envs.defaultPackageManager": "ms-python.python:conda",
-    "chatgpt.commentCodeLensEnabled": false,
-    "python.analysis.extraPaths": ["src"]
-}

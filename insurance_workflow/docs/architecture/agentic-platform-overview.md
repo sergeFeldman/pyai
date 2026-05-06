@@ -1,5 +1,7 @@
 # Agentic Workflow Platform Architecture Overview for a Large Multiline Insurer
 
+> **Note:** This document describes the target enterprise architecture. The current POC implements a subset of this vision. See [Implementation Dataflow](../implementation/dataflow.md) for what is currently built.
+
 ## Executive Summary
 
 The right architecture for a large multiline insurer is a layered agentic platform, not a single "super-agent." At the insurer's scale and regulatory posture, the platform should separate orchestration, domain reasoning, enterprise-system access, and cross-cutting controls. The core pattern is: an Orchestrator Agent receives every request, determines intent and risk, builds context, delegates to one or more specialized Domain Agents, and synthesizes a final answer. Domain and sub-agents never connect directly to enterprise systems; instead, they use standardized MCP servers that encapsulate tool access, auth, rate limiting, and audit. This keeps the platform maintainable, governable, and safe to evolve.

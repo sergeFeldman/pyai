@@ -4,7 +4,7 @@
 
 | Package | Responsibility |
 |---|---|
-| `app` | FastAPI application, routes, dependencies — HTTP boundary |
+| `app` | FastAPI application, routes, dependencies (HTTP boundary) |
 | `app.routes` | One module per use case; validates request, calls orchestrator |
 | `app.dependencies` | FastAPI `Depends` factories for shared objects (config, services) |
 | `workflow` | Orchestrates use cases; no LangChain or framework details |
@@ -12,10 +12,10 @@
 | `agents` | LLM and rule-based agents; `AgentFactory` creates instances |
 | `agents.base_agent` | `LlmEnabledAgent` base class with async factory (`create()`) |
 | `mcp_clients` | HTTP MCP clients for claim, customer, and policy rule data |
-| `mcp_clients.servers` | `csv_mcp_server.py` — stdio MCP server backed by CSV files |
+| `mcp_clients.servers` | `csv_mcp_server.py`: stdio MCP server backed by CSV files |
 | `models` | Pydantic/dataclass models: `Claim`, `CustomerContext`, `PolicyRule`, `UserRequest`, `UserResponse` |
 | `data` | CSV data storage layer (`DataStorageFactory`, `CsvDataStorage`) |
-| `services` | `TraceService` — creates and stores trace contexts |
+| `services` | `TraceService`: creates and stores trace contexts |
 | `core` | Cross-cutting concerns: `Configurable`, `ConfigurableObjectFactory`, `Singleton`, `SerializableMixin` |
 | `handlers` | Request handler wiring HTTP layer to orchestrator |
 | `config/agents.yaml` | Non-secret agent settings: `llm_provider`, `model`, `prompt_name` per agent |
@@ -78,8 +78,8 @@
 | `Configurable[TConfig]` base class | All agents | Typed config injection; config stored as `_config` |
 | `ConfigurableObjectFactory` | `AgentFactory` | Hash-keyed object cache; `get_obj` / `get_obj_async` |
 | Async factory (`create()` classmethod) | `LlmEnabledAgent` | Async tool loading during construction; `__init__` stays sync |
-| `create_structured_chat_agent` | `LlmEnabledAgent.create()` | Handles tools with JSON schema `args_schema`; required for MCP tools — plain ReAct (`create_react_agent`) does not support structured tool inputs |
-| `LlmAgentConfig(BaseModel)` | `ClaimExplanationAgentConfig` | Plain-string config (`llm_provider`, `model`, `prompt_name`) — no live objects in config |
+| `create_structured_chat_agent` | `LlmEnabledAgent.create()` | Handles tools with JSON schema `args_schema`; required for MCP tools; plain ReAct (`create_react_agent`) does not support structured tool inputs |
+| `LlmAgentConfig(BaseModel)` | `ClaimExplanationAgentConfig` | Plain-string config (`llm_provider`, `model`, `prompt_name`); no live objects in config |
 | YAML config + `_create_llm()` factory | `agents.base_agent` | Provider decoupled from code; switching LLM = change `config/agents.yaml` + matching `*_API_KEY` in `.env` |
 | `SerializableMixin.to_dict()` | `Claim`, `CustomerContext`, `PolicyRule` | Enum-safe dict serialization for MCP tool return values |
 | MCP stdio transport | `workflow.tools` | LangChain tools backed by a subprocess MCP server; isolated data access |

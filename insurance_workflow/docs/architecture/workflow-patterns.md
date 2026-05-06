@@ -1,5 +1,7 @@
 # Workflow Patterns and Examples
 
+> **Note:** This document describes the target enterprise architecture. The current POC implements a subset of this vision. See [Implementation Dataflow](../implementation/dataflow.md) for what is currently built.
+
 ## Workflow Selection Guidance
 
 ### Sequential Execution
@@ -150,7 +152,7 @@ Step 1: Orchestrator
 ├── Risk: "medium"
 └── Route to: Claims Agent
 
-Step 2: Claims Agent — Multi-step workflow
+Step 2: Claims Agent (multi-step workflow)
 ├── Step 2a: Knowledge Agent
 │   └── Retrieve claim filing procedures and required fields (120ms)
 ├── Step 2b: Tool call: policy.get_policy_by_vehicle(customer_id, "2022 Toyota Camry") (95ms)
