@@ -66,7 +66,7 @@ The agent's reasoning steps are fully visible: every tool call and observation i
 - [Workflow Patterns](docs/architecture/workflow-patterns.md)
 - [Component Deep Dive](docs/architecture/component-deep-dive.md)
 - [Implementation Dataflow](docs/implementation/dataflow.md)
-- [Setup and Running](docs/setup.md)
+- [Setup and Running](docs/implementation/setup.md)
 - [Scaling and Performance](docs/architecture/scaling-and-performance.md)
 - [Security and Compliance](docs/architecture/security-and-compliance.md)
 - [Implementation Roadmap](docs/roadmap/implementation-roadmap.md)

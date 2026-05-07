@@ -7,7 +7,7 @@ from dataclasses import fields
 from enum import Enum
 from pathlib import Path
 import types
-from typing import Any, Optional, Union, get_args, get_origin
+from typing import Annotated, Any, Optional, Union, get_args, get_origin
 
 import models as mdl
 
@@ -111,7 +111,7 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
         Returns:
             list[dict[str, Any]]: Collection of serialized instance dictionaries.
         """
-        return [self._instance_to_dict(instance) for instance in self.read()]
+        return [instance.to_dict() for instance in self.read()]
 
     def write(self, objects: list[Any]) -> None:
         """Write model instances to the configured CSV file.
@@ -130,36 +130,7 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
             writer.writeheader()
 
             for instance in objects:
-                writer.writerow(self._instance_to_dict(instance))
-
-    @staticmethod
-    def _instance_to_dict(instance: Any) -> dict[str, Any]:
-        """Convert a dataclass instance to a serializable dictionary.
-
-        Args:
-            instance (Any): Dataclass instance to serialize.
-
-        Returns:
-            dict[str, Any]: Serialized field mapping.
-        """
-        return {
-            field.name: CsvDataStorage._serialize_value(getattr(instance, field.name))
-            for field in fields(instance)
-        }
-
-    @staticmethod
-    def _serialize_value(value: Any) -> Any:
-        """Convert field values to CSV-friendly scalar representations.
-
-        Args:
-            value (Any): Field value to serialize.
-
-        Returns:
-            Any: Serialized field value.
-        """
-        if isinstance(value, Enum):
-            return value.value
-        return value
+                writer.writerow(instance.to_dict())
 
     @staticmethod
     def _deserialize_value(value: str, target_type: Any) -> Any:
@@ -208,9 +179,8 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
         Returns:
             tuple[Any, bool]: Resolved base type and whether None is allowed.
         """
-        import typing
         origin = get_origin(target_type)
-        if origin is typing.Annotated:
+        if origin is Annotated:
             return CsvDataStorage._resolve_type(get_args(target_type)[0])
         if origin in {Union, types.UnionType}:
             args = [arg for arg in get_args(target_type) if arg is not type(None)]

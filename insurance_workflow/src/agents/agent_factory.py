@@ -2,6 +2,7 @@
 
 import core
 
+from .base_agent import LlmEnabledAgent
 from .claim_agent import ClaimAgent
 from .claim_explanation_agent import ClaimExplanationAgent
 from .customer_agent import CustomerAgent
@@ -28,8 +29,10 @@ class AgentFactory(core.ConfigurableObjectFactory):
         Returns:
             core.Configurable: Concrete agent instance.
         """
-        if _id == "claim_explanation":
-            return await ClaimExplanationAgent.create(
-                ClaimExplanationAgent.config_data_type()(**config)
-            )
+        if _id not in self._TYPES_MAPPING:
+            raise ValueError(f"Provided identifier is not supported: {_id}")
+        configurable_type = self._TYPES_MAPPING[_id]
+        if issubclass(configurable_type, LlmEnabledAgent):
+            return await configurable_type.create(
+                configurable_type.config_data_type()(**config))
         return self._create_obj(_id, config)

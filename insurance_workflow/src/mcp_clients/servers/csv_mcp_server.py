@@ -46,7 +46,24 @@ def get_customer(customer_id: str) -> dict:
 
 
 @mcp.tool()
-def get_policy_rule(claim_type: str, attribute: str, value: str) -> dict:
+def get_policy_rule(policy_rule_id: str) -> dict:
+    """Retrieve a policy rule by its primary key.
+
+    Args:
+        policy_rule_id: Unique policy rule identifier, e.g. 'rule_1'.
+
+    Returns:
+        Policy rule as a dictionary, or empty dict if not found.
+    """
+    storage = data.DataStorageFactory().get_obj(data.DataStorageId.CSV.value,
+                                                {"model_type": data.DataModelType.POLICY_RULE,
+                                                 "file_path": "data/in/policy_rules.csv"})
+    rule = storage.read_by_key(policy_rule_id)
+    return rule.to_dict() if rule else {}
+
+
+@mcp.tool()
+def get_policy_rule_by_filter(claim_type: str, attribute: str, value: str) -> dict:
     """Retrieve the applicable policy rule for a given claim type, attribute, and value.
 
     Args:

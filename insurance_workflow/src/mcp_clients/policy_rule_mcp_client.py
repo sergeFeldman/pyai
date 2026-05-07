@@ -1,48 +1,27 @@
 """Policy rule MCP client related classes."""
 
-from typing import TYPE_CHECKING, Optional, cast
+from typing import Optional
 
-import core
-import data
 import models as mdl
 
-if TYPE_CHECKING:
-    from data.data_storage import DataStorage
+from .mcp_client import MpcClient, MpcClientConfig
 
 
-class PolicyRuleMcpClientConfig(mdl.WorkflowBaseModel):
+class PolicyRuleMcpClientConfig(MpcClientConfig):
     """Configuration model for PolicyRuleMcpClient."""
 
-    data_storage_id: data.DataStorageId
-    data_storage_config: dict
 
-
-class PolicyRuleMcpClient(core.Configurable[PolicyRuleMcpClientConfig]):
-    """Configurable client class responsible for retrieving policy rule records.
-
-    Unlike claim and customer clients, policy rule lookup requires filtering
-    across all rules by (claim_type, attribute, value) rather than a single
-    primary key.
-    """
+class PolicyRuleMcpClient(MpcClient[PolicyRuleMcpClientConfig, mdl.PolicyRuleRequest, mdl.PolicyRule]):
+    """Configurable client class responsible for retrieving policy rule records."""
 
     _config_data_type = PolicyRuleMcpClientConfig
+    _primary_key_field = "policy_rule_id"
 
-    def __init__(self, config: PolicyRuleMcpClientConfig):
-        """Initialize the configurable policy rule client.
-
-        Args:
-            config (PolicyRuleMcpClientConfig): Validated policy rule client configuration.
-        """
-        super().__init__(config)
-        self._storage = cast("DataStorage",
-                             data.DataStorageFactory().get_obj(config.data_storage_id.value,
-                                                               config.data_storage_config))
-
-    def get_obj(self, request: mdl.PolicyRuleRequest) -> Optional[mdl.PolicyRule]:
+    def get_obj_by_filter(self, request: mdl.PolicyRuleFilterRequest) -> Optional[mdl.PolicyRule]:
         """Retrieve the policy rule matching the provided claim type, attribute, and value.
 
         Args:
-            request (mdl.PolicyRuleRequest): Policy rule lookup request object.
+            request (mdl.PolicyRuleFilterRequest): Policy rule lookup request object.
 
         Returns:
             Optional[mdl.PolicyRule]: Matching policy rule, if found.

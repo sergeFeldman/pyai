@@ -61,6 +61,8 @@ class ClaimAgent(
         Args:
             config (ClaimAgentConfig): Validated claim-agent configuration.
         """
+        # MCP clients are not factory-managed: agents are cached by AgentFactory,
+        # so the same agent instance always holds the same client instance.
         super().__init__(config, mcp.ClaimMcpClient(config.claim_mcp_client_config))
 
     def get_status(self, request: mdl.ClaimRequest) -> Optional[mdl.ClaimStatus]:

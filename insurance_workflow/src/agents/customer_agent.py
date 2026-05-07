@@ -36,6 +36,8 @@ class CustomerAgent(
         Args:
             config (CustomerAgentConfig): Validated customer-agent configuration.
         """
+        # MCP clients are not factory-managed: agents are cached by AgentFactory,
+        # so the same agent instance always holds the same client instance.
         super().__init__(config, mcp.CustomerMcpClient(config.customer_mcp_client_config))
 
     def get_context(self, request: mdl.CustomerRequest) -> Optional[mdl.CustomerContext]:

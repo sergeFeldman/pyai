@@ -106,7 +106,7 @@ class CustomerRequest:
 class PolicyRule(core.SerializableMixin):
     """Policy rule returned by the policy rules lookup."""
 
-    rule_id: str
+    policy_rule_id: str
     claim_type: str
     attribute: str
     value: str
@@ -117,7 +117,14 @@ class PolicyRule(core.SerializableMixin):
 
 @dataclass
 class PolicyRuleRequest:
-    """Input data required to retrieve a policy rule."""
+    """Input data required to retrieve a policy rule by its primary key."""
+
+    policy_rule_id: str
+
+
+@dataclass
+class PolicyRuleFilterRequest:
+    """Input data required to retrieve a policy rule by claim context."""
 
     claim_type: str
     attribute: str

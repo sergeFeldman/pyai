@@ -1,4 +1,4 @@
-rule_id,claim_type,attribute,value,denial_basis,next_steps,policy_section
+policy_rule_id,claim_type,attribute,value,denial_basis,next_steps,policy_section
 rule_1,auto_collision,status,denied,Insufficient damage documentation provided.,Submit repair estimates and photos within 30 days.,4.2
 rule_2,property_damage,status,denied,Claimed damage falls under policy exclusion.,Review your policy exclusions or contact your agent.,7.1
 rule_3,theft,status,denied,Police report not received or incomplete.,Submit a certified police report within 15 days.,5.3

@@ -23,7 +23,7 @@ class RequestHandler:
         """
         self._workflow_orchestrator = workflow_orchestrator
 
-    async def handle(self, request_type: str, message: str, agent_config: dict,
+    async def handle(self, request_type: str, message: str,
                      user_id: Optional[str], session_id: Optional[str],
                      attributes: Optional[list[str]] = None) -> mdl.UserResponse:
         """Handle a raw user request and delegate it to the matching workflow method.
@@ -31,7 +31,6 @@ class RequestHandler:
         Args:
             request_type (str): Workflow request type identifier.
             message (str): Raw user message.
-            agent_config (dict): Agent configuration passed to the orchestrator.
             user_id (str, optional): User identifier.
             session_id (str, optional): Session identifier.
             attributes (list[str], optional): Attribute names for explanation workflows.
@@ -47,18 +46,9 @@ class RequestHandler:
 
         request = mdl.UserRequest(message, attributes, user_id, session_id)
 
-        # Resolve the workflow method by request type.
         workflow_method_name = self._WORKFLOWS_MAPPING[request_type]
         workflow_method = getattr(self._workflow_orchestrator, workflow_method_name)
 
-        # Pass agent_config only if the workflow method declares it as a parameter.
-        # MCP-backed workflows (e.g. claim_explanation) resolve their own data access
-        # via the MCP server and do not need agent_config.
-        sig = inspect.signature(workflow_method)
-        args = (request, agent_config) if "agent_config" in sig.parameters or "agent_configs" in sig.parameters else (request,)
-
-        # Dispatch — async workflow methods (LLM/MCP-backed) are awaited,
-        # sync methods (rule-based) are called directly.
         if inspect.iscoroutinefunction(workflow_method):
-            return await workflow_method(*args)
-        return workflow_method(*args)
+            return await workflow_method(request)
+        return workflow_method(request)

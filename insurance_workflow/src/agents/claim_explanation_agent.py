@@ -1,8 +1,17 @@
 """Claim explanation agent related classes."""
 
+import os
+import sys
+from pathlib import Path
+
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
 import models as mdl
 
 from .base_agent import LlmAgentConfig, LlmEnabledAgent
+
+_src = Path(__file__).parent.parent
+_server = str(_src / "mcp_clients" / "servers" / "csv_mcp_server.py")
 
 
 class ClaimExplanationAgentConfig(LlmAgentConfig):
@@ -16,13 +25,20 @@ class ClaimExplanationAgent(LlmEnabledAgent[ClaimExplanationAgentConfig]):
 
     @classmethod
     async def _load_tools(cls) -> list:
-        """Load MCP tools from the MCP server.
+        """Load LangChain tools from the CSV MCP server subprocess.
 
         Returns:
             list: LangChain-compatible MCP tools.
         """
-        from workflow.tools import create_claim_explanation_tools
-        return await create_claim_explanation_tools()
+        client = MultiServerMCPClient({  # type: ignore[arg-type]
+            "csv": {
+                "command": sys.executable,
+                "args": [_server],
+                "transport": "stdio",
+                "env": {**os.environ, "PYTHONPATH": str(_src)},
+            },
+        })
+        return await client.get_tools()
 
     async def get_explanation_message(self, request: mdl.UserRequest) -> str:
         """Build a user-facing explanation using a ReAct agent over MCP tools.
