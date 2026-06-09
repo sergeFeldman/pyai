@@ -4,6 +4,7 @@ import core
 
 from .base_agent import LlmEnabledAgent
 from .claim_agent import ClaimAgent
+from .claim_appeal_agent import ClaimAppealAgent
 from .claim_explanation_agent import ClaimExplanationAgent
 from .customer_agent import CustomerAgent
 from .policy_rule_agent import PolicyRuleAgent
@@ -14,6 +15,7 @@ class AgentFactory(core.ConfigurableObjectFactory):
 
     _TYPES_MAPPING = {
         "claim": ClaimAgent,
+        "claim_appeal": ClaimAppealAgent,
         "claim_explanation": ClaimExplanationAgent,
         "customer": CustomerAgent,
         "policy_rule": PolicyRuleAgent,

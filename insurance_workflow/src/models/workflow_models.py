@@ -132,6 +132,54 @@ class PolicyRuleFilterRequest:
 
 
 @dataclass
+class ClaimAppealRule:
+    """Disqualification rule evaluated during the claim appeal eligibility check."""
+
+    _OPS = {
+        ">=": lambda a, b: a >= b,
+        "<=": lambda a, b: a <= b,
+        "==": lambda a, b: a == b,
+        "!=": lambda a, b: a != b,
+        ">":  lambda a, b: a > b,
+        "<":  lambda a, b: a < b,
+    }
+
+    claim_appeal_rule_id: str
+    subject: str
+    field: str
+    operator: str
+    threshold: str
+    reason: str
+
+    def matches(self, value) -> bool:
+        """Return True if the provided value satisfies this disqualification rule.
+
+        Args:
+            value: Actual field value from claim or customer; threshold is cast to its type.
+
+        Returns:
+            bool: True if the rule condition is met.
+        """
+        return self._OPS[self.operator](value, type(value)(self.threshold))
+
+
+@dataclass
+class ClaimAppealRuleRequest:
+    """Input data required to retrieve a claim appeal rule by its primary key."""
+
+    claim_appeal_rule_id: str
+
+
+@dataclass
+class ClaimAppealResult:
+    """Result of a claim appeal eligibility check."""
+
+    claim_id: str
+    eligible: bool
+    reason: str
+
+
+@dataclass
 class UserRequest:
     """Normalized user input passed into the workflow layer."""
 

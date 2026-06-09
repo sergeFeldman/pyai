@@ -1,6 +1,8 @@
 """Convenience exports for workflow and API models."""
 
 from .api_models import (
+    ClaimAppealHttpRequest,
+    ClaimAppealHttpResponse,
     ClaimExplanationHttpRequest,
     ClaimExplanationHttpResponse,
     ClaimStatusHttpRequest,
@@ -10,6 +12,9 @@ from .base_model import WorkflowBaseModel
 from .workflow_models import (
     AttributeExplanation,
     Claim,
+    ClaimAppealResult,
+    ClaimAppealRule,
+    ClaimAppealRuleRequest,
     ClaimExplanationRequest,
     ClaimExplanationResult,
     ClaimRequest,
@@ -27,6 +32,11 @@ from .workflow_models import (
 __all__ = [
     "AttributeExplanation",
     "Claim",
+    "ClaimAppealHttpRequest",
+    "ClaimAppealHttpResponse",
+    "ClaimAppealResult",
+    "ClaimAppealRule",
+    "ClaimAppealRuleRequest",
     "ClaimExplanationHttpRequest",
     "ClaimExplanationHttpResponse",
     "ClaimExplanationRequest",

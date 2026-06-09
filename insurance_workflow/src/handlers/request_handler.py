@@ -11,6 +11,7 @@ class RequestHandler:
     """Class responsible for handling incoming user requests."""
 
     _WORKFLOWS_MAPPING = {
+        "claim_appeal": "get_claim_appeal_eligibility",
         "claim_explanation": "get_claim_explanation",
         "claim_status": "get_claim_status",
     }

@@ -80,6 +80,16 @@ def get_policy_rule_agent_config() -> dict:
     return {"policy_rule_mcp_client_config": _build_mcp_client_config("policy_rule", mcp.PolicyRuleMcpClientConfig)}
 
 
+def get_claim_appeal_agent_config() -> dict:
+    """Build the claim appeal agent configuration from config/storage.yaml.
+
+    Returns:
+        dict: Claim appeal agent configuration keyed by 'claim_appeal_rule_mcp_client_config'.
+    """
+    return {"claim_appeal_rule_mcp_client_config":
+            _build_mcp_client_config("claim_appeal_rule", mcp.ClaimAppealRuleMcpClientConfig)}
+
+
 def get_claim_explanation_agent_config() -> dict:
     """Build the claim explanation agent configuration from config/agents.yaml.
 
@@ -94,6 +104,7 @@ def get_claim_explanation_agent_config() -> dict:
 
 _AGENT_CONFIGS = {
     "claim": get_claim_agent_config(),
+    "claim_appeal": get_claim_appeal_agent_config(),
     "claim_explanation": get_claim_explanation_agent_config(),
     "customer": get_customer_agent_config(),
     "policy_rule": get_policy_rule_agent_config(),

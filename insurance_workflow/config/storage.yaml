@@ -1,6 +1,6 @@
 # Data storage configurations
 # storage_type maps to DataStorageId enum values: csv | api | db
-# model_type maps to DataModelType enum values: claim | customer | policy_rule
+# model_type maps to DataModelType enum values: claim | customer | policy_rule | claim_appeal_rule
 
 claim:
   storage_type: csv
@@ -16,3 +16,8 @@ policy_rule:
   storage_type: csv
   model_type: policy_rule
   file_path: data/in/policy_rules.csv
+
+claim_appeal_rule:
+  storage_type: csv
+  model_type: claim_appeal_rule
+  file_path: data/in/claim_appeal_rules.csv

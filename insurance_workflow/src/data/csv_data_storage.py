@@ -32,6 +32,7 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
         DataModelType.CLAIM: mdl.Claim,
         DataModelType.CUSTOMER: mdl.CustomerContext,
         DataModelType.POLICY_RULE: mdl.PolicyRule,
+        DataModelType.CLAIM_APPEAL_RULE: mdl.ClaimAppealRule,
     }
     _config_data_type = CsvDataStorageConfig
 

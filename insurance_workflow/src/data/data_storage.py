@@ -16,6 +16,7 @@ class DataModelType(Enum):
     CLAIM = "claim"
     CUSTOMER = "customer"
     POLICY_RULE = "policy_rule"
+    CLAIM_APPEAL_RULE = "claim_appeal_rule"
 
 
 class DataStorageId(Enum):

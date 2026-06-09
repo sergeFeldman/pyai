@@ -1,0 +1,5 @@
+claim_appeal_rule_id,subject,field,operator,threshold,reason
+claim_appeal_rule_1,customer,escalation_history_count,>=,3,Maximum escalation attempts reached.
+claim_appeal_rule_2,claim,status,!=,denied,Only denied claims can be appealed.
+claim_appeal_rule_3,customer,tenure_years,<,3,Insufficient customer tenure for appeal.
+claim_appeal_rule_4,claim,amount,<,1000,Claim value too low to qualify for appeal.

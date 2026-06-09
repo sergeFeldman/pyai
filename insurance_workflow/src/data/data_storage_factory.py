@@ -18,3 +18,9 @@ class DataStorageFactory(core.ConfigurableObjectFactory):
     _TYPES_MAPPING = {
         data.DataStorageId.CSV.value: data.CsvDataStorage,
     }
+
+    def __init__(self):
+        # Comprehensive hashing required: multiple storage backends share the same
+        # storage type id (e.g. "csv") but differ by file_path and model_type.
+        # Without it, all CSV storages collapse to the same cache slot.
+        super().__init__(comprehensive_hashing=True)
