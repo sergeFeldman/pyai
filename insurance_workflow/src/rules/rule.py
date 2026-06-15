@@ -23,7 +23,8 @@ class Rule(ABC, shd_core.SerializableMixin):
     to decide whether to bump the version on re-import.
 
     Attributes:
-        kind: Rule subtype key used by RuleFactory to resolve the concrete class at load time.
+        kind: Rule subtype identifier included in serialized output for informational purposes.
+            Not required in raw input - RuleFactory.detect_type() infers it from field presence.
         id: Unique rule identifier within a domain.
         domain: Top-level business domain this rule belongs to, e.g. "claim_appeal".
         group: Execution cluster within the domain. Rules sharing a group are evaluated together.

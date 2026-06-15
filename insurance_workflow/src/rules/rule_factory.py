@@ -1,4 +1,4 @@
-"""Factory for creating Rule instances by kind."""
+"""Factory for creating and detecting Rule instances."""
 
 import dataclasses
 
@@ -8,11 +8,11 @@ from .rule import DecisionRule, LookupRule, Rule
 
 
 class RuleFactory(metaclass=shd_core.Singleton):
-    """Singleton factory for creating Rule instances by kind.
+    """Singleton factory for creating Rule instances.
 
     _TYPES_MAPPING is the single source of truth mapping each kind key to its
-    concrete Rule subclass. The kind key matches the value each subclass declares
-    for its kind field (e.g. DecisionRule.kind = "decision" -> key "decision").
+    concrete Rule subclass. Rule kind is detected automatically from raw data
+    fields via detect_type() - no explicit kind field is required in input.
     Add a new entry here when introducing a new Rule subclass.
     """
 
