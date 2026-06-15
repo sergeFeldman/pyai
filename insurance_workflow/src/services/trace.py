@@ -8,11 +8,10 @@ import models as mdl
 
 
 class TraceService:
-    """Service class responsible for creating and updating
-    workflow tracing metadata containers.
+    """Service class responsible for creating workflow tracing metadata.
 
-    The service centralizes trace identifier generation and
-    WorkflowContext initialization for request-scoped processing.
+    Centralizes trace identifier generation and WorkflowContext initialization
+    for request-scoped processing.
     """
 
     def create_context(self, request: mdl.UserRequest) -> mdl.WorkflowContext:

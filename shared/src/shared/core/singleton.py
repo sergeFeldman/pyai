@@ -1,34 +1,39 @@
-
 """Singleton-related helpers and metaclass implementations."""
 
-# http://norvig.com/python-iaq.html
-def singleton(object):
+
+def singleton(obj):
+    """Raise ValueError if an instance of this class has already been created.
+
+    Function-based alternative to the Singleton metaclass for cases where only
+    one instance should ever exist and subsequent instantiation is an error
+    rather than silently returning the first instance.
+
+    Args:
+        obj: Newly constructed instance to check.
+
+    Raises:
+        ValueError: If the class has been instantiated before.
     """
-    Raise an exception if an object of this class has been instantiated before.
-    :param object:
-    :returns:
-    :raises ValueError:
-    """
-    cls = object.__class__
+    cls = obj.__class__
     if hasattr(cls, '__instantiated'):
         raise ValueError(f"{cls} is a Singleton class but is already instantiated")
     cls.__instantiated = True
 
 
 class Singleton(type):
-    """
-    https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
-    Metaclass for singletons. Any instantiation of a Singleton class yields
-    exact same object, e.g.:
-    >>> class MyClass(metaclass=Singleton):
-    >>>    pass
-    >>> a = MyClass()
-    >>> b = MyClass()
-    >>> a is b
-    >>> True
+    """Metaclass that ensures only one instance of a class exists per process.
+
+    Any instantiation after the first returns the already-created instance:
+
+        class MyClass(metaclass=Singleton):
+            pass
+
+        a = MyClass()
+        b = MyClass()
+        a is b  # True
 
     Note: initialization arguments provided after the first instantiation
-    are ignored, since the already created instance is returned.
+    are ignored, since the already-created instance is returned.
     """
     _instances = {}
 

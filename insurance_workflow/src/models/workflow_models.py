@@ -72,7 +72,19 @@ class ClaimExplanationRequest:
 
 @dataclass
 class ClaimExplanationResult:
-    """Structured result returned by the claim explanation workflow."""
+    """Structured result returned by the claim explanation workflow.
+
+    Attributes:
+        claim: The resolved claim record.
+        explanations: Per-attribute explanations generated for the requested attributes.
+        review_eligible: True when the claim status allows a manual review request.
+        customer_context: Optional human-readable summary of customer relationship context,
+            enriched by the orchestrator when customer data is available.
+        policy_basis: Optional policy section reference explaining the denial basis,
+            enriched by the orchestrator when a matching policy rule is found.
+        escalation_required: True when the claim warrants immediate escalation,
+            set by the orchestrator based on fraud flags or review status.
+    """
 
     claim: Claim
     explanations: list[AttributeExplanation]

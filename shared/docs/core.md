@@ -18,7 +18,7 @@ b = WorkflowOrchestrator()
 assert a is b  # True — same instance returned
 ```
 
-`singleton()` is a function-based alternative that raises `ValueError` if instantiated more than once.
+`singleton(obj)` is a function-based alternative: call it inside `__init__` and it raises `ValueError` if the class has already been instantiated, rather than silently returning the first instance.
 
 **Used by:** `WorkflowOrchestrator`, `AgentFactory`, `DataStorageFactory`
 
@@ -74,6 +74,8 @@ class DataStorageFactory(ConfigurableObjectFactory):
 
 **Used by:** `AgentFactory`, `DataStorageFactory`
 
+`get_obj_async()` is the async variant of `get_obj()` - it hits the same cache and falls back to sync construction by default; override `_create_obj_async()` in subclasses that require async initialization.
+
 ---
 
 ## SerializableMixin
@@ -114,3 +116,38 @@ The explanation route uses this to validate that requested attributes are eligib
 passing them to the LLM agent.
 
 **Used by:** `Claim`
+
+---
+
+## EntityMetadata
+
+`EntityMetadata` is a dataclass composed into domain entities to track version and audit fields.
+Created-* fields are set once on creation and never modified. Updated-* fields are empty until
+the first change and updated via `bump()` on every subsequent version.
+
+```python
+meta = shd_core.EntityMetadata(created_by="etl")
+# version=0, created_by="etl", updated_by="", updated_timestamp=""
+
+meta.bump("etl")
+# version=1, updated_by="etl", updated_timestamp=<now>
+```
+
+**Used by:** `Rule` and all its subclasses - stamped by the ETL pipeline, read by application code.
+
+---
+
+## KeyedRegistry
+
+`KeyedRegistry[T]` is a generic registry that groups elements by the value of a declared field.
+Can be used directly or subclassed to add domain-specific query methods.
+
+```python
+registry = shd_core.KeyedRegistry(Rule, key_field="domain")
+registry.load(existing_rules)   # replace contents
+registry.add(new_rule)          # append single element
+registry.get_by_key("claim_appeal")  # list of rules for that domain
+registry.all()                  # flat list across all keys
+```
+
+**Used by:** `RuleRegistry` (subclasses `KeyedRegistry[Rule]` and adds `get_latest()`)

@@ -17,7 +17,13 @@ TObject = TypeVar("TObject")
 
 
 class LlmAgentConfig(BaseModel):
-    """Base configuration for LLM-enabled agents."""
+    """Base configuration for LLM-enabled agents.
+
+    Attributes:
+        llm_provider: LLM backend to use. Supported values: "anthropic", "groq", "ollama".
+        model: Model identifier passed to the provider, e.g. "claude-sonnet-4-6".
+        prompt_name: LangChain Hub prompt identifier pulled at agent creation time.
+    """
 
     llm_provider: str
     model: str
@@ -25,6 +31,18 @@ class LlmAgentConfig(BaseModel):
 
 
 def _create_llm(provider: str, model: str):
+    """Instantiate a LangChain chat model for the given provider and model name.
+
+    Args:
+        provider: LLM backend identifier. Supported: "anthropic", "groq", "ollama".
+        model: Provider-specific model name, e.g. "claude-sonnet-4-6".
+
+    Returns:
+        A LangChain BaseChatModel instance for the requested provider.
+
+    Raises:
+        ValueError: If the provider is not supported.
+    """
     if provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
         return ChatAnthropic(model=model)

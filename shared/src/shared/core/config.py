@@ -34,7 +34,7 @@ class Configurable(ABC, Generic[T]):
 
     @classmethod
     def config_data_type(cls) -> Type[T]:
-        """Class accessor for the <cls._config_data_type> class attribute.
+        """Return the configuration type declared by the concrete subclass.
 
         Returns:
             Type[T]: Configuration type associated with the subclass.
@@ -57,10 +57,7 @@ class Configurable(ABC, Generic[T]):
 
     @property
     def config(self) -> T:
-        """Property accessor for the <self._config> attribute.
-
-        This property exposes the validated configuration object provided
-        during initialization.
+        """Return the validated configuration object set during initialization.
 
         Returns:
             T: Configuration object associated with the instance.
