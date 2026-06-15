@@ -1,11 +1,11 @@
-"""Internal dataclasses used by workflow processing."""
+﻿"""Internal dataclasses used by workflow processing."""
 
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Annotated, Optional
 
-import core
+import shared.core as shd_core
 
 
 # Enums
@@ -29,7 +29,7 @@ class AttributeExplanation:
     """Explanation covering one or more correlated attribute-value pairs of a domain object.
 
     A single explanation may span multiple attributes when their values are
-    meaningfully related — for example, status=denied combined with is_fraud=true
+    meaningfully related - for example, status=denied combined with is_fraud=true
     produces a richer, correlated explanation than explaining each in isolation.
 
     attribute_values maps each attribute name to its string-represented value:
@@ -42,7 +42,7 @@ class AttributeExplanation:
 
 
 @dataclass
-class Claim(core.ExplainableMixin, core.SerializableMixin):
+class Claim(shd_core.ExplainableMixin, shd_core.SerializableMixin):
     """Normalized claim data returned by the claims workflow."""
 
     claim_id: str
@@ -51,8 +51,8 @@ class Claim(core.ExplainableMixin, core.SerializableMixin):
     amount: float
     date: str
     repair_shop: str
-    status: Annotated[ClaimStatus, core.Explainable()]
-    is_fraud: Annotated[bool, core.Explainable()] = False
+    status: Annotated[ClaimStatus, shd_core.Explainable()]
+    is_fraud: Annotated[bool, shd_core.Explainable()] = False
 
 
 @dataclass
@@ -83,7 +83,7 @@ class ClaimExplanationResult:
 
 
 @dataclass
-class CustomerContext(core.SerializableMixin):
+class Customer(shd_core.SerializableMixin):
     """Customer relationship context used to enrich the explanation workflow."""
 
     customer_id: str
@@ -103,7 +103,7 @@ class CustomerRequest:
 
 
 @dataclass
-class PolicyRule(core.SerializableMixin):
+class PolicyRule(shd_core.SerializableMixin):
     """Policy rule returned by the policy rules lookup."""
 
     policy_rule_id: str
@@ -206,3 +206,18 @@ class WorkflowContext:
     started_at: datetime
     user_id: Optional[str] = None
     session_id: Optional[str] = None
+
+
+@dataclass
+class AuditRecord:
+    """Immutable audit entry recorded at the end of each workflow request.
+
+    Contains no PII - only operational metadata needed for compliance and debugging.
+    Raw message payload and customer data are intentionally excluded.
+    """
+
+    trace_id: str
+    request_type: str
+    agent_names: list[str]
+    response: str
+    timestamp: datetime

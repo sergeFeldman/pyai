@@ -1,0 +1,12 @@
+# ETL pipeline configurations
+# Each entry defines one pipeline run with explicit input and output file paths.
+
+claim_appeal:
+  input_file_path: data/in/claim_appeal_rules.json
+  output_file_path: data/out/claim_appeal_rules.json
+  updated_by: etl
+
+policy:
+  input_file_path: data/in/policy_rules.json
+  output_file_path: data/out/policy_rules.json
+  updated_by: etl

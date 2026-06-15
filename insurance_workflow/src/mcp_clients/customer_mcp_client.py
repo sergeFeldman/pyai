@@ -9,7 +9,7 @@ class CustomerMcpClientConfig(MpcClientConfig):
     """Configuration model for CustomerMcpClient."""
 
 
-class CustomerMcpClient(MpcClient[CustomerMcpClientConfig, mdl.CustomerRequest, mdl.CustomerContext]):
+class CustomerMcpClient(MpcClient[CustomerMcpClientConfig, mdl.CustomerRequest, mdl.Customer]):
     """Configurable client class responsible for retrieving customer context records."""
 
     _config_data_type = CustomerMcpClientConfig

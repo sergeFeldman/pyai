@@ -1,4 +1,4 @@
-"""Base agent related classes."""
+﻿"""Base agent related classes."""
 
 from abc import abstractmethod
 from typing import Generic, Optional, TypeVar
@@ -7,7 +7,7 @@ from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain import hub
 from pydantic import BaseModel
 
-import core
+import shared.core as shd_core
 
 
 TConfig = TypeVar("TConfig")
@@ -40,7 +40,7 @@ def _create_llm(provider: str, model: str):
 TLlmConfig = TypeVar("TLlmConfig", bound=LlmAgentConfig)
 
 
-class LlmEnabledAgent(core.Configurable[TLlmConfig], Generic[TLlmConfig]):
+class LlmEnabledAgent(shd_core.Configurable[TLlmConfig], Generic[TLlmConfig]):
     """Abstract base class for LLM-backed agents that load tools dynamically.
 
     Subclasses implement _load_tools() to supply the agent with the
@@ -73,7 +73,7 @@ class LlmEnabledAgent(core.Configurable[TLlmConfig], Generic[TLlmConfig]):
 
     @classmethod
     async def create(cls, config: TLlmConfig) -> "LlmEnabledAgent":
-        """Async factory method — loads tools and assembles the executor.
+        """Async factory method - loads tools and assembles the executor.
 
         Args:
             config (TLlmConfig): Validated agent configuration.
@@ -97,7 +97,7 @@ class LlmEnabledAgent(core.Configurable[TLlmConfig], Generic[TLlmConfig]):
         """
 
 
-class McpEnabledAgent(core.Configurable[TConfig], Generic[TConfig, TMcpClient, TRequest, TObject]):
+class McpEnabledAgent(shd_core.Configurable[TConfig], Generic[TConfig, TMcpClient, TRequest, TObject]):
     """Abstract configurable base class for MCP-enabled domain agents.
 
     Concrete subclasses are responsible for constructing the appropriate MCP

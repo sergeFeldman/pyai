@@ -10,3 +10,4 @@ langchain-ollama
 langchain-mcp-adapters==0.1.0
 anthropic
 mcp
+langsmith

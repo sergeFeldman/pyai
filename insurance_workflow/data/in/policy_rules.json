@@ -1,0 +1,173 @@
+[
+  {
+    "id": "pr_ac_fraud",
+    "group": "",
+    "priority": 9,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.is_fraud"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "auto_collision",
+      "attribute": "is_fraud",
+      "value": "true"
+    },
+    "output_values": {
+      "denial_basis": "Claim flagged due to inconsistent repair estimates and missing documentation.",
+      "next_steps": "Contact your claims representative immediately.",
+      "policy_section": "12.1"
+    }
+  },
+  {
+    "id": "pr_pd_fraud",
+    "group": "",
+    "priority": 8,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.is_fraud"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "property_damage",
+      "attribute": "is_fraud",
+      "value": "true"
+    },
+    "output_values": {
+      "denial_basis": "Claim flagged due to prior similar claims pattern.",
+      "next_steps": "Contact your claims representative immediately.",
+      "policy_section": "12.2"
+    }
+  },
+  {
+    "id": "pr_th_fraud",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.is_fraud"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "theft",
+      "attribute": "is_fraud",
+      "value": "true"
+    },
+    "output_values": {
+      "denial_basis": "Claim flagged due to insufficient proof of ownership.",
+      "next_steps": "Provide proof of ownership documentation within 10 days.",
+      "policy_section": "12.3"
+    }
+  },
+  {
+    "id": "pr_ac_status_denied",
+    "group": "",
+    "priority": 6,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.status"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "auto_collision",
+      "attribute": "status",
+      "value": "denied"
+    },
+    "output_values": {
+      "denial_basis": "Insufficient damage documentation provided.",
+      "next_steps": "Submit repair estimates and photos within 30 days.",
+      "policy_section": "4.2"
+    }
+  },
+  {
+    "id": "pr_pd_status_denied",
+    "group": "",
+    "priority": 5,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.status"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "property_damage",
+      "attribute": "status",
+      "value": "denied"
+    },
+    "output_values": {
+      "denial_basis": "Claimed damage falls under policy exclusion.",
+      "next_steps": "Review your policy exclusions or contact your agent within 30 days.",
+      "policy_section": "7.1"
+    }
+  },
+  {
+    "id": "pr_th_status_denied",
+    "group": "",
+    "priority": 4,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.status"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "theft",
+      "attribute": "status",
+      "value": "denied"
+    },
+    "output_values": {
+      "denial_basis": "Police report not received or incomplete.",
+      "next_steps": "Submit a certified police report within 15 days.",
+      "policy_section": "5.3"
+    }
+  },
+  {
+    "id": "pr_ac_status_review",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.status"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "auto_collision",
+      "attribute": "status",
+      "value": "under_review"
+    },
+    "output_values": {
+      "denial_basis": "Additional documentation required to assess damage.",
+      "next_steps": "Provide repair estimates and supporting photos within 14 days.",
+      "policy_section": "4.1"
+    }
+  },
+  {
+    "id": "pr_pd_status_review",
+    "group": "",
+    "priority": 2,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.status"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "property_damage",
+      "attribute": "status",
+      "value": "under_review"
+    },
+    "output_values": {
+      "denial_basis": "Claim requires site inspection before approval.",
+      "next_steps": "Schedule an inspection with your assigned adjuster within 10 days.",
+      "policy_section": "7.2"
+    }
+  },
+  {
+    "id": "pr_th_status_review",
+    "group": "",
+    "priority": 1,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": ["claim.claim_type", "claim.status"],
+    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "match_keys": {
+      "claim_type": "theft",
+      "attribute": "status",
+      "value": "under_review"
+    },
+    "output_values": {
+      "denial_basis": "Pending verification of police report and ownership proof.",
+      "next_steps": "Submit all supporting documents within 15 days.",
+      "policy_section": "5.2"
+    }
+  }
+]

@@ -1,4 +1,4 @@
-"""CSV-backed data storage related classes."""
+"""Generic CSV-backed data storage."""
 
 from __future__ import annotations
 
@@ -6,12 +6,13 @@ import csv
 from dataclasses import fields
 from enum import Enum
 from pathlib import Path
+import re
 import types
 from typing import Annotated, Any, Optional, Union, get_args, get_origin
 
-import models as mdl
+from pydantic import computed_field
 
-from .data_storage import DataModelType, DataStorage, DataStorageConfig
+from .data_storage import DataStorage, DataStorageConfig
 
 
 class CsvDataStorageConfig(DataStorageConfig):
@@ -19,21 +20,25 @@ class CsvDataStorageConfig(DataStorageConfig):
 
     file_path: str
 
+    @computed_field
+    @property
+    def model_type(self) -> str:
+        """Logical model type derived from the model class name (CamelCase → snake_case).
+
+        Used to resolve the primary key field name (e.g. ``PolicyRule`` → ``"policy_rule"``
+        → key field ``"policy_rule_id"``).
+        """
+        return re.sub(r'(?<=[a-z0-9])(?=[A-Z])', '_', self.model_class.__name__).lower()
+
 
 class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
-    """Data storage implementation backed by CSV files.
+    """Generic data storage implementation backed by CSV files.
 
-    The storage is configured with a CSV file path and logical model type,
-    and supports reading and writing collections of that model from and to
-    the file.
+    Configured with a file path, a concrete model class to deserialize rows into,
+    and a logical model type string used to derive the primary key field name
+    (e.g., ``"claim"`` → ``"claim_id"``).
     """
 
-    _MODEL_TYPES_MAPPING = {
-        DataModelType.CLAIM: mdl.Claim,
-        DataModelType.CUSTOMER: mdl.CustomerContext,
-        DataModelType.POLICY_RULE: mdl.PolicyRule,
-        DataModelType.CLAIM_APPEAL_RULE: mdl.ClaimAppealRule,
-    }
     _config_data_type = CsvDataStorageConfig
 
     def __init__(self, config: CsvDataStorageConfig):
@@ -67,7 +72,7 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
         if not self._file_path.exists():
             raise FileNotFoundError(f"Persistence file does not exist: {self._file_path}")
 
-        field_map = {field.name: field for field in fields(self._model_type)}
+        field_map = {field.name: field for field in fields(self.model_class)}
         expected_headers = list(field_map.keys())
 
         with self._file_path.open("r", newline="", encoding="utf-8") as file:
@@ -85,7 +90,7 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
                     field_name: self._deserialize_value(row[field_name], field_map[field_name].type)
                     for field_name in expected_headers
                 }
-                instances.append(self._model_type(**attributes))
+                instances.append(self.model_class(**attributes))
 
         return instances
 
@@ -98,7 +103,7 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
         Returns:
             Optional[Any]: Matching model instance, if found.
         """
-        key_field_name = f"{self.model_type.value}_id"
+        key_field_name = f"{self.config.model_type}_id"
 
         for instance in self.read():
             if getattr(instance, key_field_name) == key:
@@ -124,7 +129,7 @@ class CsvDataStorage(DataStorage[CsvDataStorageConfig]):
             return
 
         self._file_path.parent.mkdir(parents=True, exist_ok=True)
-        field_names = [field.name for field in fields(self._model_type)]
+        field_names = [field.name for field in fields(self.model_class)]
 
         with self._file_path.open("w", newline="", encoding="utf-8") as file:
             writer = csv.DictWriter(file, fieldnames=field_names)

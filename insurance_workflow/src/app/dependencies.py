@@ -4,11 +4,19 @@ import os
 from typing import Type
 import yaml
 
-import data
+import shared.data as shd_data
 import handlers as hdl
 import mcp_clients as mcp
+import models as mdl
 import services as svc
 import workflow as wfl
+
+_MODEL_CLASS_MAPPING: dict[str, type] = {
+    "claim": mdl.Claim,
+    "customer": mdl.Customer,
+    "policy_rule": mdl.PolicyRule,
+    "claim_appeal_rule": mdl.ClaimAppealRule,
+}
 
 
 def _load_config(config_file: str, name: str) -> dict:
@@ -33,8 +41,8 @@ def _load_config(config_file: str, name: str) -> dict:
 def _build_mcp_client_config(key: str, client_config_type: Type):
     """Build an MCP client config from a storage.yaml entry.
 
-    Reads the named entry from config/storage.yaml and converts
-    storage_type and model_type strings to their corresponding enum values.
+    Reads the named entry from config/storage.yaml, resolves storage_type to a
+    DataStorageId and model_type to a concrete model class via _MODEL_CLASS_MAPPING.
 
     Args:
         key: Entry name in storage.yaml, e.g. 'claim', 'customer', 'policy_rule'.
@@ -44,10 +52,11 @@ def _build_mcp_client_config(key: str, client_config_type: Type):
         mcp.MpcClientConfig: Fully constructed MCP client config instance.
     """
     config = _load_config("storage.yaml", key)
+    model_type = config["model_type"]
     return client_config_type(
-        data_storage_id=data.DataStorageId(config["storage_type"]),
+        data_storage_id=shd_data.DataStorageId(config["storage_type"]),
         data_storage_config={
-            "model_type": data.DataModelType(config["model_type"]),
+            "model_class": _MODEL_CLASS_MAPPING[model_type],
             "file_path": config["file_path"],
         },
     )
@@ -120,6 +129,15 @@ def get_trace_service() -> svc.TraceService:
     return svc.TraceService()
 
 
+def get_audit_service() -> svc.AuditService:
+    """Create the audit service dependency.
+
+    Returns:
+        svc.AuditService: Audit service instance.
+    """
+    return svc.AuditService()
+
+
 def get_workflow_orchestrator() -> wfl.WorkflowOrchestrator:
     """Create the workflow orchestrator dependency.
 
@@ -127,9 +145,14 @@ def get_workflow_orchestrator() -> wfl.WorkflowOrchestrator:
     inject or pass agent configuration.
 
     Returns:
-        wfl.WorkflowOrchestrator: Orchestrator instance wired with the trace service and all agent configs.
+        wfl.WorkflowOrchestrator: Orchestrator instance wired with the trace service,
+            audit service, and all agent configs.
     """
-    return wfl.WorkflowOrchestrator(trace_service=get_trace_service(), agent_configs=_AGENT_CONFIGS)
+    return wfl.WorkflowOrchestrator(
+        trace_service=get_trace_service(),
+        audit_service=get_audit_service(),
+        agent_configs=_AGENT_CONFIGS,
+    )
 
 
 def get_request_handler() -> hdl.RequestHandler:

@@ -12,10 +12,10 @@
 | `agents.base_agent` | `LlmEnabledAgent` base class with async factory (`create()`); `McpEnabledAgent` base class for MCP-backed agents |
 | `mcp_clients` | MCP clients for claim, customer, policy rule, and claim appeal rule data; `MpcClient` base provides `get_obj()` and `get_obj_by_filter()` |
 | `mcp_clients.servers` | `csv_mcp_server.py`: stdio MCP server backed by CSV files; exposes `get_claim`, `get_customer`, `get_policy_rule`, `get_policy_rule_by_filter` tools |
-| `models` | Pydantic/dataclass models: `Claim`, `CustomerContext`, `PolicyRule`, `ClaimAppealRule`, `ClaimAppealResult`, `UserRequest`, `UserResponse` |
+| `models` | Pydantic/dataclass models: `Claim`, `Customer`, `PolicyRule`, `ClaimAppealRule`, `ClaimAppealResult`, `UserRequest`, `UserResponse` |
 | `data` | CSV data storage layer (`DataStorageFactory`, `CsvDataStorage`) |
 | `services` | `TraceService`: creates and stores trace contexts |
-| `core` | Cross-cutting concerns: `Configurable`, `ConfigurableObjectFactory`, `Singleton`, `SerializableMixin` |
+| `core` | Cross-cutting concerns: `Configurable`, `ConfigurableObjectFactory`, `Singleton`, `SerializableMixin` — provided by the [`shared`](../../../shared/docs/core.md) foundation library |
 | `handlers` | Request handler wiring HTTP layer to orchestrator |
 | `config/agents.yaml` | Non-secret agent settings: `llm_provider`, `model`, `prompt_name` per agent |
 | `config/storage.yaml` | Storage backend settings: `storage_type`, `model_type`, `file_path` per domain entity |
@@ -74,13 +74,19 @@
 | 2 | `handlers.RequestHandler` | Delegates to `WorkflowOrchestrator.get_claim_appeal_eligibility()` |
 | 3 | `workflow.WorkflowOrchestrator` | Creates trace context; resolves `ClaimAgent`, `CustomerAgent`, `ClaimAppealAgent` from `AgentFactory` |
 | 4 | `agents.ClaimAgent` | Calls `ClaimMcpClient.get_obj(ClaimRequest)` → returns `models.Claim` |
-| 5 | `agents.CustomerAgent` | Calls `CustomerMcpClient.get_obj(CustomerRequest)` using `claim.customer_id` → returns `models.CustomerContext` |
+| 5 | `agents.CustomerAgent` | Calls `CustomerMcpClient.get_obj(CustomerRequest)` using `claim.customer_id` → returns `models.Customer` |
 | 6 | `agents.ClaimAppealAgent` | Calls `get_eligibility_message(claim, customer)` |
 | 7 | `agents.ClaimAppealAgent.check_eligibility()` | Iterates `ClaimAppealRuleMcpClient.rules` (loaded once at init); calls `rule.matches(value)` for each rule |
 | 8 | `models.ClaimAppealRule.matches()` | Evaluates field value against operator and threshold using `_OPS` class constant; returns `True` if rule fires |
 | 9 | `agents.ClaimAppealAgent` | First matching rule → `ClaimAppealResult(eligible=False, reason)`; no match → `ClaimAppealResult(eligible=True)` |
 | 10 | `workflow.WorkflowOrchestrator` | Wraps message in `models.UserResponse`; returns to HTTP layer |
 | 11 | `app.routes.claim_appeal` | Returns HTTP 200 JSON response |
+
+---
+
+## Rule Architecture
+
+Business rules (appeal eligibility, routing decisions, pricing) follow a structured taxonomy — Decision, Lookup, and Extraction — documented in [Rule Architecture](../architecture/rules.md).
 
 ---
 
@@ -99,7 +105,7 @@
 | YAML config + `_create_llm()` factory | `agents.base_agent` | Provider decoupled from code; switching LLM requires only `config/agents.yaml` change |
 | `MpcClient` base class | `mcp_clients` | Shared `get_obj()` (primary key) and `get_obj_by_filter()` (criteria-based); filter raises `NotImplementedError` by default |
 | `_primary_key_field` class attribute | `ClaimMcpClient`, `CustomerMcpClient`, `PolicyRuleMcpClient`, `ClaimAppealRuleMcpClient` | Declares the primary key field name; base `get_obj()` uses it for key-based lookup |
-| `SerializableMixin.to_dict()` | `Claim`, `CustomerContext`, `PolicyRule` | Enum-safe, bool-safe dict serialization for MCP tool return values |
+| `SerializableMixin.to_dict()` | `Claim`, `Customer`, `PolicyRule` | Enum-safe, bool-safe dict serialization for MCP tool return values |
 | MCP stdio transport | `ClaimExplanationAgent._load_tools()` | LangChain tools backed by a subprocess MCP server; isolated data access; path resolved relative to `__file__` |
 | FastAPI `Depends` | `app.dependencies` | Decouples route handlers from object creation; enables testability |
 | Eager rule loading | `ClaimAppealRuleMcpClient.__init__()` | Static disqualification rules loaded once at client construction; served from memory via `rules` property |

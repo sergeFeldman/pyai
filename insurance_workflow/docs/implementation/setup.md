@@ -30,6 +30,26 @@ cp .env.example .env
 
 The active LLM provider is set in `config/agents.yaml`: whichever provider is configured there is the one that needs its API key in `.env`.
 
+## LangSmith Tracing (Optional)
+
+[LangSmith](https://smith.langchain.com) provides full observability for LangChain agent runs — reasoning steps, tool calls, token usage, and latency — visualized in a UI.
+
+1. Sign up at [smith.langchain.com](https://smith.langchain.com) and create a project named `insurance_workflow`
+2. Copy your API key from the LangSmith dashboard
+3. Set the following in `.env`:
+
+```bash
+LANGCHAIN_API_KEY=your_key_here
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_PROJECT=insurance_workflow
+```
+
+4. Run Use Case 2 (`POST /claim-explanation`) and open the LangSmith project to see the full ReAct trace
+
+No code changes are required — tracing is activated by the env vars alone.
+
+---
+
 ## LLM Provider Configuration
 
 Edit `config/agents.yaml` to switch providers:

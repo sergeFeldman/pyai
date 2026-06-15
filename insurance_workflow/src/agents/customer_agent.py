@@ -19,7 +19,7 @@ class CustomerAgent(
         CustomerAgentConfig,
         mcp.CustomerMcpClient,
         mdl.CustomerRequest,
-        mdl.CustomerContext,
+        mdl.Customer,
     ]
 ):
     """Configurable agent class responsible for customer context retrieval.
@@ -40,13 +40,13 @@ class CustomerAgent(
         # so the same agent instance always holds the same client instance.
         super().__init__(config, mcp.CustomerMcpClient(config.customer_mcp_client_config))
 
-    def get_context(self, request: mdl.CustomerRequest) -> Optional[mdl.CustomerContext]:
+    def get_context(self, request: mdl.CustomerRequest) -> Optional[mdl.Customer]:
         """Retrieve the customer context record for the requested customer.
 
         Args:
             request (mdl.CustomerRequest): Customer context lookup request object.
 
         Returns:
-            Optional[mdl.CustomerContext]: Matching customer context record, if found.
+            Optional[mdl.Customer]: Matching customer context record, if found.
         """
         return self.get_obj(request)

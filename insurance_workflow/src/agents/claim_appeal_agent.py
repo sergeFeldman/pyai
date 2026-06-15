@@ -39,7 +39,7 @@ class ClaimAppealAgent(
         super().__init__(config, mcp.ClaimAppealRuleMcpClient(config.claim_appeal_rule_mcp_client_config))
 
     def check_eligibility(self, claim: mdl.Claim,
-                          customer: mdl.CustomerContext) -> mdl.ClaimAppealResult:
+                          customer: mdl.Customer) -> mdl.ClaimAppealResult:
         """Check whether the claim is eligible for appeal.
 
         Evaluates all disqualification rules. The first matching rule disqualifies
@@ -47,7 +47,7 @@ class ClaimAppealAgent(
 
         Args:
             claim (mdl.Claim): Claim to evaluate.
-            customer (mdl.CustomerContext): Customer context for the claim.
+            customer (mdl.Customer): Customer context for the claim.
 
         Returns:
             mdl.ClaimAppealResult: Eligibility result with reason.
@@ -59,12 +59,12 @@ class ClaimAppealAgent(
                 return mdl.ClaimAppealResult(claim.claim_id, False, rule.reason)
         return mdl.ClaimAppealResult(claim.claim_id, True, "Claim is eligible for appeal.")
 
-    def get_eligibility_message(self, claim: mdl.Claim, customer: mdl.CustomerContext) -> str:
+    def get_eligibility_message(self, claim: mdl.Claim, customer: mdl.Customer) -> str:
         """Build a user-facing appeal eligibility message for the given claim and customer.
 
         Args:
             claim (mdl.Claim): Claim to evaluate.
-            customer (mdl.CustomerContext): Customer context for the claim.
+            customer (mdl.Customer): Customer context for the claim.
 
         Returns:
             str: User-facing appeal eligibility message.

@@ -1,6 +1,8 @@
 # Agentic Workflow Platform Architecture Overview for a Large Multiline Insurer
 
 > **Note:** This document describes the target enterprise architecture. The current POC implements a subset of this vision. See [Implementation Dataflow](../implementation/dataflow.md) for what is currently built.
+>
+> **Foundation:** Cross-cutting utilities (`Configurable`, `Singleton`, `ConfigurableObjectFactory`, `SerializableMixin`, `Explainable`) are provided by the [`shared`](../../../shared/docs/core.md) foundation library, shared across all `pyai` projects.
 
 ## Executive Summary
 

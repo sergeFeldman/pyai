@@ -6,7 +6,8 @@ Run from the project root with:
 
 from mcp.server.fastmcp import FastMCP
 
-import data
+import shared.data as shd_data
+import models as mdl
 
 mcp = FastMCP("csv-server")
 
@@ -21,8 +22,8 @@ def get_claim(claim_id: str) -> dict:
     Returns:
         Claim record as a dictionary, or empty dict if not found.
     """
-    storage = data.DataStorageFactory().get_obj(data.DataStorageId.CSV.value,
-                                                {"model_type": data.DataModelType.CLAIM,
+    storage = shd_data.DataStorageFactory().get_obj(shd_data.DataStorageId.CSV.value,
+                                                {"model_class": mdl.Claim,
                                                  "file_path": "data/in/claim.csv"})
     claim = storage.read_by_key(claim_id)
     return claim.to_dict() if claim else {}
@@ -38,8 +39,8 @@ def get_customer(customer_id: str) -> dict:
     Returns:
         Customer context record as a dictionary, or empty dict if not found.
     """
-    storage = data.DataStorageFactory().get_obj(data.DataStorageId.CSV.value,
-                                                {"model_type": data.DataModelType.CUSTOMER,
+    storage = shd_data.DataStorageFactory().get_obj(shd_data.DataStorageId.CSV.value,
+                                                {"model_class": mdl.Customer,
                                                  "file_path": "data/in/customer_context.csv"})
     context = storage.read_by_key(customer_id)
     return context.to_dict() if context else {}
@@ -55,8 +56,8 @@ def get_policy_rule(policy_rule_id: str) -> dict:
     Returns:
         Policy rule as a dictionary, or empty dict if not found.
     """
-    storage = data.DataStorageFactory().get_obj(data.DataStorageId.CSV.value,
-                                                {"model_type": data.DataModelType.POLICY_RULE,
+    storage = shd_data.DataStorageFactory().get_obj(shd_data.DataStorageId.CSV.value,
+                                                {"model_class": mdl.PolicyRule,
                                                  "file_path": "data/in/policy_rules.csv"})
     rule = storage.read_by_key(policy_rule_id)
     return rule.to_dict() if rule else {}
@@ -74,8 +75,8 @@ def get_policy_rule_by_filter(claim_type: str, attribute: str, value: str) -> di
     Returns:
         Matching policy rule as a dictionary, or empty dict if not found.
     """
-    storage = data.DataStorageFactory().get_obj(data.DataStorageId.CSV.value,
-                                                {"model_type": data.DataModelType.POLICY_RULE,
+    storage = shd_data.DataStorageFactory().get_obj(shd_data.DataStorageId.CSV.value,
+                                                {"model_class": mdl.PolicyRule,
                                                  "file_path": "data/in/policy_rules.csv"})
     for rule in storage.read():
         if rule.claim_type == claim_type and rule.attribute == attribute and rule.value == value:

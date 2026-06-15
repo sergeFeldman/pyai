@@ -10,6 +10,7 @@ from .api_models import (
 )
 from .base_model import WorkflowBaseModel
 from .workflow_models import (
+    AuditRecord,
     AttributeExplanation,
     Claim,
     ClaimAppealResult,
@@ -19,7 +20,7 @@ from .workflow_models import (
     ClaimExplanationResult,
     ClaimRequest,
     ClaimStatus,
-    CustomerContext,
+    Customer,
     CustomerRequest,
     PolicyRule,
     PolicyRuleFilterRequest,
@@ -30,6 +31,7 @@ from .workflow_models import (
 )
 
 __all__ = [
+    "AuditRecord",
     "AttributeExplanation",
     "Claim",
     "ClaimAppealHttpRequest",
@@ -45,7 +47,7 @@ __all__ = [
     "ClaimStatus",
     "ClaimStatusHttpRequest",
     "ClaimStatusHttpResponse",
-    "CustomerContext",
+    "Customer",
     "CustomerRequest",
     "PolicyRule",
     "PolicyRuleFilterRequest",
