@@ -5,18 +5,20 @@ from __future__ import annotations
 import shared.core as shd_core
 from .csv_data_storage import CsvDataStorage
 from .json_data_storage import JsonDataStorage
+from .jsonl_data_storage import JsonlDataStorage
 
 
 class DataStorageFactory(shd_core.ConfigurableObjectFactory):
     """Singleton factory for creating and caching DataStorage objects.
 
-    Resolves storage backend identifiers (e.g. ``"csv"``, ``"json"``) to concrete
-    DataStorage subclasses via the class-level ``_TYPES_MAPPING`` registry.
+    Resolves storage backend identifiers (e.g. ``"csv"``, ``"json"``, ``"jsonl"``)
+    to concrete DataStorage subclasses via the class-level ``_TYPES_MAPPING`` registry.
     """
 
     _TYPES_MAPPING = {
         "csv": CsvDataStorage,
         "json": JsonDataStorage,
+        "jsonl": JsonlDataStorage,
     }
 
     def __init__(self):

@@ -2,12 +2,13 @@
 
 from .rule import DecisionRule, LookupRule, Rule
 from .rule_factory import RuleFactory
-from .rule_registry import RuleRegistry
+from .rule_registry import RuleExecutionResult, RuleRegistry
 
 __all__ = [
     "DecisionRule",
     "LookupRule",
     "Rule",
+    "RuleExecutionResult",
     "RuleFactory",
     "RuleRegistry",
 ]

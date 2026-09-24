@@ -16,6 +16,7 @@ class DataStorageId(Enum):
     CSV = "csv"
     DB = "db"
     JSON = "json"
+    JSONL = "jsonl"
 
 
 T = TypeVar("T", bound="DataStorageConfig")

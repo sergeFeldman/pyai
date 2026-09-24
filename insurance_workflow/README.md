@@ -41,6 +41,16 @@ Agentic, LLM-driven. Given a claim ID and a list of attributes to explain (e.g. 
 
 The agent's reasoning steps are fully visible: every tool call and observation is logged.
 
+### Use Case 3: Claim Appeal Eligibility (`POST /claim-appeal`)
+
+Deterministic, rule-driven. Given a claim ID, the platform:
+1. Retrieves the claim record and customer context
+2. Builds a shared execution context and runs it through the rule executor
+3. The executor walks the DAG in topological + priority order, enforcing input preconditions between rules and propagating intermediate outputs
+4. Returns eligibility status and the reason for any disqualification
+
+No LLM involved. Rules are versioned, DAG-aware, and loaded from a structured JSON registry at startup.
+
 ## Key Design Patterns
 
 | Pattern | Purpose |
@@ -51,6 +61,8 @@ The agent's reasoning steps are fully visible: every tool call and observation i
 | Provider-agnostic LLM | Switch between Groq, Anthropic, or Ollama via `config/agents.yaml`; no code changes |
 | Async factory (`create()`) | Enables async tool loading during agent construction |
 | `SerializableMixin` | Consistent, enum-safe serialization of domain models to MCP tool responses |
+| Rule registry + DAG executor | Versioned rules organized as a dependency graph; executor walks DAG in topological order, enforces input preconditions, and propagates outputs through a shared context |
+| Rule ETL pipeline | Detects changes between raw input and versioned output; bumps versions and preserves full audit history |
 
 ## Technology Stack
 

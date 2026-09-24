@@ -2,6 +2,6 @@
 # Secrets (API keys) belong in .env — only non-secret settings here.
 
 claim_explanation:
-  llm_provider: groq
-  model: llama-3.3-70b-versatile
+  llm_provider: gemini
+  model: gemini-3.5-flash-lite
   prompt_name: hwchase17/structured-chat-agent

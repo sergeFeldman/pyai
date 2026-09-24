@@ -4,14 +4,14 @@ from typing import Optional
 
 import models as mdl
 
-from .mcp_client import MpcClient, MpcClientConfig
+from .mcp_client import McpStorageClient, McpStorageClientConfig
 
 
-class PolicyRuleMcpClientConfig(MpcClientConfig):
+class PolicyRuleMcpClientConfig(McpStorageClientConfig):
     """Configuration model for PolicyRuleMcpClient."""
 
 
-class PolicyRuleMcpClient(MpcClient[PolicyRuleMcpClientConfig, mdl.PolicyRuleRequest, mdl.PolicyRule]):
+class PolicyRuleMcpClient(McpStorageClient[PolicyRuleMcpClientConfig, mdl.PolicyRuleRequest, mdl.PolicyRule]):
     """Configurable client class responsible for retrieving policy rule records."""
 
     _config_data_type = PolicyRuleMcpClientConfig

@@ -78,6 +78,37 @@ Sub-agents are reusable specialists that support multiple domains without owning
 - Reuse lowers duplication and improves consistency
 - Excessive sub-agent decomposition can increase latency and cognitive overhead
 
+## Rule Engine
+
+### Purpose
+
+The Rule Engine encodes business logic (eligibility, disqualification, routing, pricing, and data transformation) as versioned, auditable rules organized in a dependency graph. Rules are evaluated deterministically without code changes, giving business and compliance teams a governed path to modify logic independently of agent or workflow code.
+
+### Design Decisions
+
+- **Rule taxonomy**: Decision rules (single-condition scalar comparison), Lookup rules (keyed match returning a fixed output payload), and Extraction rules (path-based extraction from nested payloads, planned)
+- **DAG-driven execution**: rules declare `input` and `output` field names; the registry derives a dependency graph automatically; an edge A → B exists when A produces a field that B consumes
+- **Precondition gating**: `execute()` walks topological generations in order; each rule's declared `input` fields must be present in the shared context dict before evaluation; downstream rules only trigger when their upstream producers have already written their outputs
+- **Versioned registry**: the registry is append-only; every rule version is preserved for full audit history; the ETL pipeline detects field-level changes and bumps versions automatically
+- **Execution provenance**: `RuleExecutionResult` carries an `ExecutionMetadata` record (trace ID, executor name, UTC timestamp), the triggered rules in execution order, an ordered evaluation log (outcome per rule: triggered / skipped_precondition / skipped_no_match), entity snapshots, and the outputs produced; mirrors `EntityMetadata` on persistent entities
+- **Input context capture**: `execute()` operates on a flat context dict and has no access to the original domain objects. The caller (agent layer) is responsible for passing entity snapshots — the full claim and customer objects serialized at call time — alongside the execution request. These snapshots are embedded in the audit record so it is self-contained: the exact input state that drove every rule evaluation is preserved without needing to look up source records after the fact. Entity state can change after execution; capturing at call time ensures the audit reflects what actually happened
+
+### Implementation Considerations
+
+- `RuleRegistry` is a singleton; loaded at startup from a versioned JSON file via `load_from()`
+- `execute(domain, context, trace_id, executed_by, entities)` is the primary execution entry point; callers seed `context` with domain object fields using dot-notation keys (`claim.amount`, `customer.tenure_years`) for rule evaluation, and pass `entities` (e.g. `{"claim": claim.to_dict(), "customer": customer.to_dict()}`) as the input context snapshot embedded in the audit record — these are kept separate because `context` must preserve Python types for correct threshold coercion while `entities` is serialized for storage
+- `get_active(domain)` returns active rules in topological + priority order; used by the dashboard API for visualization
+- `get_dag(domain)` returns a cached `nx.DiGraph`; all NetworkX queries (ancestors, descendants, cycle detection) are available on the returned graph directly
+- `RuleFactory` detects rule type from raw dict field presence (`detect_type()`) and instantiates the correct subclass; adding a new rule type requires only a new subclass and a `detect_type()` case
+- ETL pipeline (`RuleEtl`) processes one domain per run; driven by `config/etl.yaml`; output files in `data/out/` are the source of truth
+
+### Key Trade-Offs
+
+- Rule-driven logic is easier to audit and modify without code changes, but adds a layer of indirection compared to direct conditional logic
+- DAG construction and topological ordering add startup cost; cached after first access per domain
+- Append-only versioning preserves full history but requires periodic archiving as rule counts grow
+- Precondition gating makes execution semantics explicit and testable, but requires rule authors to declare `input`/`output` fields accurately
+
 ## MCP Servers
 
 ### Purpose

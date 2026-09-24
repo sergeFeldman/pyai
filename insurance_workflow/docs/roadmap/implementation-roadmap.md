@@ -1,129 +1,75 @@
 # Implementation Roadmap
 
-## Phase 1: Foundation
-
-### Duration
-
-3 to 4 months
+## Phase 1: Foundation and Core Use Cases
 
 ### Scope
 
-- Establish the model gateway
-- Build the Orchestrator MVP
-- Stand up baseline observability
-- Implement the MCP framework and a small set of critical MCP servers
-- Add an audit pipeline and prompt registry
-- Launch the first read-only workflow in Claims: `Simple Claim Status (Sequential)`
+- Shared foundation library (`Configurable`, `Singleton`, `SerializableMixin`, `EntityMetadata`, `KeyedRegistry`, `ExplainableMixin`) extracted into `shared/` and reused across all projects
+- Use Case 1: Claim Status — deterministic, sequential; claim record retrieved via MCP, policy rule looked up, structured response assembled
+- Use Case 2: Claim Explanation — agentic, LLM-driven; ReAct agent backed by Groq/Anthropic autonomously calls MCP tools, synthesizes a natural-language explanation grounded in policy rules and customer context
 
-### First Vertical Slice
+### Status
 
-The first implementation target should be the narrowest useful end-to-end workflow:
+Complete.
 
-- channel request intake
-- orchestrator intent classification and routing
-- Claims Agent invocation
-- Claims MCP server tool call
-- claim status lookup from the backend system
-- final response synthesis
-- request tracing, audit logging, and basic latency metrics
+---
 
-Suggested first user story:
-
-```text
-User: "What's the status of claim CLM-12345?"
-```
-
-Required MVP output:
-
-```text
-"Your claim CLM-12345 is currently in review."
-```
-
-This first slice should prove:
-
-- one complete request path from channel to backend and back
-- one domain agent working through one MCP integration
-- observability and trace IDs across all steps
-- audit capture for prompts, tools, and response
-- stable low-latency behavior on a high-volume read-only use case
-
-### Milestones
-
-- First production pilot for `Simple Claim Status (Sequential)`
-- Traceable end-to-end workflow from channel through MCP
-- Traceability for every request
-- Core security and SSO integration in place
-
-### Success Criteria
-
-- 30% to 40% containment on pilot flows
-- Clear production telemetry and audit trail
-- Stable latency on the first claims workflow
-- A reusable implementation pattern for the next read-only workflows
-
-## Phase 2: Domain Expansion
-
-### Duration
-
-3 to 4 months
+## Phase 2: Rule Engine and Use Case 3
 
 ### Scope
 
-- Add Service and Sales agents
-- Add the Knowledge Agent and enterprise retrieval
-- Add supervisor tooling and escalation workflows
-- Integrate CRM, billing, ServiceNow, and curated Snowflake access
-- Establish prompt and model evaluation harnesses
+- Rule taxonomy: `DecisionRule` (single-condition scalar comparison with type coercion), `LookupRule` (keyed match returning a fixed output payload)
+- `RuleRegistry`: versioned singleton with append-only history, latest-version resolution, active rule ordering, and DAG construction from `input`/`output` field declarations
+- `RuleFactory`: type detection from raw dict field presence, instantiation of the correct `Rule` subclass
+- ETL pipeline: reads raw input rules, detects field-level changes, bumps versions, writes full audit history to the output file; driven by `config/etl.yaml`
+- Rules Dashboard: DAG visualization with hierarchical left-to-right layout, priority-ordered nodes, rule detail panel, version history
+- Use Case 3: Claim Appeal Eligibility — rule-driven, deterministic; evaluates all active claim appeal rules from the registry in topological + priority order
 
-### Success Criteria
+### Status
 
-- Cross-domain query handling
-- 50% to 65% containment
-- Reduced average handle time and improved first-contact resolution
+Complete.
 
-## Phase 3: Optimization
+---
 
-### Duration
-
-Approximately 3 months
+## Phase 3: Rule Executor and Execution Traceability
 
 ### Scope
 
-- Add semantic caching
-- Enable adaptive model routing
-- Introduce more parallel multi-agent execution
-- Add stronger write-action guardrails
-- Expand document processing
-- Automate regression testing for prompts and tools
+- `RuleRegistry.execute()`: walks the DAG in topological generation order; gates each `DecisionRule` on its declared `input` preconditions before evaluation; writes fired rule outputs to the shared context as `True`, enabling downstream rules
+- `ExecutionMetadata`: trace ID, executor name, UTC timestamp; mirrors `EntityMetadata` on persistent entities
+- `RuleExecutionResult`: carries `ExecutionMetadata`, the domain, triggered rules in execution order, and intermediate/terminal outputs; seeded claim/customer context excluded from result
+- `ClaimAppealAgent._build_context()`: builds the execution context from claim and customer using `dataclasses.fields()` + `getattr()` to preserve Python types for correct threshold coercion
+- `RuleExecutionAuditService`: Singleton audit service; appends one `RuleExecutionResult` record per `execute()` call to `data/audit/rule_executions.jsonl` via `JsonlDataStorage`; trace ID threaded from the orchestrator through `ClaimAppealAgent` into `ExecutionMetadata`
+- `JsonlDataStorage`: append-only `DataStorage` subclass; `read()` returns raw dicts; `read_by_key()` supports dot-notation path traversal for nested fields; registered in `DataStorageFactory` as `"jsonl"`
+- Test coverage: `TestExecute` (precondition gating, output propagation, metadata, domain) and `TestClaimAppealAgent` (fraud-check-alone vs fraud-with-escalation, amount-tier chains)
 
-### Success Criteria
+### Status
 
-- Lower unit cost per interaction
-- 70% to 80% containment
-- P95 near 2 seconds for top synchronous flows
+Complete.
 
-## Phase 4: Scale and Resilience
+---
 
-### Duration
-
-3 to 6 months
+## Phase 4: Rule Engine Depth
 
 ### Scope
 
-- Prepare for 10,000+ concurrent sessions
-- Improve resilience with regional failover strategy where required
-- Expand to HR and IT domains
-- Harden SRE practices, operational runbooks, and governance automation
+- Compound `DecisionRule`: replace the single `operator`/`threshold` pair with a condition list supporting AND/OR/IN logic; `matches()` evaluates the condition tree
+- Positive qualification rules: `appeal.qualified` output alongside `appeal.disqualified`; result includes both disqualifying and qualifying rules that fired
+- Per-rule audit detail: extend the execution audit record with per-rule outcome (fired, skipped on precondition, skipped on no-match), rule version, and output values; enables the dashboard audit view to show the full rule evaluation sequence
 
-### Success Criteria
+### Status
 
-- 99.9% availability
-- Sustainable multi-million-call daily volume
-- Enterprise-wide rollout readiness
+Pending.
 
-## Delivery Guidance
+---
 
-- Start with read-heavy, low-risk workflows
-- Delay autonomous write actions until observability and policy enforcement are mature
-- Roll out by domain and business capability, not by technology alone
-- Keep the platform interoperable with existing enterprise systems to support gradual migration
+## Phase 5: Data and Traceability Hardening
+
+### Scope
+
+- Extraction rules: `ExtractionRule` with a path expression (JSONPath or dot-notation) and a target field name; applied as a preprocessing step before Decision or Lookup rules are evaluated; relevant when integrating with backends that return complex JSON payloads
+- PII tokenization service: tokenize sensitive values in rule inputs and audit output before persistence
+
+### Status
+
+Pending.

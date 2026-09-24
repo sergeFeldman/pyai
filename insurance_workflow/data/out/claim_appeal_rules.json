@@ -1,0 +1,496 @@
+[
+  {
+    "id": "ca_amount_tier",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 4,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.amount_tier"
+    ],
+    "reason": "Claim amount falls below standard appeal threshold.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "500"
+  },
+  {
+    "id": "ca_amount_tier",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 4,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.amount_tier"
+    ],
+    "reason": "Claim amount falls below standard appeal threshold.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "500"
+  },
+  {
+    "id": "ca_blacklisted_shop",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 9,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.repair_shop"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Claim filed through a repair shop with active fraud flags.",
+    "kind": "lookup",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-09-24T03:31:02.732134+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "match_keys": {
+      "claim.repair_shop": "shop_rouge"
+    },
+    "output_values": {
+      "appeal.disqualified": "true"
+    }
+  },
+  {
+    "id": "ca_commercial_type",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 10,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.claim_type"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Commercial claims are not eligible for appeal.",
+    "kind": "lookup",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-09-24T03:31:02.731987+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "match_keys": {
+      "claim.claim_type": "commercial"
+    },
+    "output_values": {
+      "appeal.disqualified": "true"
+    }
+  },
+  {
+    "id": "ca_fraud_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 8,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.is_fraud"
+    ],
+    "output": [
+      "appeal.fraud_flagged"
+    ],
+    "reason": "Claim flagged for potential fraud.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "claim",
+    "attribute": "is_fraud",
+    "operator": "==",
+    "threshold": "True"
+  },
+  {
+    "id": "ca_fraud_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 8,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "claim.is_fraud"
+    ],
+    "output": [
+      "appeal.fraud_flagged"
+    ],
+    "reason": "Claim flagged for potential fraud.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "is_fraud",
+    "operator": "==",
+    "threshold": "True"
+  },
+  {
+    "id": "ca_fraud_escalation_limit",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "appeal.fraud_flagged",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Fraudulent claim with multiple prior escalation attempts.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "customer",
+    "attribute": "escalation_history_count",
+    "operator": ">=",
+    "threshold": "2"
+  },
+  {
+    "id": "ca_fraud_escalation_limit",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "appeal.fraud_flagged",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Fraudulent claim with multiple prior escalation attempts.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "escalation_history_count",
+    "operator": ">=",
+    "threshold": "2"
+  },
+  {
+    "id": "ca_low_tier_tenure_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "appeal.amount_tier",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claim requires minimum 5 years customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "customer",
+    "attribute": "tenure_years",
+    "operator": "<",
+    "threshold": "5"
+  },
+  {
+    "id": "ca_low_tier_tenure_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "appeal.amount_tier",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claim requires minimum 5 years customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "tenure_years",
+    "operator": "<",
+    "threshold": "5"
+  },
+  {
+    "id": "ca_max_escalations",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 6,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Maximum escalation attempts reached.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "customer",
+    "attribute": "escalation_history_count",
+    "operator": ">=",
+    "threshold": "5"
+  },
+  {
+    "id": "ca_max_escalations",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 6,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Maximum escalation attempts reached.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "escalation_history_count",
+    "operator": ">=",
+    "threshold": "5"
+  },
+  {
+    "id": "ca_min_amount",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 1,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Claim value too low to qualify for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "1000"
+  },
+  {
+    "id": "ca_min_amount",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 1,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Claim value too low to qualify for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "1000"
+  },
+  {
+    "id": "ca_min_tenure",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 2,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Insufficient customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "customer",
+    "attribute": "tenure_years",
+    "operator": "<",
+    "threshold": "3"
+  },
+  {
+    "id": "ca_min_tenure",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 2,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Insufficient customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "tenure_years",
+    "operator": "<",
+    "threshold": "3"
+  },
+  {
+    "id": "ca_status_denied",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 5,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.status"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Only denied claims can be appealed.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-18T10:00:00+00:00"
+    },
+    "subject": "claim",
+    "attribute": "status",
+    "operator": "!=",
+    "threshold": "denied"
+  },
+  {
+    "id": "ca_status_denied",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 5,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2099-12-31T00:00:00+00:00",
+    "input": [
+      "claim.status"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Only denied claims can be appealed.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "status",
+    "operator": "!=",
+    "threshold": "denied"
+  }
+]

@@ -2,14 +2,14 @@
 
 import models as mdl
 
-from .mcp_client import MpcClient, MpcClientConfig
+from .mcp_client import McpStorageClient, McpStorageClientConfig
 
 
-class CustomerMcpClientConfig(MpcClientConfig):
+class CustomerMcpClientConfig(McpStorageClientConfig):
     """Configuration model for CustomerMcpClient."""
 
 
-class CustomerMcpClient(MpcClient[CustomerMcpClientConfig, mdl.CustomerRequest, mdl.Customer]):
+class CustomerMcpClient(McpStorageClient[CustomerMcpClientConfig, mdl.CustomerRequest, mdl.Customer]):
     """Configurable client class responsible for retrieving customer context records."""
 
     _config_data_type = CustomerMcpClientConfig

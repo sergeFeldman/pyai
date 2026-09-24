@@ -4,7 +4,7 @@
     "group": "",
     "priority": 9,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.is_fraud"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -23,7 +23,7 @@
     "group": "",
     "priority": 8,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.is_fraud"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -42,7 +42,7 @@
     "group": "",
     "priority": 7,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.is_fraud"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -61,7 +61,7 @@
     "group": "",
     "priority": 6,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.status"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -80,7 +80,7 @@
     "group": "",
     "priority": 5,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.status"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -99,7 +99,7 @@
     "group": "",
     "priority": 4,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.status"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -118,7 +118,7 @@
     "group": "",
     "priority": 3,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.status"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -137,7 +137,7 @@
     "group": "",
     "priority": 2,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.status"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {
@@ -156,7 +156,7 @@
     "group": "",
     "priority": 1,
     "effective_from": "2026-01-01T00:00:00+00:00",
-    "effective_to": "2099-12-31T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.claim_type", "claim.status"],
     "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
     "match_keys": {

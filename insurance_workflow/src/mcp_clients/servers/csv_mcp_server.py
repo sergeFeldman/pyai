@@ -8,8 +8,14 @@ from mcp.server.fastmcp import FastMCP
 
 import shared.data as shd_data
 import models as mdl
+import rules as rls
+from mcp_clients.policy_rule_registry_client import PolicyRuleRegistryClient
 
 mcp = FastMCP("csv-server")
+
+# Load policy rules into the registry for this subprocess.
+rls.RuleRegistry.load_from("data/out/policy_rules.json")
+_policy_client = PolicyRuleRegistryClient()
 
 
 @mcp.tool()
@@ -48,19 +54,22 @@ def get_customer(customer_id: str) -> dict:
 
 @mcp.tool()
 def get_policy_rule(policy_rule_id: str) -> dict:
-    """Retrieve a policy rule by its primary key.
+    """Retrieve a policy rule by its id from the rule registry.
 
     Args:
-        policy_rule_id: Unique policy rule identifier, e.g. 'rule_1'.
+        policy_rule_id: Rule identifier, e.g. 'pr_ac_fraud'.
 
     Returns:
-        Policy rule as a dictionary, or empty dict if not found.
+        Policy rule fields (denial_basis, next_steps, policy_section), or empty dict if not found.
     """
-    storage = shd_data.DataStorageFactory().get_obj(shd_data.DataStorageId.CSV.value,
-                                                {"model_class": mdl.PolicyRule,
-                                                 "file_path": "data/in/policy_rules.csv"})
-    rule = storage.read_by_key(policy_rule_id)
-    return rule.to_dict() if rule else {}
+    rule = rls.RuleRegistry().get_latest(policy_rule_id, "policy")
+    if rule is None or not isinstance(rule, rls.LookupRule):
+        return {}
+    return {
+        "policy_rule_id": rule.id,
+        **rule.match_keys,
+        **rule.output_values,
+    }
 
 
 @mcp.tool()
@@ -73,15 +82,19 @@ def get_policy_rule_by_filter(claim_type: str, attribute: str, value: str) -> di
         value: Attribute value, e.g. 'denied', 'true'.
 
     Returns:
-        Matching policy rule as a dictionary, or empty dict if not found.
+        Matching policy rule fields (denial_basis, next_steps, policy_section), or empty dict.
     """
-    storage = shd_data.DataStorageFactory().get_obj(shd_data.DataStorageId.CSV.value,
-                                                {"model_class": mdl.PolicyRule,
-                                                 "file_path": "data/in/policy_rules.csv"})
-    for rule in storage.read():
-        if rule.claim_type == claim_type and rule.attribute == attribute and rule.value == value:
-            return rule.to_dict()
-    return {}
+    context = {"claim_type": claim_type, "attribute": attribute, "value": value}
+    rule = _policy_client.find(context)
+    if rule is None:
+        return {}
+    return {
+        "policy_rule_id": rule.id,
+        "claim_type": claim_type,
+        "attribute": attribute,
+        "value": value,
+        **rule.output_values,
+    }
 
 
 if __name__ == "__main__":

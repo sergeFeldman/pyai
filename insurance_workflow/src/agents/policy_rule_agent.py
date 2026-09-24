@@ -5,7 +5,7 @@ from typing import Optional
 import mcp_clients as mcp
 import models as mdl
 
-from .base_agent import McpEnabledAgent
+from .base_agent import McpStorageAgent
 
 
 class PolicyRuleAgentConfig(mdl.WorkflowBaseModel):
@@ -15,7 +15,7 @@ class PolicyRuleAgentConfig(mdl.WorkflowBaseModel):
 
 
 class PolicyRuleAgent(
-    McpEnabledAgent[
+    McpStorageAgent[
         PolicyRuleAgentConfig,
         mcp.PolicyRuleMcpClient,
         mdl.PolicyRuleRequest,

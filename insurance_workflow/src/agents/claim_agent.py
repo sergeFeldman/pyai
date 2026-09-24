@@ -5,7 +5,7 @@ from typing import Optional
 import mcp_clients as mcp
 import models as mdl
 
-from .base_agent import McpEnabledAgent
+from .base_agent import McpStorageAgent
 
 
 class ClaimAgentConfig(mdl.WorkflowBaseModel):
@@ -15,7 +15,7 @@ class ClaimAgentConfig(mdl.WorkflowBaseModel):
 
 
 class ClaimAgent(
-    McpEnabledAgent[
+    McpStorageAgent[
         ClaimAgentConfig,
         mcp.ClaimMcpClient,
         mdl.ClaimRequest,

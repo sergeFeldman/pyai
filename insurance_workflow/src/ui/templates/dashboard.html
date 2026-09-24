@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rule Registry — DAG Dashboard</title>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0D1117;
+      --surface:    #161B22;
+      --surface2:   #1C2128;
+      --border:     #30363D;
+      --text:       #E6EDF3;
+      --muted:      #7D8590;
+      --accent:     #2F81F7;
+      --decision-bg: #1C3A6E;
+      --decision-bd: #2F81F7;
+      --lookup-bg:   #0F3D1F;
+      --lookup-bd:   #3FB950;
+      --tag-bg:     #21262D;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px; line-height: 1.5; }
+
+    /* ── layout ── */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+
+    header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 14px; height: 46px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .brand { font-weight: 600; font-size: 13px; white-space: nowrap; }
+    .brand-sub { color: var(--muted); font-weight: 400; margin-left: 6px; font-size: 12px; }
+
+    .divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+    /* tab group */
+    .tab-group { display: flex; gap: 2px; }
+    .tab {
+      padding: 4px 11px; border-radius: 4px;
+      border: 1px solid transparent;
+      background: transparent; color: var(--muted);
+      cursor: pointer; font-size: 12px; white-space: nowrap;
+      transition: color .12s, background .12s, border-color .12s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active {
+      background: var(--tag-bg); border-color: var(--border); color: var(--text);
+    }
+
+    /* domain dropdown */
+    .select-wrap { position: relative; flex-shrink: 0; }
+    .select-wrap::after {
+      content: '';
+      position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--muted);
+      pointer-events: none;
+    }
+    #domain-select {
+      appearance: none;
+      background: var(--tag-bg); color: var(--text);
+      border: 1px solid var(--border);
+      padding: 4px 28px 4px 10px; border-radius: 5px;
+      font-size: 12px; font-family: "SFMono-Regular", Consolas, monospace;
+      cursor: pointer; outline: none; min-width: 160px;
+    }
+    #domain-select:focus { border-color: var(--accent); }
+    #domain-select option { background: var(--surface2); }
+
+    /* stats inline */
+    #header-stats { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    #header-stats b { color: var(--text); }
+
+    .spacer { flex: 1; }
+
+    /* action buttons */
+    .btn {
+      padding: 4px 10px; border-radius: 5px;
+      border: 1px solid var(--border); background: var(--tag-bg);
+      color: var(--muted); cursor: pointer; font-size: 11px;
+      transition: color .12s, border-color .12s; white-space: nowrap;
+    }
+    .btn:hover { color: var(--text); border-color: var(--muted); }
+    #panel-toggle { padding: 4px 8px; font-size: 16px; line-height: 1; }
+
+    /* ── main ── */
+    main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── sessions panel (Executions tab) ── */
+    #sessions-panel {
+      width: 220px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    #sessions-panel.hidden { display: none; }
+
+    #sessions-header {
+      padding: 9px 14px 8px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    }
+
+    #sessions-list {
+      flex: 1; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+
+    .session-item {
+      padding: 9px 12px 8px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background .1s;
+      border-left: 2px solid transparent;
+    }
+    .session-item:hover { background: var(--surface2); }
+    .session-item.active { background: var(--surface2); border-left-color: var(--accent); }
+
+    .session-trace {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 11px; color: var(--muted); margin-bottom: 4px;
+    }
+    .session-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; flex-wrap: wrap; }
+    .session-count { font-size: 11px; color: var(--muted); }
+    .session-ts { font-size: 10px; color: var(--muted); font-family: monospace; }
+
+    .outcome-eligible {
+      padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .05em;
+      background: #0F3D1F; color: #7EE787; border: 1px solid #3FB950;
+      white-space: nowrap;
+    }
+    .outcome-not-eligible {
+      padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .05em;
+      background: #3D1515; color: #FF7B72; border: 1px solid #CF222E;
+      white-space: nowrap;
+    }
+
+    .sessions-placeholder { padding: 14px 12px; color: var(--muted); font-size: 12px; }
+
+    /* ── graph ── */
+    #graph-wrap { flex: 1; position: relative; overflow: hidden; }
+    #graph { width: 100%; height: 100%; background: var(--bg); }
+
+    #overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 8px; color: var(--muted); font-size: 13px;
+      pointer-events: none;
+    }
+    #overlay .icon { font-size: 28px; }
+    #overlay.hidden { display: none; }
+
+    /* ── detail panel ── */
+    #detail {
+      width: 390px; flex-shrink: 0;
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transition: width .18s ease; overflow: hidden;
+    }
+    #detail.collapsed { width: 0; border-left: none; }
+
+    #detail-header {
+      padding: 9px 14px 8px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    }
+
+    #detail-body {
+      flex: 1; overflow-y: auto; padding: 12px 14px;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+    #detail-placeholder { color: var(--muted); font-size: 12px; }
+
+    .rule-id {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 13px; font-weight: 600; color: var(--text);
+      margin-bottom: 4px; word-break: break-all;
+    }
+    .rule-meta-row { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+    .badge {
+      padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .badge-decision { background: #1C3A6E; color: #79C0FF; border: 1px solid #2F81F7; }
+    .badge-lookup   { background: #0F3D1F; color: #7EE787; border: 1px solid #3FB950; }
+    .pri { font-size: 11px; color: var(--muted); font-family: monospace; }
+
+    .sec { font-size: 10px; font-weight: 600; text-transform: uppercase;
+           letter-spacing: .07em; color: var(--muted); margin: 12px 0 5px; }
+
+    .kv { display: grid; grid-template-columns: 86px 1fr; gap: 2px 8px; margin-bottom: 3px; }
+    .kk { color: var(--muted); font-size: 11px; font-family: monospace; }
+    .kv_ { color: var(--text); font-size: 11px; font-family: monospace; word-break: break-all; }
+
+    .fields { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ftag {
+      padding: 2px 7px; border-radius: 3px;
+      background: var(--tag-bg); border: 1px solid var(--border);
+      font-family: monospace; font-size: 11px; color: var(--text);
+    }
+
+    .cond-box {
+      font-family: monospace; font-size: 12px;
+      background: var(--tag-bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 7px 9px;
+    }
+    .cs { color: #79C0FF; } .ca { color: #D2A8FF; }
+    .co { color: #FF7B72; } .ct { color: #FFA657; }
+
+    .reason-box {
+      font-size: 12px; color: var(--text); line-height: 1.55;
+      background: var(--tag-bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 7px 9px;
+    }
+
+    .eff-range { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    .eff-dates { font-family: monospace; font-size: 11px; color: var(--text); }
+    .eff-badge {
+      padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .eff-active   { background: #0F3D1F; color: #7EE787; border: 1px solid #3FB950; }
+    .eff-expired  { background: #3D1515; color: #FF7B72; border: 1px solid #CF222E; }
+    .eff-future   { background: #1C2D3D; color: #79C0FF; border: 1px solid #388BFD; }
+
+    /* version dropdown */
+    .ver-select {
+      appearance: none; background: var(--tag-bg); color: var(--accent);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 2px 22px 2px 7px; font-size: 11px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      cursor: pointer; outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%237D8590'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 6px center;
+    }
+    .ver-select:focus { border-color: var(--accent); }
+    .ver-select option { background: var(--surface2); color: var(--text); }
+
+    .diff-row { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; }
+    .diff-tag {
+      padding: 1px 6px; border-radius: 3px;
+      background: #2D1F0D; border: 1px solid #9E6A03;
+      font-size: 10px; font-family: monospace; color: #E3B341;
+    }
+    .stale-banner {
+      font-size: 11px; color: #E3B341;
+      background: #2D1F0D; border: 1px solid #9E6A03;
+      border-radius: 4px; padding: 5px 8px; margin-bottom: 10px;
+    }
+
+    /* session triggered rule row */
+    .triggered-rule {
+      margin-bottom: 9px; padding: 7px 9px;
+      background: var(--tag-bg); border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .triggered-rule-id {
+      font-family: monospace; font-size: 12px; font-weight: 600;
+      color: #FFA657; margin-bottom: 3px;
+    }
+    .triggered-rule-reason { font-size: 11px; color: var(--muted); line-height: 1.4; margin-bottom: 4px; }
+
+    /* entity section */
+    .entity-type-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--accent); margin: 8px 0 4px;
+    }
+
+    /* evaluation log badges */
+    .eval-badge {
+      padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; flex-shrink: 0;
+    }
+    .eval-triggered   { background: #2D1F0D; border: 1px solid #9E6A03; color: #E3B341; }
+    .eval-no-match    { background: #1C2128; border: 1px solid #30363D; color: #7D8590; }
+    .eval-precondition{ background: #161B22; border: 1px solid #21262D; color: #555C63; }
+
+    /* skipped rule row */
+    .eval-skipped {
+      margin-bottom: 4px; padding: 5px 8px;
+      border: 1px solid #21262D; border-radius: 4px;
+      background: #0D1117;
+    }
+
+    /* ── footer / legend ── */
+    footer {
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 14px; height: 30px;
+      background: var(--surface); border-top: 1px solid var(--border);
+      flex-shrink: 0; font-size: 11px; color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .dot-decision  { background: #2F81F7; }
+    .dot-lookup    { background: #3FB950; }
+    .dot-triggered { background: #F0883E; }
+    .legend-hint   { color: var(--muted); font-size: 10px; margin-left: auto; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <span class="brand">Rule Registry<span class="brand-sub">DAG Dashboard</span></span>
+    <div class="divider"></div>
+
+    <div class="tab-group">
+      <button class="tab active" id="tab-rules"      onclick="switchTab('rules')">Rules</button>
+      <button class="tab"        id="tab-executions" onclick="switchTab('executions')">Executions</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="select-wrap">
+      <select id="domain-select" onchange="loadDag(this.value)">
+        <option value="">Select domain…</option>
+      </select>
+    </div>
+
+    <span id="header-stats" style="display:none">
+      <b id="s-nodes">0</b> nodes &nbsp;·&nbsp; <b id="s-edges">0</b> edges
+    </span>
+
+    <div class="spacer"></div>
+
+    <button class="btn" onclick="fitGraph()">Fit</button>
+    <button class="btn" id="reload-btn" onclick="reloadDag()">Reload DAG</button>
+    <button class="btn" id="panel-toggle" onclick="togglePanel()" title="Toggle detail panel">›</button>
+  </header>
+
+  <main>
+
+    <div id="sessions-panel" class="hidden">
+      <div id="sessions-header">Sessions</div>
+      <div id="sessions-list">
+        <div class="sessions-placeholder">Select a domain to view executions.</div>
+      </div>
+    </div>
+
+    <div id="graph-wrap">
+      <div id="graph"></div>
+      <div id="overlay">
+        <div class="icon">⬡</div>
+        <div id="overlay-msg">Select a domain to view its DAG</div>
+      </div>
+    </div>
+
+    <div id="detail">
+      <div id="detail-header">Rule Detail</div>
+      <div id="detail-body">
+        <div id="detail-placeholder">Click a node to inspect the rule.</div>
+        <div id="detail-content" style="display:none"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span class="legend-item"><span class="dot dot-decision"></span>decision</span>
+    <span class="legend-item"><span class="dot dot-lookup"></span>lookup</span>
+    <span id="legend-triggered" class="legend-item" style="display:none">
+      <span class="dot dot-triggered"></span>triggered
+    </span>
+    <span class="legend-hint" id="footer-hint">—</span>
+  </footer>
+
+</div>
+<script>
+let network        = null;
+let currentDomain  = null;
+let currentData    = null;
+let panelOpen      = true;
+let activeTab      = 'rules';
+let executionsData = null;
+let selectedTraceId = null;
+
+// ── boot ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const res  = await fetch('/rules/domains');
+    const data = await res.json();
+    const sel  = document.getElementById('domain-select');
+    data.domains.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = d;
+      sel.appendChild(opt);
+    });
+    if (data.domains.length === 1) {
+      sel.value = data.domains[0];
+      loadDag(data.domains[0]);
+    }
+  } catch (e) {
+    setHint('⚠ Could not reach /rules/domains');
+  }
+}
+
+// ── tab switching ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-rules').classList.toggle('active', tab === 'rules');
+  document.getElementById('tab-executions').classList.toggle('active', tab === 'executions');
+  document.getElementById('sessions-panel').classList.toggle('hidden', tab !== 'executions');
+  document.getElementById('legend-triggered').style.display = tab === 'executions' ? '' : 'none';
+
+  if (tab === 'rules') {
+    clearOverlay();
+    selectedTraceId = null;
+    document.getElementById('detail-header').textContent = 'Rule Detail';
+    clearDetail();
+  } else {
+    document.getElementById('detail-header').textContent = 'Execution Detail';
+    clearDetail();
+    if (currentDomain) loadExecutions(currentDomain);
+  }
+}
+
+// ── DAG load ──────────────────────────────────────────────────────────────────
+async function loadDag(domain, replaceWithNew = false) {
+  if (!domain) return;
+  currentDomain = domain;
+  clearDetail();
+  selectedTraceId = null;
+  showOverlay(replaceWithNew ? 'Rebuilding DAG…' : 'Loading…');
+
+  try {
+    const qs   = replaceWithNew ? '?replace_with_new=true' : '';
+    const res  = await fetch(`/rules/dag/${domain}${qs}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    currentData = data;
+    updateStats(data);
+    renderGraph(data);
+
+    if (activeTab === 'executions') loadExecutions(domain);
+  } catch (e) {
+    showOverlay(`⚠ ${e.message}`);
+  }
+}
+
+function reloadDag() {
+  if (!currentDomain) return;
+  const btn = document.getElementById('reload-btn');
+  btn.textContent = 'Rebuilding…';
+  btn.disabled = true;
+  loadDag(currentDomain, true).finally(() => {
+    btn.textContent = 'Reload DAG';
+    btn.disabled = false;
+  });
+}
+
+// ── executions load ───────────────────────────────────────────────────────────
+async function loadExecutions(domain) {
+  const listEl = document.getElementById('sessions-list');
+  listEl.innerHTML = '<div class="sessions-placeholder">Loading…</div>';
+  clearOverlay();
+
+  try {
+    const res = await fetch(`/executions?domain=${encodeURIComponent(domain)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    executionsData = data.sessions;
+    renderSessionsList(data.sessions);
+  } catch (e) {
+    listEl.innerHTML = `<div class="sessions-placeholder">⚠ ${e.message}</div>`;
+  }
+}
+
+function renderSessionsList(sessions) {
+  const listEl = document.getElementById('sessions-list');
+  if (!sessions || !sessions.length) {
+    listEl.innerHTML = '<div class="sessions-placeholder">No execution records for this domain.</div>';
+    return;
+  }
+
+  listEl.innerHTML = sessions.map(s => {
+    const shortId    = s.trace_id.slice(-8);
+    const ts         = fmtDateTime(s.executed_timestamp);
+    const outcomeClass = s.eligible ? 'outcome-eligible' : 'outcome-not-eligible';
+    const outcomeLabel = s.eligible ? 'Eligible' : 'Not Eligible';
+    const count      = s.triggered_ids.length;
+    const countLabel = count === 0 ? 'no rules fired' : `${count} rule${count !== 1 ? 's' : ''} fired`;
+    const activeClass = s.trace_id === selectedTraceId ? ' active' : '';
+
+    return `<div class="session-item${activeClass}" onclick="selectSession('${esc(s.trace_id)}')">
+      <div class="session-trace">…${esc(shortId)}</div>
+      <div class="session-row">
+        <span class="${outcomeClass}">${outcomeLabel}</span>
+        <span class="session-count">${countLabel}</span>
+      </div>
+      <div class="session-ts">${esc(ts)}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectSession(traceId) {
+  selectedTraceId = traceId;
+  const session = (executionsData || []).find(s => s.trace_id === traceId);
+  if (!session) return;
+  renderSessionsList(executionsData);
+  applyOverlay(session.triggered_ids);
+  showSessionDetail(session);
+}
+
+// ── DAG overlay ───────────────────────────────────────────────────────────────
+function applyOverlay(triggeredIds) {
+  if (!network || !currentData) return;
+  const triggered = new Set(triggeredIds);
+  const updates = currentData.nodes.map(n => {
+    if (triggered.has(n.id)) {
+      return {
+        id: n.id,
+        color: {
+          background: '#5A2D00',
+          border:     '#F0883E',
+          highlight:  { background: '#7D3C00', border: '#FFA657' },
+          hover:      { background: '#6B3300', border: '#FFA657' },
+        },
+        font: { color: '#FFA657', size: 12, face: 'monospace' },
+      };
+    } else {
+      return {
+        id: n.id,
+        color: {
+          background: '#161B22',
+          border:     '#2D333B',
+          highlight:  { background: '#1C2128', border: '#444C56' },
+          hover:      { background: '#1C2128', border: '#444C56' },
+        },
+        font: { color: '#444C56', size: 12, face: 'monospace' },
+      };
+    }
+  });
+  network.body.data.nodes.update(updates);
+}
+
+function clearOverlay() {
+  if (!network || !currentData) return;
+  const updates = currentData.nodes.map(n => {
+    const isDecision = n.kind === 'decision';
+    return {
+      id: n.id,
+      color: {
+        background: isDecision ? '#1C3A6E' : '#0F3D1F',
+        border:     isDecision ? '#2F81F7' : '#3FB950',
+        highlight:  { background: isDecision ? '#2563EB' : '#16A34A', border: '#FFFFFF' },
+        hover:      { background: isDecision ? '#1D4ED8' : '#15803D', border: '#CBD5E1' },
+      },
+      font: { color: '#E6EDF3', size: 12, face: 'monospace' },
+    };
+  });
+  network.body.data.nodes.update(updates);
+}
+
+// ── graph render ──────────────────────────────────────────────────────────────
+function renderGraph(data) {
+  const overlayEl = document.getElementById('overlay');
+
+  if (data.nodes.length === 0) {
+    showOverlay('No active rules for this domain');
+    if (network) { network.destroy(); network = null; }
+    return;
+  }
+  overlayEl.classList.add('hidden');
+
+  const inDeg = {}, outDeg = {};
+  data.nodes.forEach(n => { inDeg[n.id] = 0; outDeg[n.id] = 0; });
+  data.edges.forEach(e => { inDeg[e.to]++; outDeg[e.from]++; });
+
+  const nodes = new vis.DataSet(data.nodes.map(rule => {
+    const isDecision = rule.kind === 'decision';
+    return {
+      id:    rule.id,
+      label: nodeLabel(rule),
+      title: nodeTooltip(rule),
+      shape: isDecision ? 'box' : 'ellipse',
+      color: {
+        background: isDecision ? '#1C3A6E' : '#0F3D1F',
+        border:     isDecision ? '#2F81F7' : '#3FB950',
+        highlight:  { background: isDecision ? '#2563EB' : '#16A34A', border: '#FFFFFF' },
+        hover:      { background: isDecision ? '#1D4ED8' : '#15803D', border: '#CBD5E1' },
+      },
+      font:        { color: '#E6EDF3', size: 12, face: 'monospace' },
+      borderWidth: inDeg[rule.id] === 0 ? 2 : 1,
+      margin:      { top: 8, right: 12, bottom: 8, left: 12 },
+    };
+  }));
+
+  const edges = new vis.DataSet(data.edges.map(e => ({
+    from:   e.from,
+    to:     e.to,
+    title:  (e.fields || []).join(", "),
+    arrows: { to: { enabled: true, scaleFactor: 0.55 } },
+    color:  { color: '#30363D', highlight: '#2F81F7', hover: '#7D8590' },
+    smooth: { type: 'curvedCW', roundness: 0.12 },
+    width:  1,
+  })));
+
+  const container = document.getElementById('graph');
+  const options = {
+    layout: {
+      hierarchical: {
+        enabled: true, direction: 'LR', sortMethod: 'directed',
+        levelSeparation: 230, nodeSpacing: 100, treeSpacing: 160,
+        parentCentralization: true, edgeMinimization: true, blockShifting: true,
+      }
+    },
+    physics: { enabled: false },
+    interaction: { dragNodes: true, zoomView: true, hover: true, tooltipDelay: 60 },
+  };
+
+  if (network) network.destroy();
+  network = new vis.Network(container, { nodes, edges }, options);
+
+  network.on('click', params => {
+    if (params.nodes.length > 0) {
+      const rule = (currentData.nodes || []).find(n => n.id === params.nodes[0]);
+      if (rule) showRuleDetail(rule);
+    } else {
+      if (activeTab === 'rules') clearDetail();
+    }
+  });
+}
+
+function fitGraph() {
+  if (network) network.fit({ animation: { duration: 280, easingFunction: 'easeInOutQuad' } });
+}
+
+// ── node helpers ──────────────────────────────────────────────────────────────
+function nodeLabel(r) { return r.id + '\np ' + (r.priority ?? '—'); }
+
+function nodeTooltip(r) {
+  const rows = [
+    `<b>${esc(r.id)}</b>`,
+    `kind: ${esc(r.kind)}   priority: ${r.priority ?? '—'}`,
+  ];
+  if (r.input?.length)  rows.push(`in:  ${r.input.join(', ')}`);
+  if (r.output?.length) rows.push(`out: ${r.output.join(', ')}`);
+  if (r.reason) rows.push(`<i>${esc(r.reason.slice(0, 80))}${r.reason.length > 80 ? '…' : ''}</i>`);
+  return rows.join('<br/>');
+}
+
+// ── detail panel — rule ───────────────────────────────────────────────────────
+let _historyCache = null;
+
+async function showRuleDetail(r) {
+  document.getElementById('detail-header').textContent = 'Rule Detail';
+  document.getElementById('detail-placeholder').style.display = 'none';
+  const el = document.getElementById('detail-content');
+  el.style.display = 'block';
+  _historyCache = null;
+  el.innerHTML = buildRuleDetail(r, null, r.metadata?.version ?? 0);
+
+  try {
+    const res  = await fetch(`/rules/history/${currentDomain}/${r.id}`);
+    const data = await res.json();
+    _historyCache = data.versions;
+    const latestVer = _historyCache[0]?.rule.metadata?.version ?? 0;
+    el.innerHTML = buildRuleDetail(r, _historyCache, latestVer);
+  } catch (_) {}
+}
+
+function switchVersion(ver) {
+  if (!_historyCache) return;
+  const v     = parseInt(ver, 10);
+  const entry = _historyCache.find(e => e.rule.metadata?.version === v);
+  if (!entry) return;
+  document.getElementById('detail-content').innerHTML =
+    buildRuleDetail(entry.rule, _historyCache, v);
+}
+
+function clearDetail() {
+  _historyCache = null;
+  document.getElementById('detail-placeholder').style.display = 'block';
+  const el = document.getElementById('detail-content');
+  el.style.display = 'none';
+  el.innerHTML = '';
+}
+
+function buildRuleDetail(r, versions, selectedVer) {
+  const h = [];
+  const latestVer = versions ? (versions[0]?.rule.metadata?.version ?? 0) : selectedVer;
+  const isLatest  = selectedVer === latestVer;
+
+  h.push(`<div class="rule-id">${esc(r.id)}</div>`);
+  h.push(`<div class="rule-meta-row">
+    <span class="badge badge-${esc(r.kind)}">${esc(r.kind)}</span>
+    <span class="pri">priority ${r.priority ?? '—'}</span>
+  </div>`);
+
+  if (r.kind === 'decision') {
+    h.push(`<div class="sec">Condition</div>`);
+    h.push(`<div class="cond-box">
+      <span class="cs">${esc(r.subject)}</span>.<span class="ca">${esc(r.attribute)}</span>
+      <span class="co"> ${esc(r.operator)} </span><span class="ct">${esc(r.threshold)}</span>
+    </div>`);
+  }
+
+  if (r.kind === 'lookup' && r.match_keys) {
+    h.push(`<div class="sec">Match Keys</div>`);
+    Object.entries(r.match_keys).forEach(([k, v]) =>
+      h.push(`<div class="kv"><span class="kk">${esc(k)}</span><span class="kv_">${esc(v)}</span></div>`)
+    );
+  }
+
+  if (r.reason) {
+    h.push(`<div class="sec">Reason</div><div class="reason-box">${esc(r.reason)}</div>`);
+  }
+
+  if (r.kind === 'lookup' && r.output_values) {
+    h.push(`<div class="sec">Output Values</div>`);
+    Object.entries(r.output_values).forEach(([k, v]) => {
+      const vs = String(v);
+      h.push(`<div class="kv"><span class="kk">${esc(k)}</span><span class="kv_">${esc(vs.slice(0, 72))}${vs.length > 72 ? '…' : ''}</span></div>`);
+    });
+  }
+
+  if (r.input?.length) {
+    h.push(`<div class="sec">Input Fields</div><div class="fields">${r.input.map(f => `<span class="ftag">${esc(f)}</span>`).join('')}</div>`);
+  }
+  if (r.output?.length) {
+    h.push(`<div class="sec">Output Fields</div><div class="fields">${r.output.map(f => `<span class="ftag">${esc(f)}</span>`).join('')}</div>`);
+  }
+
+  h.push(`<div class="sec">Effective Range</div>`);
+  const effFrom = r.effective_from || '';
+  const effTo   = r.effective_to   || '';
+  const now     = new Date().toISOString();
+  let effBadge, effClass;
+  if (!effFrom || !effTo)     { effBadge = 'unknown'; effClass = 'eff-future'; }
+  else if (now < effFrom)     { effBadge = 'future';  effClass = 'eff-future'; }
+  else if (now > effTo)       { effBadge = 'expired'; effClass = 'eff-expired'; }
+  else                        { effBadge = 'active';  effClass = 'eff-active'; }
+  h.push(`<div class="eff-range">
+    <span class="eff-badge ${effClass}">${effBadge}</span>
+    <span class="eff-dates">${fmtDate(effFrom)} → ${fmtDate(effTo)}</span>
+  </div>`);
+
+  if (versions) {
+    if (isLatest) {
+      h.push(`<div class="stale-banner" style="background:#0F3D1F;border-color:#3FB950;color:#7EE787;margin-top:6px">Viewing v${selectedVer} — current version</div>`);
+    } else {
+      const entry   = versions.find(e => e.rule.metadata?.version === selectedVer);
+      const changed = (entry?.changed_fields || []).map(f =>
+        `<span class="diff-tag">${esc(f)}</span>`).join('');
+      h.push(`<div class="stale-banner" style="margin-top:6px">Viewing v${selectedVer} — not the current version${
+        changed ? `. Changed in v${latestVer}: ${changed}` : ''}</div>`);
+    }
+  }
+
+  h.push(`<div class="sec">Info</div>`);
+  const meta = r.metadata || {};
+  let verValue;
+  if (versions && versions.length > 1) {
+    const opts = versions.map(e => {
+      const v   = e.rule.metadata?.version ?? '?';
+      const sel = v === selectedVer ? ' selected' : '';
+      return `<option value="${v}"${sel}>${v}</option>`;
+    }).join('');
+    verValue = `<select class="ver-select" onchange="switchVersion(this.value)">${opts}</select>`;
+  } else {
+    verValue = `<span class="kv_">v${meta.version ?? '—'}</span>`;
+  }
+  h.push(`<div class="kv"><span class="kk">version</span>${verValue}</div>`);
+
+  [
+    ['domain',     r.domain],
+    ['group',      r.group || '—'],
+    ['created_by', meta.created_by || '—'],
+    ['created_ts', fmtDate(meta.created_timestamp) || '—'],
+    ['updated_by', meta.updated_by || '—'],
+    ['updated_ts', fmtDate(meta.updated_timestamp) || '—'],
+  ].forEach(([k, v]) =>
+    h.push(`<div class="kv"><span class="kk">${k}</span><span class="kv_">${esc(String(v))}</span></div>`)
+  );
+
+  return h.join('\n');
+}
+
+// ── detail panel — session ────────────────────────────────────────────────────
+function showSessionDetail(session) {
+  document.getElementById('detail-header').textContent = 'Execution Detail';
+  document.getElementById('detail-placeholder').style.display = 'none';
+  const el = document.getElementById('detail-content');
+  el.style.display = 'block';
+  _historyCache = null;
+
+  const h = [];
+
+  // outcome badge
+  const outcomeClass = session.eligible ? 'eff-active' : 'eff-expired';
+  const outcomeLabel = session.eligible ? 'Eligible for Appeal' : 'Not Eligible';
+  h.push(`<div style="margin-bottom:10px"><span class="eff-badge ${outcomeClass}" style="font-size:11px;padding:3px 9px">${outcomeLabel}</span></div>`);
+
+  // primary disqualification reason
+  if (!session.eligible) {
+    const disqualifiers = session.triggered_rules.filter(r => r.output?.includes('appeal.disqualified'));
+    if (disqualifiers.length) {
+      const primaryReason = disqualifiers[0].reason || disqualifiers[0].id;
+      h.push(`<div style="font-size:12px;color:#FF7B72;line-height:1.45;margin-bottom:10px;padding:6px 8px;background:#3D1515;border:1px solid #CF222E;border-radius:4px">${esc(primaryReason)}</div>`);
+    }
+  }
+
+  // trace metadata
+  h.push(`<div class="sec">Trace</div>`);
+  const shortTrace = session.trace_id.slice(0, 13) + '…' + session.trace_id.slice(-4);
+  h.push(`<div class="kv"><span class="kk">trace_id</span><span class="kv_" style="font-size:10px" title="${esc(session.trace_id)}">${esc(shortTrace)}</span></div>`);
+  h.push(`<div class="kv"><span class="kk">timestamp</span><span class="kv_">${esc(session.executed_timestamp.slice(0,19).replace('T',' '))}</span></div>`);
+  h.push(`<div class="kv"><span class="kk">executed_by</span><span class="kv_">${esc(session.executed_by)}</span></div>`);
+
+  // entities — grouped by type
+  const entities = session.entities || {};
+  const entityKeys = Object.keys(entities);
+  if (entityKeys.length) {
+    h.push(`<div class="sec">Input Entities</div>`);
+    const keyFields = new Set(['status','is_fraud','amount','tenure_years','escalation_history_count']);
+    entityKeys.forEach(entityType => {
+      h.push(`<div class="entity-type-label">${esc(entityType)}</div>`);
+      const obj = entities[entityType];
+      if (obj && typeof obj === 'object') {
+        Object.entries(obj).forEach(([k, v]) => {
+          const valStr   = v == null ? '—' : String(v);
+          const valStyle = keyFields.has(k) ? 'color:var(--text);font-weight:600' : '';
+          h.push(`<div class="kv"><span class="kk">${esc(k)}</span><span class="kv_" style="${valStyle}">${esc(valStr)}</span></div>`);
+        });
+      }
+      h.push(`<div style="height:4px"></div>`);
+    });
+  }
+
+  // evaluation log — all rules in execution order
+  const evaluations  = session.evaluations || [];
+  const triggeredCount   = evaluations.filter(e => e.outcome === 'triggered').length;
+  const totalCount   = evaluations.length;
+  h.push(`<div class="sec">Evaluation Log (${triggeredCount} triggered / ${totalCount} evaluated)</div>`);
+
+  // build rule detail lookup from DAG nodes
+  const ruleLookup = {};
+  if (currentData?.nodes) currentData.nodes.forEach(n => { ruleLookup[n.id] = n; });
+
+  if (totalCount === 0) {
+    h.push(`<div style="color:var(--muted);font-size:12px;margin-top:2px">No rules evaluated.</div>`);
+  } else {
+    evaluations.forEach((ev, i) => {
+      const rule    = ruleLookup[ev.rule_id] || {};
+      const outcome = ev.outcome;
+
+      if (outcome === 'triggered') {
+        const isDisq      = rule.output?.includes('appeal.disqualified');
+        const borderColor = isDisq ? '#CF222E' : '#9E6A03';
+        const bgColor     = isDisq ? '#2A0D0D' : '#1E1A0E';
+        const idColor     = isDisq ? '#FF7B72' : '#E3B341';
+
+        h.push(`<div class="triggered-rule" style="border-color:${borderColor};background:${bgColor}">`);
+        h.push(`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span style="font-family:monospace;font-size:12px;font-weight:600;color:${idColor}">${i+1}. ${esc(ev.rule_id)}</span>
+          <span class="eval-badge eval-triggered">triggered</span>
+        </div>`);
+
+        if (rule.subject && rule.attribute && rule.operator !== undefined) {
+          h.push(`<div style="font-family:monospace;font-size:11px;margin:3px 0 4px">
+            <span style="color:#79C0FF">${esc(rule.subject)}</span>.<span style="color:#D2A8FF">${esc(rule.attribute)}</span>
+            <span style="color:#FF7B72"> ${esc(rule.operator)} </span><span style="color:#FFA657">${esc(rule.threshold)}</span>
+          </div>`);
+        } else if (rule.kind === 'lookup' && rule.match_keys) {
+          const pairs = Object.entries(rule.match_keys).map(([k, v]) => {
+            const dot = k.indexOf('.');
+            const subj = dot >= 0 ? k.slice(0, dot) : k;
+            const attr = dot >= 0 ? k.slice(dot + 1) : '';
+            return `<span style="color:#79C0FF">${esc(subj)}</span>${attr ? '.<span style="color:#D2A8FF">'+esc(attr)+'</span>' : ''}` +
+                   `<span style="color:#FF7B72"> == </span><span style="color:#FFA657">${esc(String(v))}</span>`;
+          }).join('<span style="color:var(--muted)"> &amp; </span>');
+          h.push(`<div style="font-family:monospace;font-size:11px;margin:3px 0 4px">${pairs}</div>`);
+        }
+
+        const upstreamInputs = (rule.input || []).filter(f => f.startsWith('appeal.'));
+        if (upstreamInputs.length) {
+          h.push(`<div style="font-size:10px;color:var(--muted);margin-bottom:3px">requires: ${upstreamInputs.map(f => `<span style="font-family:monospace">${esc(f)}</span>`).join(', ')}</div>`);
+        }
+
+        if (rule.reason) h.push(`<div class="triggered-rule-reason">${esc(rule.reason)}</div>`);
+
+        if (rule.output?.length) {
+          h.push(`<div class="fields" style="margin-top:4px">${rule.output.map(f => {
+            const isFlag = f === 'appeal.disqualified';
+            const style  = isFlag ? 'background:#3D1515;border-color:#CF222E;color:#FF7B72'
+                                  : 'background:#2D1F0D;border-color:#9E6A03;color:#E3B341';
+            return `<span class="ftag" style="font-size:10px;${style}">→ ${esc(f)}</span>`;
+          }).join('')}</div>`);
+        }
+
+        h.push(`</div>`);
+
+      } else {
+        // skipped_no_match or skipped_precondition — compact muted row
+        const badgeClass = outcome === 'skipped_no_match' ? 'eval-no-match' : 'eval-precondition';
+        const badgeLabel = outcome === 'skipped_no_match' ? 'no match'      : 'precondition';
+
+        h.push(`<div class="eval-skipped">`);
+        h.push(`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+          <span style="font-family:monospace;font-size:11px;color:var(--muted)">${i+1}. ${esc(ev.rule_id)}</span>
+          <span class="eval-badge ${badgeClass}">${badgeLabel}</span>
+        </div>`);
+
+        if (outcome === 'skipped_no_match' && rule.subject && rule.attribute) {
+          h.push(`<div style="font-family:monospace;font-size:10px;color:#444C56">
+            ${esc(rule.subject)}.${esc(rule.attribute)} ${esc(rule.operator)} ${esc(rule.threshold)}
+          </div>`);
+        } else if (outcome === 'skipped_no_match' && rule.kind === 'lookup' && rule.match_keys) {
+          const pairs = Object.entries(rule.match_keys)
+            .map(([k, v]) => `${esc(k)} == ${esc(String(v))}`).join(' & ');
+          h.push(`<div style="font-family:monospace;font-size:10px;color:#444C56">${pairs}</div>`);
+        }
+
+        if (outcome === 'skipped_precondition') {
+          const needed = (rule.input || []).filter(f => f.startsWith('appeal.'));
+          if (needed.length) {
+            h.push(`<div style="font-size:10px;color:#444C56">waiting for: ${needed.map(f => `<span style="font-family:monospace">${esc(f)}</span>`).join(', ')}</div>`);
+          }
+        }
+
+        h.push(`</div>`);
+      }
+    });
+  }
+
+  el.innerHTML = h.join('\n');
+}
+
+// ── panel toggle ──────────────────────────────────────────────────────────────
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('detail').classList.toggle('collapsed', !panelOpen);
+  document.getElementById('panel-toggle').textContent = panelOpen ? '›' : '‹';
+}
+
+// ── stats / hints ─────────────────────────────────────────────────────────────
+function updateStats(data) {
+  document.getElementById('header-stats').style.display = '';
+  document.getElementById('s-nodes').textContent = data.node_count;
+  document.getElementById('s-edges').textContent = data.edge_count;
+  setHint(`${data.domain}${data.group ? ' · group: ' + data.group : ''}`);
+}
+
+function setHint(msg) { document.getElementById('footer-hint').textContent = msg; }
+
+function showOverlay(msg) {
+  const el = document.getElementById('overlay');
+  el.classList.remove('hidden');
+  document.getElementById('overlay-msg').textContent = msg;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return iso.slice(0, 10);
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  try {
+    const d     = new Date(iso);
+    const month = d.toLocaleString('en', { month: 'short', timeZone: 'UTC' });
+    const day   = String(d.getUTCDate()).padStart(2, '0');
+    const time  = iso.slice(11, 16);
+    return `${month} ${day}  ${time} UTC`;
+  } catch (_) { return iso.slice(0, 16); }
+}
+
+init();
+</script>
+</body>
+</html>

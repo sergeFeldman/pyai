@@ -11,17 +11,14 @@ import services as svc
 class WorkflowOrchestrator(metaclass=shd_core.Singleton):
     """Orchestrator responsible for routing and executing workflow patterns."""
 
-    def __init__(self, trace_service: svc.TraceService, audit_service: svc.AuditService,
-                 agent_configs: dict):
+    def __init__(self, agent_configs: dict):
         """Initialize the workflow orchestrator.
 
         Args:
-            trace_service (svc.TraceService): Trace service instance.
-            audit_service (svc.AuditService): Audit service instance.
             agent_configs (dict): Agent configurations keyed by agent name.
         """
-        self._trace_service = trace_service
-        self._audit_service = audit_service
+        self._trace_service = svc.TraceService()
+        self._audit_service = svc.AuditService()
         self._agent_configs = agent_configs
 
     async def get_claim_explanation(self, request: mdl.UserRequest) -> mdl.UserResponse:
@@ -53,8 +50,10 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
     def get_claim_appeal_eligibility(self, request: mdl.UserRequest) -> mdl.UserResponse:
         """Execute claim appeal eligibility workflow.
 
-        Fetches the claim and its customer context, then evaluates all
-        disqualification rules to determine appeal eligibility.
+        Fetches the claim and its customer context, then delegates to
+        ClaimAppealAgent which runs all disqualification rules through the
+        rule executor (DAG-ordered, precondition-gated) against a shared
+        context dict.
 
         Args:
             request (mdl.UserRequest): Normalized user request object; message is the claim ID.
@@ -77,7 +76,7 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
             return mdl.UserResponse(message=f"Customer context for claim {request.message} was not found.",
                                     trace_id=context.trace_id)
 
-        message = appeal_agent.get_eligibility_message(claim, customer)  # type: ignore[union-attr]
+        message = appeal_agent.get_eligibility_message(claim, customer, trace_id=context.trace_id)  # type: ignore[union-attr]
         response = mdl.UserResponse(message=message, trace_id=context.trace_id)
         self._audit_service.log(mdl.AuditRecord(
             trace_id=context.trace_id,

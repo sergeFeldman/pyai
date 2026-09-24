@@ -52,6 +52,9 @@ def _create_llm(provider: str, model: str):
     if provider == "ollama":
         from langchain_ollama import ChatOllama
         return ChatOllama(model=model)
+    if provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(model=model)
     raise ValueError(f"Unknown LLM provider: {provider}")
 
 
@@ -115,11 +118,11 @@ class LlmEnabledAgent(shd_core.Configurable[TLlmConfig], Generic[TLlmConfig]):
         """
 
 
-class McpEnabledAgent(shd_core.Configurable[TConfig], Generic[TConfig, TMcpClient, TRequest, TObject]):
-    """Abstract configurable base class for MCP-enabled domain agents.
+class McpEnabledAgent(shd_core.Configurable[TConfig], Generic[TConfig, TMcpClient]):
+    """Base class for all MCP-backed agents.
 
-    Concrete subclasses are responsible for constructing the appropriate MCP
-    client instance and passing it into this base class during initialization.
+    Holds the agent configuration and MCP client. Does not assume a retrieval
+    contract; subclasses add domain-specific methods as needed.
     """
 
     def __init__(self, config: TConfig, mcp_client: TMcpClient):
@@ -136,6 +139,15 @@ class McpEnabledAgent(shd_core.Configurable[TConfig], Generic[TConfig, TMcpClien
         if mcp_client is None:
             raise ValueError("MCP client parameter cannot be None")
         self._mcp_client = mcp_client
+
+
+class McpStorageAgent(McpEnabledAgent[TConfig, TMcpClient], Generic[TConfig, TMcpClient, TRequest, TObject]):
+    """Base class for MCP-backed agents that retrieve domain objects from a data storage.
+
+    Extends McpEnabledAgent with the get_obj() retrieval contract, delegating
+    to the underlying McpStorageClient. Use this base for agents whose MCP client
+    is a McpStorageClient subclass.
+    """
 
     def get_obj(self, request: TRequest) -> Optional[TObject]:
         """Retrieve the domain object associated with the provided request.

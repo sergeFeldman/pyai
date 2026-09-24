@@ -35,7 +35,7 @@ class ClaimExplanationAgent(LlmEnabledAgent[ClaimExplanationAgentConfig]):
                 "command": sys.executable,
                 "args": [_server],
                 "transport": "stdio",
-                "env": {**os.environ, "PYTHONPATH": str(_src)},
+                "env": {**os.environ, "PYTHONPATH": str(_src) + os.pathsep + str(_src.parent.parent / "shared" / "src")},
             },
         })
         return await client.get_tools()

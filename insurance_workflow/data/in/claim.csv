@@ -219,3 +219,7 @@ claim_217,theft,cust_26,10000,2023-02-13,shop_8,under_review,True
 claim_218,theft,cust_27,10804.61,2023-03-02,shop_8,under_review,True
 claim_219,theft,cust_27,10080.92,2023-03-17,shop_8,open,True
 claim_220,theft,cust_26,10000,2023-03-03,shop_8,open,True
+claim_221,property_damage,cust_36,450,2023-06-10,shop_3,denied,False
+claim_222,property_damage,cust_17,450,2023-07-14,shop_5,denied,False
+claim_301,commercial,cust_17,3500.00,2024-03-01,shop_1,denied,False
+claim_302,property_damage,cust_36,1500.00,2024-04-01,shop_rouge,denied,False

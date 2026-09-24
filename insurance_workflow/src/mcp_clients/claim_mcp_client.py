@@ -2,14 +2,14 @@
 
 import models as mdl
 
-from .mcp_client import MpcClient, MpcClientConfig
+from .mcp_client import McpStorageClient, McpStorageClientConfig
 
 
-class ClaimMcpClientConfig(MpcClientConfig):
+class ClaimMcpClientConfig(McpStorageClientConfig):
     """Configuration model for ClaimMcpClient."""
 
 
-class ClaimMcpClient(MpcClient[ClaimMcpClientConfig, mdl.ClaimRequest, mdl.Claim]):
+class ClaimMcpClient(McpStorageClient[ClaimMcpClientConfig, mdl.ClaimRequest, mdl.Claim]):
     """Configurable client class responsible for retrieving claim records."""
 
     _config_data_type = ClaimMcpClientConfig

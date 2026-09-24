@@ -1,36 +1,20 @@
 """Claim appeal rule MCP client related classes."""
 
-import models as mdl
+from typing import cast
 
-from .mcp_client import MpcClient, MpcClientConfig
+import rules as rls
 
-
-class ClaimAppealRuleMcpClientConfig(MpcClientConfig):
-    """Configuration model for ClaimAppealRuleMcpClient."""
+from .mcp_client import McpRuleClient
 
 
-class ClaimAppealRuleMcpClient(
-    MpcClient[ClaimAppealRuleMcpClientConfig, mdl.ClaimAppealRuleRequest, mdl.ClaimAppealRule]
-):
-    """Configurable client class responsible for retrieving claim appeal rules."""
-
-    _config_data_type = ClaimAppealRuleMcpClientConfig
-    _primary_key_field = "claim_appeal_rule_id"
-
-    def __init__(self, config: ClaimAppealRuleMcpClientConfig):
-        """Initialize the client and eagerly load all appeal rules from storage.
-
-        Args:
-            config (ClaimAppealRuleMcpClientConfig): Validated MCP client configuration.
-        """
-        super().__init__(config)
-        self._rules = self._storage.read()
+class ClaimAppealRuleMcpClient(McpRuleClient):
+    """Rule client responsible for retrieving active claim appeal disqualification rules."""
 
     @property
-    def rules(self) -> list[mdl.ClaimAppealRule]:
-        """All claim appeal disqualification rules, loaded once at initialization.
+    def rules(self) -> list[rls.DecisionRule]:
+        """Active claim appeal disqualification rules resolved from the rule registry.
 
         Returns:
-            list[mdl.ClaimAppealRule]: All appeal disqualification rules.
+            list[rls.DecisionRule]: Latest effective appeal disqualification rules.
         """
-        return self._rules
+        return cast(list[rls.DecisionRule], self._registry.get_active("claim_appeal"))

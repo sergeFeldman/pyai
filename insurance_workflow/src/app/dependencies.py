@@ -8,14 +8,13 @@ import shared.data as shd_data
 import handlers as hdl
 import mcp_clients as mcp
 import models as mdl
-import services as svc
+import rules as rls
 import workflow as wfl
 
 _MODEL_CLASS_MAPPING: dict[str, type] = {
     "claim": mdl.Claim,
     "customer": mdl.Customer,
     "policy_rule": mdl.PolicyRule,
-    "claim_appeal_rule": mdl.ClaimAppealRule,
 }
 
 
@@ -49,7 +48,7 @@ def _build_mcp_client_config(key: str, client_config_type: Type):
         client_config_type: MCP client config class to instantiate.
 
     Returns:
-        mcp.MpcClientConfig: Fully constructed MCP client config instance.
+        mcp.McpStorageClientConfig: Fully constructed MCP storage client config instance.
     """
     config = _load_config("storage.yaml", key)
     model_type = config["model_type"]
@@ -90,13 +89,12 @@ def get_policy_rule_agent_config() -> dict:
 
 
 def get_claim_appeal_agent_config() -> dict:
-    """Build the claim appeal agent configuration from config/storage.yaml.
+    """Build the claim appeal agent configuration.
 
     Returns:
-        dict: Claim appeal agent configuration keyed by 'claim_appeal_rule_mcp_client_config'.
+        dict: Empty configuration; ClaimAppealAgent requires no storage config.
     """
-    return {"claim_appeal_rule_mcp_client_config":
-            _build_mcp_client_config("claim_appeal_rule", mcp.ClaimAppealRuleMcpClientConfig)}
+    return {}
 
 
 def get_claim_explanation_agent_config() -> dict:
@@ -111,6 +109,11 @@ def get_claim_explanation_agent_config() -> dict:
     return _load_config("agents.yaml", "claim_explanation")
 
 
+rls.RuleRegistry.load_from(
+    _load_config("storage.yaml", "rule_registry")["file_path"],
+    _load_config("storage.yaml", "rule_registry_policy")["file_path"],
+)
+
 _AGENT_CONFIGS = {
     "claim": get_claim_agent_config(),
     "claim_appeal": get_claim_appeal_agent_config(),
@@ -120,39 +123,13 @@ _AGENT_CONFIGS = {
 }
 
 
-def get_trace_service() -> svc.TraceService:
-    """Create the trace service dependency.
-
-    Returns:
-        svc.TraceService: Trace service instance.
-    """
-    return svc.TraceService()
-
-
-def get_audit_service() -> svc.AuditService:
-    """Create the audit service dependency.
-
-    Returns:
-        svc.AuditService: Audit service instance.
-    """
-    return svc.AuditService()
-
-
 def get_workflow_orchestrator() -> wfl.WorkflowOrchestrator:
-    """Create the workflow orchestrator dependency.
-
-    Builds the full agent_configs dict so that routes never need to
-    inject or pass agent configuration.
+    """Return the workflow orchestrator singleton.
 
     Returns:
-        wfl.WorkflowOrchestrator: Orchestrator instance wired with the trace service,
-            audit service, and all agent configs.
+        wfl.WorkflowOrchestrator: Orchestrator instance wired with all agent configs.
     """
-    return wfl.WorkflowOrchestrator(
-        trace_service=get_trace_service(),
-        audit_service=get_audit_service(),
-        agent_configs=_AGENT_CONFIGS,
-    )
+    return wfl.WorkflowOrchestrator(agent_configs=_AGENT_CONFIGS)
 
 
 def get_request_handler() -> hdl.RequestHandler:

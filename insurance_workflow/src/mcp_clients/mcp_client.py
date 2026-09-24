@@ -6,20 +6,21 @@ from typing import Generic, Optional, TypeVar, cast
 import shared.core as shd_core
 import shared.data as shd_data
 import models as mdl
+import rules as rls
 
-TConfig = TypeVar("TConfig", bound="MpcClientConfig")
+TConfig = TypeVar("TConfig", bound="McpStorageClientConfig")
 TRequest = TypeVar("TRequest")
 TObject = TypeVar("TObject")
 
 
-class MpcClientConfig(mdl.WorkflowBaseModel):
+class McpStorageClientConfig(mdl.WorkflowBaseModel):
     """Base configuration model for MCP clients backed by a data storage."""
 
     data_storage_id: shd_data.DataStorageId
     data_storage_config: dict
 
 
-class MpcClient(shd_core.Configurable[TConfig], Generic[TConfig, TRequest, TObject]):
+class McpStorageClient(shd_core.Configurable[TConfig], Generic[TConfig, TRequest, TObject]):
     """Abstract base class for MCP clients backed by a configurable data storage.
 
     Subclasses declare _primary_key_field for simple key-based lookup, or
@@ -54,8 +55,6 @@ class MpcClient(shd_core.Configurable[TConfig], Generic[TConfig, TRequest, TObje
     def get_obj_by_filter(self, request: TRequest) -> Optional[TObject]:
         """Retrieve a domain object by filter criteria extracted from the request.
 
-        Override in subclasses that support filter-based lookup.
-
         Args:
             request (TRequest): Domain request object.
 
@@ -66,3 +65,15 @@ class MpcClient(shd_core.Configurable[TConfig], Generic[TConfig, TRequest, TObje
             NotImplementedError: Raised if the subclass does not support filter-based lookup.
         """
         raise NotImplementedError(f"{type(self).__name__} does not support filter-based lookup")
+
+
+class McpRuleClient:
+    """Abstract base class for MCP clients backed by the rule registry.
+
+    Provides access to the singleton RuleRegistry. Subclasses call
+    self._registry.get_active(domain) to retrieve active rules for their domain.
+    """
+
+    def __init__(self):
+        """Initialize the rule client with a reference to the singleton registry."""
+        self._registry = rls.RuleRegistry()
