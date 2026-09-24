@@ -38,6 +38,20 @@
     "reason": "Claim flagged for potential fraud."
   },
   {
+    "id": "ca_repeat_claimant_flag",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": ["customer.prior_claim_count"],
+    "output": ["appeal.fraud_flagged"],
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "5",
+    "reason": "Repeat claimant pattern detected."
+  },
+  {
     "id": "ca_fraud_escalation_limit",
     "group": "",
     "priority": 7,

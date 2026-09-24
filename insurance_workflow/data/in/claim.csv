@@ -223,3 +223,4 @@ claim_221,property_damage,cust_36,450,2023-06-10,shop_3,denied,False
 claim_222,property_damage,cust_17,450,2023-07-14,shop_5,denied,False
 claim_301,commercial,cust_17,3500.00,2024-03-01,shop_1,denied,False
 claim_302,property_damage,cust_36,1500.00,2024-04-01,shop_rouge,denied,False
+claim_303,theft,cust_26,3200.00,2024-06-01,shop_4,denied,False

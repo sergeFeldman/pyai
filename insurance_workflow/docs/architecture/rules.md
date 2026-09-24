@@ -70,7 +70,7 @@ A singleton registry that stores all rule versions across all domains. Key capab
 - **Latest-version resolution**: `get_latest(rule_id, domain)` returns the highest-version rule for a given id and domain.
 - **Active rule ordering**: `get_active(domain, group)` returns active rules in topological execution order, root rules first and dependent rules after, with priority descending within each topological level.
 - **DAG construction**: `get_dag(domain, group)` builds and caches a NetworkX `DiGraph` from the active rules. Edges are annotated with the list of field names that connect producers to consumers (the `fields` key).
-- **Execution**: `execute(domain, context, trace_id, executed_by, group, entities)` walks the DAG in topological generation order. Within each generation, rules are sorted by priority descending. For each `DecisionRule`, all declared `input` fields must be present in the shared context dict before the rule is evaluated (precondition gate). On match, each declared `output` field is written to the context as `True`, enabling downstream rules. Returns a `RuleExecutionResult` carrying an `ExecutionMetadata` record (trace ID, executor name, UTC timestamp), the domain, the triggered rules in execution order, an ordered `evaluations` list recording the outcome of every evaluated rule (`triggered`, `skipped_precondition`, or `skipped_no_match`), `entities` (caller-supplied domain object snapshots, e.g. claim and customer), and the intermediate and terminal outputs produced. Input fields seeded by the caller (`claim.*`, `customer.*`) are excluded from the outputs.
+- **Execution**: `execute(domain, context, trace_id, executed_by, group, entities)` walks the DAG in topological generation order. Within each generation, rules are sorted by priority descending. Before evaluating each rule, the engine checks whether all producers of its required internal inputs have failed or been pruned. If so, the rule is pruned without calling `ready()` or `evaluate()`. Rules that pass the pruning check are evaluated against context; on match, each declared `output` field is written to the context, enabling downstream rules. Returns a `RuleExecutionResult` carrying an `ExecutionMetadata` record (trace ID, executor name, UTC timestamp), the domain, the triggered rules in execution order, an ordered `evaluations` list recording the outcome of every rule visited (`triggered`, `skipped_no_match`, `pruned`, or `skipped_precondition`), `entities` (caller-supplied domain object snapshots, e.g. claim and customer), and the intermediate and terminal outputs produced. Input fields seeded by the caller (`claim.*`, `customer.*`) are excluded from the outputs.
 
 ### RuleFactory
 
@@ -130,11 +130,11 @@ This means `ca_fraud_escalation_limit` only evaluates after `ca_fraud_check` has
 | Current | Rule registry with versioning and DAG construction | ✅ Done |
 | Current | ETL pipeline with version detection and audit history | ✅ Done |
 | Current | DAG dashboard with hierarchical priority-ordered visualization | ✅ Done |
-| Current | Rule Executor: DAG-driven context propagation with precondition gating | ✅ Done |
+| Current | Rule Executor: DAG-driven context propagation with branch pruning | ✅ Done |
 | Phase 2 | Compound Decision rules (AND/OR/IN, multi-condition) | 🔲 Pending |
 | Phase 2 | Positive qualification rules (`appeal.qualified` output) | 🔲 Pending |
 | Phase 2 | Tokenization service for PII in rule inputs and audit output | 🔲 Pending |
 | Current | Execution audit trail: `RuleExecutionResult` persisted to JSONL per `execute()` call; trace ID threaded from orchestrator | ✅ Done |
-| Current | Per-rule evaluation log: ordered `evaluations` list with outcome per rule (triggered / skipped_precondition / skipped_no_match) | ✅ Done |
+| Current | Per-rule evaluation log: ordered `evaluations` list with outcome per rule (triggered / skipped_no_match / pruned / skipped_precondition) | ✅ Done |
 | Current | Entity snapshots: claim and customer objects captured at execution time and included in the audit record | ✅ Done |
 | Phase 3 | Extraction rules for nested backend payloads | 🔲 Pending |

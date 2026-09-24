@@ -440,6 +440,33 @@
     "threshold": "3"
   },
   {
+    "id": "ca_repeat_claimant_flag",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "customer.prior_claim_count"
+    ],
+    "output": [
+      "appeal.fraud_flagged"
+    ],
+    "reason": "Repeat claimant pattern detected.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-09-24T19:08:36.336799+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "5"
+  },
+  {
     "id": "ca_status_denied",
     "domain": "claim_appeal",
     "group": "",

@@ -335,7 +335,7 @@ class TestExecuteEvaluations:
         result = reg.execute("d", {"claim.amount": 5000})
         assert result.evaluations == [{"rule_id": "r1", "outcome": "skipped_no_match"}]
 
-    def test_skipped_precondition_outcome_string(self):
+    def test_pruned_outcome_when_upstream_fails(self):
         reg = RuleRegistry()
         r1 = _drule("r1", "claim", "is_fraud", "==", "True",
                     out=["appeal.fraud_flagged"], priority=2)
@@ -346,7 +346,7 @@ class TestExecuteEvaluations:
                                    "customer.escalation_history_count": 3})
         outcomes = {e["rule_id"]: e["outcome"] for e in result.evaluations}
         assert outcomes["r1"] == "skipped_no_match"
-        assert outcomes["r2"] == "skipped_precondition"
+        assert outcomes["r2"] == "pruned"
 
     def test_evaluations_ordered_topologically_then_priority(self):
         reg = RuleRegistry()

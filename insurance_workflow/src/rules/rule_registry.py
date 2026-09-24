@@ -28,10 +28,13 @@ class RuleExecutionResult(shd_core.SerializableMixin):
         metadata: Trace and audit metadata (trace ID, executor, timestamp).
         domain: The rule domain that was executed, e.g. "claim_appeal".
         triggered: Rules that matched and triggered, in topological execution order.
-        evaluations: Ordered record of every rule evaluated. Each entry is
-            {"rule_id": str, "outcome": "triggered"|"skipped_precondition"|"skipped_no_match"}.
-            skipped_precondition means a required input field was not yet in context;
-            skipped_no_match means the rule was evaluated but did not match.
+        evaluations: Ordered record of every rule visited during execution. Each entry is
+            {"rule_id": str, "outcome": "triggered"|"skipped_no_match"|"pruned"|"skipped_precondition"}.
+            triggered means preconditions met and condition matched;
+            skipped_no_match means the rule was evaluated but did not match;
+            pruned means a required internal input field was unreachable because all its
+            producers failed or were themselves pruned; the rule was never evaluated;
+            skipped_precondition means a required external field was absent from context.
         entities: Snapshot of domain objects at execution time, keyed by entity
             type e.g. {"claim": {...}, "customer": {...}}.
         outputs: Intermediate and terminal outputs produced during execution,
@@ -71,10 +74,14 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         returned graph directly.
 
     Execution:
-        execute() walks the DAG in topological generation order, dispatches each
-        rule via rule.ready()/rule.evaluate(), propagates outputs between rules,
-        and returns a RuleExecutionResult with execution provenance, triggered
-        rules, and the outputs produced.
+        execute() walks the DAG in topological generation order. Before evaluating
+        each rule it checks whether all producers of its required internal inputs
+        have failed or been pruned. If so, the rule is pruned without calling
+        ready() or evaluate(), making the traversal true DAG execution rather than
+        a linear sweep. Rules that pass the pruning check are evaluated via
+        rule.ready()/rule.evaluate(); outputs are propagated to context, enabling
+        downstream rules. Returns a RuleExecutionResult with provenance, triggered
+        rules, full evaluation log (including pruned entries), and outputs.
 
     Audit trail:
         The registry is append-only; add() never replaces an existing rule.
@@ -273,10 +280,13 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
           2. rule.evaluate(context) tests the condition and returns outputs to write.
           3. On match, outputs are merged into context, enabling downstream rules.
 
-        Every rule evaluated is recorded in evaluations with an outcome:
+        Every rule is recorded in evaluations with an outcome:
           - triggered: preconditions met and condition matched.
-          - skipped_precondition: a required input field was absent from context.
           - skipped_no_match: preconditions met but condition did not match.
+          - pruned: a required internal input field was unreachable because all its
+            producers either failed or were themselves pruned; rule never evaluated.
+          - skipped_precondition: a required external field was absent from context
+            (caller did not seed it); rule never evaluated.
 
         Callers seed context with domain object fields using dot-notation keys
         (e.g. "claim.amount", "customer.tenure_years") before calling execute().
@@ -302,19 +312,40 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         triggered: list[Rule] = []
         evaluations: list[dict] = []
 
+        # Map each output field to the rule(s) that produce it, for pruning.
+        producers: dict[str, list[str]] = {}
+        for node_id in G.nodes:
+            for f in G.nodes[node_id]["rule"].output:
+                producers.setdefault(f, []).append(node_id)
+
+        failed: set[str] = set()   # rules that did not produce output
+        pruned: set[str] = set()   # rules whose required inputs are unreachable
+
         for generation in nx.topological_generations(G):
             rules = [G.nodes[rid]["rule"] for rid in generation]
             rules.sort(key=lambda r: (-r.priority, r.id))
             for rule in rules:
+                # Prune if every producer of any required internal input has failed or been pruned.
+                if any(
+                    f in producers and all(p in failed or p in pruned for p in producers[f])
+                    for f in rule.input
+                ):
+                    pruned.add(rule.id)
+                    evaluations.append({"rule_id": rule.id, "outcome": "pruned"})
+                    continue
+
                 if not rule.ready(context):
+                    failed.add(rule.id)
                     evaluations.append({"rule_id": rule.id, "outcome": "skipped_precondition"})
                     continue
+
                 matched, rule_outputs = rule.evaluate(context)
                 if matched:
                     context.update(rule_outputs)
                     triggered.append(rule)
                     evaluations.append({"rule_id": rule.id, "outcome": "triggered"})
                 else:
+                    failed.add(rule.id)
                     evaluations.append({"rule_id": rule.id, "outcome": "skipped_no_match"})
 
         outputs = {k: v for k, v in context.items() if k not in seeded_keys}

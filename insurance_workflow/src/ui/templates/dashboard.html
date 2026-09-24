@@ -203,7 +203,7 @@
     .sec { font-size: 10px; font-weight: 600; text-transform: uppercase;
            letter-spacing: .07em; color: var(--muted); margin: 12px 0 5px; }
 
-    .kv { display: grid; grid-template-columns: 86px 1fr; gap: 2px 8px; margin-bottom: 3px; }
+    .kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 8px; margin-bottom: 3px; }
     .kk { color: var(--muted); font-size: 11px; font-family: monospace; }
     .kv_ { color: var(--text); font-size: 11px; font-family: monospace; word-break: break-all; }
 
@@ -289,6 +289,7 @@
     .eval-triggered   { background: #2D1F0D; border: 1px solid #9E6A03; color: #E3B341; }
     .eval-no-match    { background: #1C2128; border: 1px solid #30363D; color: #7D8590; }
     .eval-precondition{ background: #161B22; border: 1px solid #21262D; color: #555C63; }
+    .eval-pruned      { background: #0D1421; border: 1px solid #1D3A5F; color: #2D5F9A; }
 
     /* skipped rule row */
     .eval-skipped {
@@ -306,10 +307,12 @@
     }
     .legend-item { display: flex; align-items: center; gap: 5px; }
     .dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
-    .dot-decision  { background: #2F81F7; }
-    .dot-lookup    { background: #3FB950; }
-    .dot-triggered { background: #F0883E; }
-    .legend-hint   { color: var(--muted); font-size: 10px; margin-left: auto; }
+    .dot-decision    { background: #2F81F7; }
+    .dot-lookup      { background: #3FB950; }
+    .dot-triggered   { background: #F0883E; }
+    .dot-no-match    { background: #444C56; }
+    .dot-precondition{ background: #1D3A5F; border: 1px solid #2F81F7; }
+    .legend-hint     { color: var(--muted); font-size: 10px; margin-left: auto; }
   </style>
 </head>
 <body>
@@ -375,6 +378,12 @@
     <span id="legend-triggered" class="legend-item" style="display:none">
       <span class="dot dot-triggered"></span>triggered
     </span>
+    <span id="legend-no-match" class="legend-item" style="display:none">
+      <span class="dot dot-no-match"></span>no match
+    </span>
+    <span id="legend-precondition" class="legend-item" style="display:none">
+      <span class="dot dot-precondition"></span>precondition
+    </span>
     <span class="legend-hint" id="footer-hint">—</span>
   </footer>
 
@@ -414,7 +423,9 @@ function switchTab(tab) {
   document.getElementById('tab-rules').classList.toggle('active', tab === 'rules');
   document.getElementById('tab-executions').classList.toggle('active', tab === 'executions');
   document.getElementById('sessions-panel').classList.toggle('hidden', tab !== 'executions');
-  document.getElementById('legend-triggered').style.display = tab === 'executions' ? '' : 'none';
+  document.getElementById('legend-triggered').style.display   = tab === 'executions' ? '' : 'none';
+  document.getElementById('legend-no-match').style.display    = tab === 'executions' ? '' : 'none';
+  document.getElementById('legend-precondition').style.display = tab === 'executions' ? '' : 'none';
 
   if (tab === 'rules') {
     clearOverlay();
@@ -511,18 +522,22 @@ function selectSession(traceId) {
   const session = (executionsData || []).find(s => s.trace_id === traceId);
   if (!session) return;
   renderSessionsList(executionsData);
-  applyOverlay(session.triggered_ids);
+  applyOverlay(session.evaluations);
   showSessionDetail(session);
 }
 
 // ── DAG overlay ───────────────────────────────────────────────────────────────
-function applyOverlay(triggeredIds) {
+function applyOverlay(evaluations) {
   if (!network || !currentData) return;
-  const triggered = new Set(triggeredIds);
+  const outcomeMap = {};
+  (evaluations || []).forEach(ev => { outcomeMap[ev.rule_id] = ev.outcome; });
+
   const updates = currentData.nodes.map(n => {
-    if (triggered.has(n.id)) {
+    const outcome = outcomeMap[n.id];
+    if (outcome === 'triggered') {
       return {
-        id: n.id,
+        id:    n.id,
+        label: n.id + '\n✓ triggered',
         color: {
           background: '#5A2D00',
           border:     '#F0883E',
@@ -531,9 +546,10 @@ function applyOverlay(triggeredIds) {
         },
         font: { color: '#FFA657', size: 12, face: 'monospace' },
       };
-    } else {
+    } else if (outcome === 'skipped_no_match') {
       return {
-        id: n.id,
+        id:    n.id,
+        label: n.id + '\n✗ no match',
         color: {
           background: '#161B22',
           border:     '#2D333B',
@@ -541,6 +557,42 @@ function applyOverlay(triggeredIds) {
           hover:      { background: '#1C2128', border: '#444C56' },
         },
         font: { color: '#444C56', size: 12, face: 'monospace' },
+      };
+    } else if (outcome === 'pruned') {
+      return {
+        id:    n.id,
+        label: n.id + '\n⊘ pruned',
+        color: {
+          background: '#0D1421',
+          border:     '#1D3A5F',
+          highlight:  { background: '#112240', border: '#388BFD' },
+          hover:      { background: '#112240', border: '#388BFD' },
+        },
+        font: { color: '#2D5F9A', size: 12, face: 'monospace' },
+      };
+    } else if (outcome === 'skipped_precondition') {
+      return {
+        id:    n.id,
+        label: n.id + '\n⚠ precondition',
+        color: {
+          background: '#1A1200',
+          border:     '#4D3800',
+          highlight:  { background: '#2D1F0D', border: '#9E6A03' },
+          hover:      { background: '#2D1F0D', border: '#9E6A03' },
+        },
+        font: { color: '#6B4F00', size: 12, face: 'monospace' },
+      };
+    } else {
+      return {
+        id:    n.id,
+        label: n.id + '\n— not run',
+        color: {
+          background: '#161B22',
+          border:     '#21262D',
+          highlight:  { background: '#1C2128', border: '#30363D' },
+          hover:      { background: '#1C2128', border: '#30363D' },
+        },
+        font: { color: '#30363D', size: 12, face: 'monospace' },
       };
     }
   });
@@ -552,7 +604,8 @@ function clearOverlay() {
   const updates = currentData.nodes.map(n => {
     const isDecision = n.kind === 'decision';
     return {
-      id: n.id,
+      id:    n.id,
+      label: nodeLabel(n),
       color: {
         background: isDecision ? '#1C3A6E' : '#0F3D1F',
         border:     isDecision ? '#2F81F7' : '#3FB950',
@@ -905,9 +958,13 @@ function showSessionDetail(session) {
         h.push(`</div>`);
 
       } else {
-        // skipped_no_match or skipped_precondition — compact muted row
-        const badgeClass = outcome === 'skipped_no_match' ? 'eval-no-match' : 'eval-precondition';
-        const badgeLabel = outcome === 'skipped_no_match' ? 'no match'      : 'precondition';
+        // skipped_no_match, skipped_precondition, or pruned — compact muted row
+        const badgeClass = outcome === 'skipped_no_match'    ? 'eval-no-match'
+                         : outcome === 'pruned'              ? 'eval-pruned'
+                         :                                    'eval-precondition';
+        const badgeLabel = outcome === 'skipped_no_match'    ? 'no match'
+                         : outcome === 'pruned'              ? 'pruned'
+                         :                                    'precondition';
 
         h.push(`<div class="eval-skipped">`);
         h.push(`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">

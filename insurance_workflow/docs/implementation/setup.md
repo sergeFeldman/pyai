@@ -106,7 +106,7 @@ http://localhost:8000/rules/dashboard
 
 **Rules tab:** Select a domain (e.g. `claim_appeal`) from the dropdown to see the dependency graph. Root rules appear on the left; rules that depend on their output appear to the right. Within each column, rules are ordered by priority descending, matching the topological execution order.
 
-**Executions tab:** Shows the audit history of rule engine runs for the selected domain, newest first. Click any session to open the detail panel — it shows every rule evaluated, its outcome (`triggered` / `skipped_no_match` / `skipped_precondition`), the condition that was tested, and the entity snapshots (claim and customer) captured at execution time.
+**Executions tab:** Shows the audit history of rule engine runs for the selected domain, newest first. Click any session to open the detail panel. It shows every rule visited during execution with its outcome: `triggered` (condition matched), `skipped_no_match` (condition did not match), `pruned` (upstream producer failed so this rule was never evaluated, DAG branch pruning), or `skipped_precondition` (a required external field was missing from context). Entity snapshots (claim and customer) captured at execution time are also shown.
 
 Additional API endpoints:
 
