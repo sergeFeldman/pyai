@@ -30,7 +30,7 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["claim.is_fraud"],
-    "output": ["appeal.fraud_flagged"],
+    "output": ["appeal.risk_flagged"],
     "subject": "claim",
     "attribute": "is_fraud",
     "operator": "==",
@@ -44,7 +44,7 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": ["customer.prior_claim_count"],
-    "output": ["appeal.fraud_flagged"],
+    "output": ["appeal.risk_flagged"],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
@@ -57,13 +57,13 @@
     "priority": 7,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["appeal.fraud_flagged", "customer.escalation_history_count"],
+    "input": ["appeal.risk_flagged", "customer.escalation_history_count"],
     "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
     "threshold": "2",
-    "reason": "Fraudulent claim with multiple prior escalation attempts."
+    "reason": "High-risk claim with multiple prior escalation attempts."
   },
   {
     "id": "ca_max_escalations",

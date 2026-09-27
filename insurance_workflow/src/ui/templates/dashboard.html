@@ -202,6 +202,10 @@
 
     .sec { font-size: 10px; font-weight: 600; text-transform: uppercase;
            letter-spacing: .07em; color: var(--muted); margin: 12px 0 5px; }
+    .sec-header { cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+    .sec-header:hover { color: var(--text); }
+    .sec-chevron { font-size: 9px; transition: transform 0.15s; }
+    .sec-body.collapsed { display: none; }
 
     .kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 8px; margin-bottom: 3px; }
     .kk { color: var(--muted); font-size: 11px; font-family: monospace; }
@@ -311,6 +315,7 @@
     .dot-lookup      { background: #3FB950; }
     .dot-triggered   { background: #F0883E; }
     .dot-no-match    { background: #444C56; }
+    .dot-pruned      { background: #1D3A5F; }
     .dot-precondition{ background: #1D3A5F; border: 1px solid #2F81F7; }
     .legend-hint     { color: var(--muted); font-size: 10px; margin-left: auto; }
   </style>
@@ -381,6 +386,9 @@
     <span id="legend-no-match" class="legend-item" style="display:none">
       <span class="dot dot-no-match"></span>no match
     </span>
+    <span id="legend-pruned" class="legend-item" style="display:none">
+      <span class="dot dot-pruned"></span>pruned
+    </span>
     <span id="legend-precondition" class="legend-item" style="display:none">
       <span class="dot dot-precondition"></span>precondition
     </span>
@@ -425,6 +433,7 @@ function switchTab(tab) {
   document.getElementById('sessions-panel').classList.toggle('hidden', tab !== 'executions');
   document.getElementById('legend-triggered').style.display   = tab === 'executions' ? '' : 'none';
   document.getElementById('legend-no-match').style.display    = tab === 'executions' ? '' : 'none';
+  document.getElementById('legend-pruned').style.display      = tab === 'executions' ? '' : 'none';
   document.getElementById('legend-precondition').style.display = tab === 'executions' ? '' : 'none';
 
   if (tab === 'rules') {
@@ -868,17 +877,20 @@ function showSessionDetail(session) {
   }
 
   // trace metadata
-  h.push(`<div class="sec">Trace</div>`);
+  h.push(`<div id="sec-trace-hdr" class="sec sec-header" onclick="toggleSection('sec-trace')"><span>Trace</span><span class="sec-chevron" style="transform:rotate(-90deg)">▼</span></div>`);
+  h.push(`<div id="sec-trace" class="sec-body collapsed">`);
   const shortTrace = session.trace_id.slice(0, 13) + '…' + session.trace_id.slice(-4);
   h.push(`<div class="kv"><span class="kk">trace_id</span><span class="kv_" style="font-size:10px" title="${esc(session.trace_id)}">${esc(shortTrace)}</span></div>`);
   h.push(`<div class="kv"><span class="kk">timestamp</span><span class="kv_">${esc(session.executed_timestamp.slice(0,19).replace('T',' '))}</span></div>`);
   h.push(`<div class="kv"><span class="kk">executed_by</span><span class="kv_">${esc(session.executed_by)}</span></div>`);
+  h.push(`</div>`);
 
   // entities — grouped by type
   const entities = session.entities || {};
   const entityKeys = Object.keys(entities);
   if (entityKeys.length) {
-    h.push(`<div class="sec">Input Entities</div>`);
+    h.push(`<div id="sec-entities-hdr" class="sec sec-header" onclick="toggleSection('sec-entities')"><span>Input Entities</span><span class="sec-chevron" style="transform:rotate(-90deg)">▼</span></div>`);
+    h.push(`<div id="sec-entities" class="sec-body collapsed">`);
     const keyFields = new Set(['status','is_fraud','amount','tenure_years','escalation_history_count']);
     entityKeys.forEach(entityType => {
       h.push(`<div class="entity-type-label">${esc(entityType)}</div>`);
@@ -892,13 +904,15 @@ function showSessionDetail(session) {
       }
       h.push(`<div style="height:4px"></div>`);
     });
+    h.push(`</div>`);
   }
 
   // evaluation log — all rules in execution order
   const evaluations  = session.evaluations || [];
   const triggeredCount   = evaluations.filter(e => e.outcome === 'triggered').length;
   const totalCount   = evaluations.length;
-  h.push(`<div class="sec">Evaluation Log (${triggeredCount} triggered / ${totalCount} evaluated)</div>`);
+  h.push(`<div id="sec-evallog-hdr" class="sec sec-header" onclick="toggleSection('sec-evallog')"><span>Evaluation Log (${triggeredCount} triggered / ${totalCount} evaluated)</span><span class="sec-chevron">▼</span></div>`);
+  h.push(`<div id="sec-evallog" class="sec-body">`);
 
   // build rule detail lookup from DAG nodes
   const ruleLookup = {};
@@ -993,8 +1007,18 @@ function showSessionDetail(session) {
       }
     });
   }
+  h.push(`</div>`);
 
   el.innerHTML = h.join('\n');
+}
+
+// ── collapsible sections ──────────────────────────────────────────────────────
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  if (!body) return;
+  const collapsed = body.classList.toggle('collapsed');
+  const chev = document.getElementById(id + '-hdr')?.querySelector('.sec-chevron');
+  if (chev) chev.style.transform = collapsed ? 'rotate(-90deg)' : '';
 }
 
 // ── panel toggle ──────────────────────────────────────────────────────────────

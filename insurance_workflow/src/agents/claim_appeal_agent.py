@@ -19,7 +19,7 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
 
     Builds a shared execution context from the claim and customer objects, then
     delegates to RuleRegistry.execute() which walks the DAG in topological order,
-    enforces input preconditions between rules, and propagates intermediate outputs.
+    prunes rules on dead branches, and propagates intermediate outputs.
     """
 
     _config_data_type = ClaimAppealAgentConfig
@@ -58,11 +58,11 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
         """Check whether the claim is eligible for appeal.
 
         Executes the claim_appeal rule domain via RuleRegistry. Rules are evaluated
-        in topological + priority order; each rule's input preconditions are checked
-        before evaluation so that dependent rules only trigger when their upstream
-        outputs are present in the context. Claim and customer entity snapshots are
-        captured at execution time and included in the audit record alongside the
-        ordered per-rule evaluation log (triggered / skipped_precondition / skipped_no_match).
+        in topological + priority order; before each rule is evaluated, any rule
+        whose required internal inputs are unreachable is pruned. Claim and customer
+        entity snapshots are captured
+        at execution time and included in the audit record alongside the ordered
+        per-rule evaluation log (triggered / skipped_no_match / pruned / skipped_precondition).
         The execution result is persisted to the rule execution audit log.
 
         Args:

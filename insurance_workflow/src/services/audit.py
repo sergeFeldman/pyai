@@ -4,13 +4,14 @@ import csv
 from datetime import datetime, timezone
 from pathlib import Path
 
+import shared.core as shd_core
 import models as mdl
 
 _OUTPUT_DIR = Path(__file__).parent.parent.parent / "data" / "out"
 _FIELDS = ["trace_id", "request_type", "agent_names", "response", "timestamp"]
 
 
-class AuditService:
+class AuditService(metaclass=shd_core.Singleton):
     """Service class responsible for appending audit records to a session CSV file.
 
     The file is created once at service startup with a timestamp suffix:

@@ -38,7 +38,7 @@ class RuleExecutionResult(shd_core.SerializableMixin):
         entities: Snapshot of domain objects at execution time, keyed by entity
             type e.g. {"claim": {...}, "customer": {...}}.
         outputs: Intermediate and terminal outputs produced during execution,
-            e.g. {"appeal.fraud_flagged": True, "appeal.disqualified": True}.
+            e.g. {"appeal.risk_flagged": True, "appeal.disqualified": True}.
     """
 
     metadata: shd_core.ExecutionMetadata
@@ -75,11 +75,11 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
 
     Execution:
         execute() walks the DAG in topological generation order. Before evaluating
-        each rule it checks whether all producers of its required internal inputs
-        have failed or been pruned. If so, the rule is pruned without calling
-        ready() or evaluate(), making the traversal true DAG execution rather than
-        a linear sweep. Rules that pass the pruning check are evaluated via
-        rule.ready()/rule.evaluate(); outputs are propagated to context, enabling
+        each rule it checks whether all producers of a required internal input have
+        failed or been pruned and the field is absent from context. If so, the rule
+        is pruned without calling ready() or evaluate() — rules on dead branches are
+        skipped without evaluation. Rules that pass the pruning check are evaluated
+        via rule.ready()/rule.evaluate(); outputs are propagated to context, enabling
         downstream rules. Returns a RuleExecutionResult with provenance, triggered
         rules, full evaluation log (including pruned entries), and outputs.
 
@@ -184,14 +184,14 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
 
         for rule in rules:
             G.add_node(rule.id, rule=rule)
-            for field in rule.output:
-                producers.setdefault(field, []).append(rule.id)
+            for f in rule.output:
+                producers.setdefault(f, []).append(rule.id)
 
         edge_fields: dict[tuple[str, str], list[str]] = {}
         for rule in rules:
-            for field in rule.input:
-                for producer_id in producers.get(field, []):
-                    edge_fields.setdefault((producer_id, rule.id), []).append(field)
+            for f in rule.input:
+                for producer_id in producers.get(f, []):
+                    edge_fields.setdefault((producer_id, rule.id), []).append(f)
 
         for (src, dst), fields in edge_fields.items():
             G.add_edge(src, dst, fields=fields)
@@ -283,7 +283,7 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         Every rule is recorded in evaluations with an outcome:
           - triggered: preconditions met and condition matched.
           - skipped_no_match: preconditions met but condition did not match.
-          - pruned: a required internal input field was unreachable because all its
+          - pruned: a required internal input field is absent from context and all its
             producers either failed or were themselves pruned; rule never evaluated.
           - skipped_precondition: a required external field was absent from context
             (caller did not seed it); rule never evaluated.
@@ -327,7 +327,9 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
             for rule in rules:
                 # Prune if every producer of any required internal input has failed or been pruned.
                 if any(
-                    f in producers and all(p in failed or p in pruned for p in producers[f])
+                    f not in context
+                    and f in producers
+                    and all(p in failed or p in pruned for p in producers[f])
                     for f in rule.input
                 ):
                     pruned.add(rule.id)

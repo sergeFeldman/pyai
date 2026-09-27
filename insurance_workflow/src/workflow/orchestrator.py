@@ -52,8 +52,7 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
 
         Fetches the claim and its customer context, then delegates to
         ClaimAppealAgent which runs all disqualification rules through the
-        rule executor (DAG-ordered, precondition-gated) against a shared
-        context dict.
+        rule executor (DAG-ordered, branch-pruning) against a shared context dict.
 
         Args:
             request (mdl.UserRequest): Normalized user request object; message is the claim ID.

@@ -107,7 +107,7 @@ The claim appeal domain has eight rules across two topological levels:
 **Level 0 (roots):** `ca_fraud_check` (priority 8), `ca_max_escalations` (6), `ca_status_denied` (5), `ca_amount_tier` (4), `ca_min_tenure` (2), `ca_min_amount` (1)
 
 **Level 1 (dependents):**
-- `ca_fraud_escalation_limit` (priority 7): requires `appeal.fraud_flagged` produced by `ca_fraud_check`
+- `ca_fraud_escalation_limit` (priority 7): requires `appeal.risk_flagged` produced by `ca_fraud_check`
 - `ca_low_tier_tenure_check` (priority 3): requires `appeal.amount_tier` produced by `ca_amount_tier`
 
 `ClaimAppealAgent.check_eligibility()` builds a flat execution context from the claim and customer objects using `dataclasses.fields()` + `getattr()`, preserving Python types (`bool`, `Enum`) required for correct threshold coercion. It also captures entity snapshots (`claim.to_dict()`, `customer.to_dict()`) and passes them as `entities` to `RuleRegistry.execute()` so the audit record carries the full domain object state at the time of evaluation. The executor:
@@ -117,7 +117,7 @@ The claim appeal domain has eight rules across two topological levels:
 3. Gates each `DecisionRule` on its declared `input` fields before evaluating it
 4. Writes each triggered rule's `output` fields to the shared context as `True`, enabling downstream rules
 
-This means `ca_fraud_escalation_limit` only evaluates after `ca_fraud_check` has triggered and written `appeal.fraud_flagged` to the context. A claim with `is_fraud=True` but `escalation_history_count < 2` passes the fraud check but is not disqualified; the escalation limit rule correctly gates on its precondition.
+This means `ca_fraud_escalation_limit` only evaluates after `ca_fraud_check` has triggered and written `appeal.risk_flagged` to the context. A claim with `is_fraud=True` but `escalation_history_count < 2` passes the fraud check but is not disqualified; the escalation limit rule correctly gates on its precondition.
 
 ---
 

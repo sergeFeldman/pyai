@@ -1,6 +1,5 @@
 """Tracing service for workflow requests."""
 
-from dataclasses import replace
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -30,19 +29,6 @@ class TraceService:
             user_id=request.user_id,
             session_id=request.session_id,
         )
-
-    def with_trace_id(self, context: mdl.WorkflowContext, trace_id: str) -> mdl.WorkflowContext:
-        """Return a copy of the provided context with a replaced trace ID.
-
-        Args:
-            context (mdl.WorkflowContext): Existing workflow context object.
-            trace_id (str): Trace identifier value to assign.
-
-        Returns:
-            mdl.WorkflowContext: Copy of the provided context with updated
-                trace identifier value.
-        """
-        return replace(context, trace_id=trace_id)
 
     @staticmethod
     def _generate_trace_id() -> str:

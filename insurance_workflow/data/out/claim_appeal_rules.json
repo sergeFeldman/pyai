@@ -122,6 +122,33 @@
       "claim.is_fraud"
     ],
     "output": [
+      "appeal.risk_flagged"
+    ],
+    "reason": "Claim flagged for potential fraud.",
+    "kind": "decision",
+    "metadata": {
+      "version": 2,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-24T19:36:08.551966+00:00"
+    },
+    "subject": "claim",
+    "attribute": "is_fraud",
+    "operator": "==",
+    "threshold": "True"
+  },
+  {
+    "id": "ca_fraud_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 8,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.is_fraud"
+    ],
+    "output": [
       "appeal.fraud_flagged"
     ],
     "reason": "Claim flagged for potential fraud.",
@@ -173,6 +200,34 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [
+      "appeal.risk_flagged",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "High-risk claim with multiple prior escalation attempts.",
+    "kind": "decision",
+    "metadata": {
+      "version": 2,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-24T19:36:08.551966+00:00"
+    },
+    "subject": "customer",
+    "attribute": "escalation_history_count",
+    "operator": ">=",
+    "threshold": "2"
+  },
+  {
+    "id": "ca_fraud_escalation_limit",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
       "appeal.fraud_flagged",
       "customer.escalation_history_count"
     ],
@@ -438,6 +493,33 @@
     "attribute": "tenure_years",
     "operator": "<",
     "threshold": "3"
+  },
+  {
+    "id": "ca_repeat_claimant_flag",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "customer.prior_claim_count"
+    ],
+    "output": [
+      "appeal.risk_flagged"
+    ],
+    "reason": "Repeat claimant pattern detected.",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-09-24T19:08:36.336799+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-09-24T19:36:08.551966+00:00"
+    },
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "5"
   },
   {
     "id": "ca_repeat_claimant_flag",
