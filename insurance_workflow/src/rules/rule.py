@@ -15,7 +15,7 @@ class Rule(ABC, shd_core.SerializableMixin):
     """Abstract base for all rule types in the decision engine.
 
     Rules are versioned domain entities identified by id and group. The engine
-    evaluates is_active to gate execution and the ETL pipeline uses is_changed
+    evaluates is_effective to gate execution and the ETL pipeline uses is_changed
     to decide whether to bump the version on re-import.
 
     Attributes:
@@ -45,7 +45,7 @@ class Rule(ABC, shd_core.SerializableMixin):
     metadata: shd_core.EntityMetadata = field(default_factory=shd_core.EntityMetadata)
 
     @property
-    def is_active(self) -> bool:
+    def is_effective(self) -> bool:
         """Return True if the current UTC time falls within the rule's effective window.
 
         Returns False if either date is missing or not a valid ISO 8601 string.

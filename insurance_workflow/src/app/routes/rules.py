@@ -87,7 +87,7 @@ async def get_dag(domain: str, group: str = "",
 
     G = registry.get_dag(domain, group, replace_with_new=replace_with_new)
 
-    ordered = registry.get_active(domain, group)
+    ordered = registry.get_effective(domain, group)
     nodes = [r.to_dict() for r in ordered if r.id in G.nodes]
     edges = [
         {"from": u, "to": v, "fields": data.get("fields", [])}

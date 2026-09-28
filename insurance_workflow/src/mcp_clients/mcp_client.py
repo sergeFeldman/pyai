@@ -71,7 +71,7 @@ class McpRuleClient:
     """Abstract base class for MCP clients backed by the rule registry.
 
     Provides access to the singleton RuleRegistry. Subclasses call
-    self._registry.get_active(domain) to retrieve active rules for their domain.
+    self._registry.get_effective(domain) to retrieve active rules for their domain.
     """
 
     def __init__(self):

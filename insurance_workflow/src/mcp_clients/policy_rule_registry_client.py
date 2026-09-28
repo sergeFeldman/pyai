@@ -20,7 +20,7 @@ class PolicyRuleRegistryClient(McpRuleClient):
     @property
     def rules(self) -> list[rls.LookupRule]:
         """Active policy LookupRules in DAG topological / priority order."""
-        return [r for r in self._registry.get_active("policy") if isinstance(r, rls.LookupRule)]
+        return [r for r in self._registry.get_effective("policy") if isinstance(r, rls.LookupRule)]
 
     def find(self, context: dict) -> Optional[rls.LookupRule]:
         """Return the first active policy rule whose match_keys are all satisfied by context.

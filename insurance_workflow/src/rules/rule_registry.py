@@ -62,7 +62,7 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
 
     Rule resolution:
         get_latest() resolves the highest-versioned rule for a given id.
-        get_active() returns the latest active version of each rule in a domain
+        get_effective() returns the latest active version of each rule in a domain
         in topological execution order; rules that produce outputs consumed by
         other rules are always returned before their dependents.
 
@@ -139,12 +139,11 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
 
         return registry
 
-    def _get_active_rules(self, domain: str, group: str = "") -> list[Rule]:
+    def _get_effective(self, domain: str, group: str = "") -> list[Rule]:
         """Resolve deduplicated active rules without building a graph.
 
-        Internal helper shared by get_dag(). Selects the latest version per
-        rule id, applies the optional group filter, and returns rules that
-        pass is_active. Does not perform any graph construction.
+        Selects the latest version per rule id, applies the optional group filter, 
+        and returns rules that pass is_effective. Does not perform any graph construction.
 
         Args:
             domain: Domain to retrieve rules for.
@@ -157,12 +156,12 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         if group:
             rules = [r for r in rules if r.group == group]
 
-        by_id: dict[str, Rule] = {}
-        for r in rules:
-            if r.id not in by_id or r.metadata.version > by_id[r.id].metadata.version:
-                by_id[r.id] = r
-
-        return [r for r in by_id.values() if r.is_active]
+        latest: dict[str, Rule] = {}
+        for rule in rules:
+            prev = latest.get(rule.id)
+            if prev is None or rule.metadata.version > prev.metadata.version:
+                latest[rule.id] = rule
+        return [rule for rule in latest.values() if rule.is_effective]
 
     def _build_graph(self, rules: list[Rule]) -> nx.DiGraph:
         """Build a DiGraph from a rule list using input/output field overlap as edges.
@@ -223,7 +222,7 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         """
         key = f"{domain}:{group}" if group else domain
         if key not in self._dags or replace_with_new:
-            self._dags[key] = self._build_graph(self._get_active_rules(domain, group))
+            self._dags[key] = self._build_graph(self._get_effective(domain, group))
             logger.info(f"DAG built for domain: {key}")
         else:
             logger.info(f"DAG returned from cache for domain: {key}")
@@ -242,7 +241,7 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         matches = [r for r in self.get_by_key(domain) if r.id == id]
         return max(matches, key=lambda r: r.metadata.version) if matches else None
 
-    def get_active(self, domain: str, group: str = "") -> list[Rule]:
+    def get_effective(self, domain: str, group: str = "") -> list[Rule]:
         """Return active rules for a domain in topological execution order.
 
         Delegates to get_dag() for the cached graph, then returns rules in
@@ -273,9 +272,9 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
                 group: str = "", entities: dict | None = None) -> RuleExecutionResult:
         """Execute all active rules for a domain against a shared context dict.
 
-        Walks the DAG in topological generation order (same traversal as
-        get_active()). Within each generation, rules are evaluated in priority
-        descending order. For each rule:
+        Walks the DAG in topological generation order. 
+        Within each generation, rules are evaluated in priority descending order. 
+        For each rule:
           1. rule.ready(context) checks all declared input preconditions.
           2. rule.evaluate(context) tests the condition and returns outputs to write.
           3. On match, outputs are merged into context, enabling downstream rules.

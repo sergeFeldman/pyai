@@ -17,4 +17,4 @@ class ClaimAppealRuleMcpClient(McpRuleClient):
         Returns:
             list[rls.DecisionRule]: Latest effective appeal disqualification rules.
         """
-        return cast(list[rls.DecisionRule], self._registry.get_active("claim_appeal"))
+        return cast(list[rls.DecisionRule], self._registry.get_effective("claim_appeal"))
