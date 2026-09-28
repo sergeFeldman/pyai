@@ -12,39 +12,45 @@ def _ts(delta_days: int = 0) -> str:
     return (datetime.now(timezone.utc) + timedelta(days=delta_days)).isoformat()
 
 
+# Computed once so rules built in the same test share identical timestamps.
+_FROM = _ts(-1)
+_TO = _ts(365)
+
+
 def _decision(**kwargs) -> DecisionRule:
     defaults = dict(
         id="r1", domain="test", priority=0,
         subject="claim", attribute="status", operator="==", threshold="open",
-        effective_from=_ts(-1), effective_to=_ts(365),
+        effective_from=_FROM, effective_to=_TO,
     )
     return DecisionRule(**(defaults | kwargs))
 
 
-class TestIsActive:
+class TestIsEffective:
     def test_within_range_is_true(self):
-        assert _decision(effective_from=_ts(-1), effective_to=_ts(1)).is_active is True
+        assert _decision(effective_from=_ts(-1), effective_to=_ts(1)).is_effective is True
 
     def test_before_effective_from_is_false(self):
-        assert _decision(effective_from=_ts(1), effective_to=_ts(2)).is_active is False
+        assert _decision(effective_from=_ts(1), effective_to=_ts(2)).is_effective is False
 
     def test_after_effective_to_is_false(self):
-        assert _decision(effective_from=_ts(-2), effective_to=_ts(-1)).is_active is False
+        assert _decision(effective_from=_ts(-2), effective_to=_ts(-1)).is_effective is False
 
     def test_missing_effective_from_is_false(self):
-        assert _decision(effective_from="").is_active is False
+        assert _decision(effective_from="").is_effective is False
 
     def test_missing_effective_to_is_false(self):
-        assert _decision(effective_to="").is_active is False
+        assert _decision(effective_to="").is_effective is False
 
     def test_invalid_iso_string_is_false(self):
-        assert _decision(effective_from="not-a-date").is_active is False
+        assert _decision(effective_from="not-a-date").is_effective is False
 
 
 class TestIsChanged:
     def test_identical_rules_not_changed(self):
-        r1 = _decision(effective_to=_ts(100))
-        r2 = _decision(effective_to=_ts(100))
+        effective_to = _ts(100)
+        r1 = _decision(effective_to=effective_to)
+        r2 = _decision(effective_to=effective_to)
         assert r1.is_changed(r2) is False
 
     def test_different_priority_is_changed(self):

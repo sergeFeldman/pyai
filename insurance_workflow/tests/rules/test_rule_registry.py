@@ -1,4 +1,4 @@
-"""Tests for RuleRegistry — active rule resolution, graph construction, and execution order."""
+"""Tests for RuleRegistry — effective rule resolution, graph construction, and execution order."""
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -28,10 +28,10 @@ def _drule(rule_id: str, subject: str, attribute: str, operator: str, threshold:
 
 def _rule(rule_id: str, domain: str = "d", priority: int = 0,
           inp: list[str] | None = None, out: list[str] | None = None,
-          version: int = 0, active: bool = True, group: str = "") -> DecisionRule:
+          version: int = 0, effective: bool = True, group: str = "") -> DecisionRule:
     dates = (
         {"effective_from": _ts(-1), "effective_to": _ts(365)}
-        if active
+        if effective
         else {"effective_from": _ts(-10), "effective_to": _ts(-1)}
     )
     return DecisionRule(
@@ -62,31 +62,31 @@ def reset_singletons():
     Singleton._instances.pop(RuleFactory, None)
 
 
-class TestGetActiveRules:
+class TestGetEffectiveRules:
     def test_highest_version_selected(self):
         reg = RuleRegistry()
         reg.load([_rule("r1", version=0), _rule("r1", version=1)])
-        active = reg._get_active_rules("d")
-        assert len(active) == 1
-        assert active[0].metadata.version == 1
+        effective = reg._get_effective("d")
+        assert len(effective) == 1
+        assert effective[0].metadata.version == 1
 
-    def test_inactive_rule_excluded(self):
+    def test_non_effective_rule_excluded(self):
         reg = RuleRegistry()
-        reg.load([_rule("r1", active=False)])
-        assert reg._get_active_rules("d") == []
+        reg.load([_rule("r1", effective=False)])
+        assert reg._get_effective("d") == []
 
-    def test_active_and_inactive_versions_selects_active(self):
+    def test_expired_and_effective_versions_selects_effective(self):
         reg = RuleRegistry()
-        # v0 inactive, v1 active — v1 is highest and active
-        reg.load([_rule("r1", version=0, active=False), _rule("r1", version=1, active=True)])
-        active = reg._get_active_rules("d")
-        assert len(active) == 1
-        assert active[0].metadata.version == 1
+        # v0 expired, v1 effective; v1 is highest and effective
+        reg.load([_rule("r1", version=0, effective=False), _rule("r1", version=1, effective=True)])
+        effective = reg._get_effective("d")
+        assert len(effective) == 1
+        assert effective[0].metadata.version == 1
 
     def test_group_filter_applied(self):
         reg = RuleRegistry()
         reg.load([_rule("r1", group="g1"), _rule("r2", group="g2")])
-        result = reg._get_active_rules("d", group="g1")
+        result = reg._get_effective("d", group="g1")
         assert [r.id for r in result] == ["r1"]
 
 
@@ -127,29 +127,29 @@ class TestBuildGraph:
         assert not nx.is_directed_acyclic_graph(G)
 
 
-class TestGetActive:
+class TestGetEffective:
     def test_producer_before_consumer(self):
         reg = RuleRegistry()
         reg.load([_rule("r1", out=["x"]), _rule("r2", inp=["x"])])
-        order = [r.id for r in reg.get_active("d")]
+        order = [r.id for r in reg.get_effective("d")]
         assert order.index("r1") < order.index("r2")
 
     def test_priority_descending_within_same_level(self):
         reg = RuleRegistry()
         reg.load([_rule("r1", priority=10), _rule("r2", priority=20)])
-        order = [r.id for r in reg.get_active("d")]
+        order = [r.id for r in reg.get_effective("d")]
         assert order == ["r2", "r1"]
 
     def test_id_tiebreaker_on_equal_priority(self):
         reg = RuleRegistry()
         reg.load([_rule("b", priority=5), _rule("a", priority=5)])
-        order = [r.id for r in reg.get_active("d")]
+        order = [r.id for r in reg.get_effective("d")]
         assert order == ["a", "b"]
 
-    def test_only_active_rules_returned(self):
+    def test_only_effective_rules_returned(self):
         reg = RuleRegistry()
-        reg.load([_rule("r1", active=True), _rule("r2", active=False)])
-        ids = [r.id for r in reg.get_active("d")]
+        reg.load([_rule("r1", effective=True), _rule("r2", effective=False)])
+        ids = [r.id for r in reg.get_effective("d")]
         assert ids == ["r1"]
 
 
@@ -395,7 +395,7 @@ class TestLoadFrom:
             self._rule_dict("r2", "dom_a"),
         ]))
         reg = RuleRegistry.load_from(str(f))
-        assert len(reg.get_active("dom_a")) == 2
+        assert len(reg.get_effective("dom_a")) == 2
 
     def test_multiple_files_load_all_domains_with_correct_counts(self, tmp_path):
         f1 = tmp_path / "a.json"
@@ -408,8 +408,8 @@ class TestLoadFrom:
             self._rule_dict("r3", "dom_b"),
         ]))
         reg = RuleRegistry.load_from(str(f1), str(f2))
-        assert len(reg.get_active("dom_a")) == 2
-        assert len(reg.get_active("dom_b")) == 1
+        assert len(reg.get_effective("dom_a")) == 2
+        assert len(reg.get_effective("dom_b")) == 1
 
     def test_cycle_in_first_file_raises(self, tmp_path):
         f = tmp_path / "rules.json"
