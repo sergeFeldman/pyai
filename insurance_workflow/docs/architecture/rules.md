@@ -35,7 +35,7 @@ LOOKUP policy_rules[claim_type][status]
 SET denial_basis, next_steps, policy_section = result
 ```
 
-**Current implementation:** `LookupRule` in the `rules` package. Each rule carries `match_keys` (the lookup criteria dict) and `output_values` (the payload to return on match). A `matches(context: dict)` method checks that every key in `match_keys` is present in the provided context with the expected value. `PolicyRuleRegistryClient` wraps `RuleRegistry` and uses `LookupRule.matches()` to find the applicable rule for a given context; used by both the live claim explanation workflow and the MCP server tools.
+**Current implementation:** `LookupRule` in the `rules` package. Each rule carries `match_keys` (the lookup criteria dict) and `output_values` (the payload to return on match). A `matches(context: dict)` method checks that every key in `match_keys` is present in the provided context with the expected value. `PolicyRuleRegistryClient` wraps `RuleRegistry` and uses `LookupRule.matches()` to find the applicable rule for a given context; it is used by the `csv_mcp_server` policy tools, which the claim explanation agent calls. LookupRules are also used inside the `claim_appeal` domain (for example `ca_commercial_type`), where they write `appeal.disqualified`.
 
 **Extension path:** Support range-keyed lookups (e.g. `credit_tier IN ["A", "B"]`) and multi-output matrix lookups.
 
@@ -68,7 +68,7 @@ A singleton registry that stores all rule versions across all domains. Key capab
 
 - **Append-only versioning**: `add()` appends a new version without removing prior versions. `load()` replaces the full registry from a versioned output file.
 - **Latest-version resolution**: `get_latest(rule_id, domain)` returns the highest-version rule for a given id and domain.
-- **Active rule ordering**: `get_active(domain, group)` returns active rules in topological execution order, root rules first and dependent rules after, with priority descending within each topological level.
+- **Effective rule ordering**: `get_effective(domain, group)` returns effective rules in topological execution order, root rules first and dependent rules after, with priority descending within each topological level.
 - **DAG construction**: `get_dag(domain, group)` builds and caches a NetworkX `DiGraph` from the active rules. Edges are annotated with the list of field names that connect producers to consumers (the `fields` key).
 - **Execution**: `execute(domain, context, trace_id, executed_by, group, entities)` walks the DAG in topological generation order. Within each generation, rules are sorted by priority descending. Before evaluating each rule, the engine checks whether all producers of its required internal inputs have failed or been pruned. If so, the rule is pruned without calling `ready()` or `evaluate()`. Rules that pass the pruning check are evaluated against context; on match, each declared `output` field is written to the context, enabling downstream rules. Returns a `RuleExecutionResult` carrying an `ExecutionMetadata` record (trace ID, executor name, UTC timestamp), the domain, the triggered rules in execution order, an ordered `evaluations` list recording the outcome of every rule visited (`triggered`, `skipped_no_match`, `pruned`, or `skipped_precondition`), `entities` (caller-supplied domain object snapshots, e.g. claim and customer), and the intermediate and terminal outputs produced. Input fields seeded by the caller (`claim.*`, `customer.*`) are excluded from the outputs.
 
@@ -96,28 +96,28 @@ ETL domains are configured in `config/etl.yaml`.
 
 The registry derives a dependency graph from the `input` and `output` field declarations on each rule. An edge `A → B` exists when rule A produces an output field that rule B declares as an input. Edges are annotated with all shared field names.
 
-The DAG is visualized at `GET /rules/dashboard` using vis-network with a hierarchical left-to-right layout. Root rules (no upstream dependencies) appear in the first column; dependent rules appear in subsequent columns. Within each column, rules are ordered by priority descending, matching the topological execution order.
+The DAG is visualized at `GET /dashboard` using vis-network with a hierarchical left-to-right layout. Root rules (no upstream dependencies) appear in the first column; dependent rules appear in subsequent columns. Within each column, rules are ordered by priority descending, matching the topological execution order.
 
 ---
 
 ## Claim Appeal: DAG Execution
 
-The claim appeal domain has eight rules across two topological levels:
+The claim appeal domain has eleven rules across two topological levels. Two of them (`ca_commercial_type`, `ca_blacklisted_shop`) are LookupRules; the rest are DecisionRules.
 
-**Level 0 (roots):** `ca_fraud_check` (priority 8), `ca_max_escalations` (6), `ca_status_denied` (5), `ca_amount_tier` (4), `ca_min_tenure` (2), `ca_min_amount` (1)
+**Level 0 (roots):** `ca_commercial_type` (priority 10), `ca_blacklisted_shop` (9), `ca_fraud_check` (8), `ca_repeat_claimant_flag` (7), `ca_max_escalations` (6), `ca_status_denied` (5), `ca_amount_tier` (4), `ca_min_tenure` (2), `ca_min_amount` (1)
 
 **Level 1 (dependents):**
-- `ca_fraud_escalation_limit` (priority 7): requires `appeal.risk_flagged` produced by `ca_fraud_check`
+- `ca_fraud_escalation_limit` (priority 7): requires `appeal.risk_flagged`, which has two producers, `ca_fraud_check` and `ca_repeat_claimant_flag`; it is pruned only when both fail
 - `ca_low_tier_tenure_check` (priority 3): requires `appeal.amount_tier` produced by `ca_amount_tier`
 
 `ClaimAppealAgent.check_eligibility()` builds a flat execution context from the claim and customer objects using `dataclasses.fields()` + `getattr()`, preserving Python types (`bool`, `Enum`) required for correct threshold coercion. It also captures entity snapshots (`claim.to_dict()`, `customer.to_dict()`) and passes them as `entities` to `RuleRegistry.execute()` so the audit record carries the full domain object state at the time of evaluation. The executor:
 
 1. Walks the DAG in topological generation order (Level 0 before Level 1)
 2. Sorts rules within each generation by priority descending
-3. Gates each `DecisionRule` on its declared `input` fields before evaluating it
+3. Gates each rule on its declared `input` fields before evaluating it
 4. Writes each triggered rule's `output` fields to the shared context as `True`, enabling downstream rules
 
-This means `ca_fraud_escalation_limit` only evaluates after `ca_fraud_check` has triggered and written `appeal.risk_flagged` to the context. A claim with `is_fraud=True` but `escalation_history_count < 2` passes the fraud check but is not disqualified; the escalation limit rule correctly gates on its precondition.
+This means `ca_fraud_escalation_limit` only evaluates after `ca_fraud_check` or `ca_repeat_claimant_flag` has triggered and written `appeal.risk_flagged` to the context. A claim with `is_fraud=True` but `escalation_history_count < 2` passes the fraud check but is not disqualified; the escalation limit rule correctly gates on its precondition.
 
 ---
 

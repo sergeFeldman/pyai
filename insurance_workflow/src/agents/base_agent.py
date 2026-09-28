@@ -20,7 +20,7 @@ class LlmAgentConfig(BaseModel):
     """Base configuration for LLM-enabled agents.
 
     Attributes:
-        llm_provider: LLM backend to use. Supported values: "anthropic", "groq", "ollama".
+        llm_provider: LLM backend to use. Supported values: "anthropic", "gemini", "groq", "ollama".
         model: Model identifier passed to the provider, e.g. "claude-sonnet-4-6".
         prompt_name: LangChain Hub prompt identifier pulled at agent creation time.
     """
@@ -34,7 +34,7 @@ def _create_llm(provider: str, model: str):
     """Instantiate a LangChain chat model for the given provider and model name.
 
     Args:
-        provider: LLM backend identifier. Supported: "anthropic", "groq", "ollama".
+        provider: LLM backend identifier. Supported: "anthropic", "gemini", "groq", "ollama".
         model: Provider-specific model name, e.g. "claude-sonnet-4-6".
 
     Returns:

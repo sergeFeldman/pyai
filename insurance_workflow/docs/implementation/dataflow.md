@@ -60,7 +60,7 @@
 | 9 | `langchain.agents.AgentExecutor` | Wraps ReAct agent for multi-step invocation |
 | 10 | `agents.ClaimExplanationAgent.get_explanation_message()` | Builds natural-language query string; calls `executor.ainvoke()` |
 | 11 | `AgentExecutor` (ReAct loop) | LLM reasons over claim data; calls MCP tools iteratively to gather context |
-| 12 | `mcp_clients.servers.csv_mcp_server` | Each tool call reads the relevant CSV and returns a dict |
+| 12 | `mcp_clients.servers.csv_mcp_server` | `get_claim` and `get_customer` read the claim and customer CSVs; the policy tools query the server's own `RuleRegistry` through `PolicyRuleRegistryClient`; each returns a dict |
 | 13 | Configured LLM (e.g. `ChatGroq`) | Generates final natural-language explanation grounded in policy rules and customer context |
 | 14 | `workflow.WorkflowOrchestrator` | Wraps LLM output in `models.UserResponse`; returns to HTTP layer |
 
@@ -112,7 +112,7 @@ Business rules (appeal eligibility, policy lookup, routing decisions, pricing) f
 | MCP stdio transport | `ClaimExplanationAgent._load_tools()` | LangChain tools backed by a subprocess MCP server; isolated data access; path resolved relative to `__file__` |
 | FastAPI `Depends` | `app.dependencies` | Decouples route handlers from object creation; enables testability |
 | `RuleRegistry` append-only versioning | `etl.RuleEtl`, `app.dependencies` | ETL bumps versions on change and preserves all history; startup loads current active versions |
-| `RuleRegistry.get_active()` topological sort | `ClaimAppealRuleMcpClient.rules`, `app.routes.rules` | Rules returned in DAG execution order: root rules first, priority descending within each level |
+| `RuleRegistry.get_effective()` topological sort | `ClaimAppealRuleMcpClient.rules`, `app.routes.rules` | Rules returned in DAG execution order: root rules first, priority descending within each level |
 | `RuleRegistry.execute()` DAG execution | `ClaimAppealAgent.check_eligibility()` | Walks rules in topological generation order; prunes rules whose required internal inputs were never produced; propagates outputs through shared context; records every rule visited with outcome (triggered / skipped_no_match / pruned / skipped_precondition); returns `RuleExecutionResult` |
 | `_build_context()` with `dataclasses.fields()` | `ClaimAppealAgent.check_eligibility()` | Preserves Python types (`bool`, `Enum`) for correct threshold coercion; `to_dict()` must not be used here as it converts `bool` to `"true"` string |
 | `entities` in `RuleRegistry.execute()` | `ClaimAppealAgent.check_eligibility()` | `claim.to_dict()` and `customer.to_dict()` passed as entity snapshots; captured at execution time so the audit record carries full domain object state regardless of later mutations |

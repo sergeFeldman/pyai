@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Python 3.11+
-- A Groq API key (or Anthropic/Ollama; see `config/agents.yaml`)
+- An API key for the LLM provider set in `config/agents.yaml` (Gemini, Groq, or Anthropic; Ollama runs locally without a key)
 - A LangSmith API key (optional, for tracing)
 
 ## Installation
@@ -22,6 +22,7 @@ cp .env.example .env
 
 | Variable | Required | Description |
 |---|---|---|
+| `GOOGLE_API_KEY` | Yes (if using Gemini) | API key for the configured LLM provider |
 | `GROQ_API_KEY` | Yes (if using Groq) | API key for the configured LLM provider |
 | `ANTHROPIC_API_KEY` | Yes (if using Anthropic) | API key for the configured LLM provider |
 | `LANGCHAIN_API_KEY` | Yes | LangSmith API key |
@@ -56,8 +57,8 @@ Edit `config/agents.yaml` to switch providers:
 
 ```yaml
 claim_explanation:
-  llm_provider: groq          # groq | anthropic | ollama
-  model: llama-3.3-70b-versatile
+  llm_provider: gemini        # gemini | groq | anthropic | ollama
+  model: gemini-3.5-flash-lite
   prompt_name: hwchase17/structured-chat-agent
 ```
 
@@ -101,7 +102,7 @@ Use `http://localhost:8000/docs` for interactive Swagger UI.
 The rule registry dashboard visualizes active rules and execution history for each domain.
 
 ```
-http://localhost:8000/rules/dashboard
+http://localhost:8000/dashboard
 ```
 
 **Rules tab:** Select a domain (e.g. `claim_appeal`) from the dropdown to see the dependency graph. Root rules appear on the left; rules that depend on their output appear to the right. Within each column, rules are ordered by priority descending, matching the topological execution order.

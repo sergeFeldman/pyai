@@ -97,9 +97,9 @@ The Rule Engine encodes business logic (eligibility, disqualification, routing, 
 
 - `RuleRegistry` is a singleton; loaded at startup from a versioned JSON file via `load_from()`
 - `execute(domain, context, trace_id, executed_by, entities)` is the primary execution entry point; callers seed `context` with domain object fields using dot-notation keys (`claim.amount`, `customer.tenure_years`) for rule evaluation, and pass `entities` (e.g. `{"claim": claim.to_dict(), "customer": customer.to_dict()}`) as the input context snapshot embedded in the audit record. These are kept separate because `context` must preserve Python types for correct threshold coercion while `entities` is serialized for storage
-- `get_active(domain)` returns active rules in topological + priority order; used by the dashboard API for visualization
+- `get_effective(domain)` returns effective rules in topological + priority order; used by the dashboard API for visualization
 - `get_dag(domain)` returns a cached `nx.DiGraph`; all NetworkX queries (ancestors, descendants, cycle detection) are available on the returned graph directly
-- `RuleFactory` detects rule type from raw dict field presence (`detect_type()`) and instantiates the correct subclass; adding a new rule type requires only a new subclass and a `detect_type()` case
+- `RuleFactory` detects rule type from raw dict field presence (`detect_type()`) and instantiates the correct subclass; adding a new rule type requires only a new subclass with at least one field unique to it and an entry in `RuleFactory._TYPES_MAPPING`; `detect_type()` needs no change
 - ETL pipeline (`RuleEtl`) processes one domain per run; driven by `config/etl.yaml`; output files in `data/out/` are the source of truth
 
 ### Key Trade-Offs

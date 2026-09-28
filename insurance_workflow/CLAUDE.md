@@ -4,9 +4,17 @@ Agentic claims-processing POC: claim status, claim explanation, and claim appeal
 eligibility, built on FastAPI with an agent factory and a deterministic rule engine.
 Architecture and business documentation live in docs/.
 
+## Hard rules
+
+- Keep secrets only in `.env`. Never put API keys or credentials in `config/*.yaml`, code, tests, docs, or skills.
+- Never hand-edit `data/out/*_rules.json`. Edit the raw rules in `data/in/` and run the rule ETL.
+- Audit records and logs must not contain PII.
+- Appeal eligibility decisions are deterministic and never involve an LLM.
+
 ## Project skills
 
 - Use [skill-authoring](.claude/skills/skill-authoring/SKILL.md) to create, revise, reorganize, or audit project skills, or to turn docs and session lessons into skills.
+- Use [insurance-workflow](.claude/skills/insurance-workflow/SKILL.md) to write, change, review, or test any Python code in this project or in ../shared, including adding a new use case end to end.
 
 ## Following skill routes
 
