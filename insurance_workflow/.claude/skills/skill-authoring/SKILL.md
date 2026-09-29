@@ -63,7 +63,11 @@ When a doc, a skill, and the code disagree, do not quietly pick one. Report the 
 
 When a code change alters behavior, a pattern, or a rule that a skill describes, update that skill in the same change. A stale skill is worse than none, because Claude follows it confidently.
 
-Label any requirement the code does not yet meet with a short status note next to the rule: `Status: implemented`, `Status: partial (what is missing)`, or `Status: planned`. A skill must never describe planned behavior as if it exists.
+When a skill's behavioral description changes, check `docs/` for any files that mirror it and update them in the same change. Skills and docs describe the same system from different angles; letting them diverge defeats both.
+
+Label any requirement the code does not yet meet with a short status note next to the rule: `Status: implemented`, `Status: partial (what is missing)`, or `Status: planned`. A skill must never describe planned behavior as if it exists. Update `Status:` labels as work completes, not at the end -- a label that still says `planned` while the feature is live is equivalent to describing planned behavior as implemented.
+
+When a design invariant is discovered during implementation (a constraint, a correctness property, a reason a simpler approach was rejected), record it in the owning skill's reference file before the change is considered done. Invariants captured retroactively are invariants the next implementation phase starts without.
 
 ## What a skill should contain
 
@@ -104,7 +108,7 @@ When asked to capture what a session taught (in Claude Code, or from a conversat
 
 ## Workflow
 
-1. Read `CLAUDE.md` and inventory `.claude/skills/*/SKILL.md`. Follow existing routes relevant to the task.
+1. Read `CLAUDE.md` and inventory `.claude/skills/*/SKILL.md`. For implementation tasks, also read the owning skill's `references/` files before starting work -- naming conventions, invariants, and design patterns are there, not in `SKILL.md`. If a reference file is stale (describes behavior the code no longer implements), update it first, then make the code change. Follow existing routes relevant to the task.
 2. Decide ownership. Extend an existing skill if it already owns the concern. Create a new skill only for a cohesive responsibility no skill covers and that is worth loading on its own.
 3. Pick the router: the narrowest existing skill that should hand work to the new one, or `CLAUDE.md` if the concern is broad.
 4. Write or edit the skill using the content rules above. Write the description last. Make it specific, and slightly pushy about when to use it, because the description is what Claude matches tasks against.
@@ -125,3 +129,5 @@ When asked to capture what a session taught (in Claude Code, or from a conversat
 - Nothing planned is described as implemented.
 - `CLAUDE.md` still contains the route-following rules from the routing contract.
 - The user has seen the routing chain and any open conflicts.
+- Any `docs/` files whose content mirrors the changed skill's behavioral descriptions have been checked and updated.
+- The owning skill's `references/` files reflect the current behavior, including any invariants discovered during implementation. No reference file still describes the superseded approach.
