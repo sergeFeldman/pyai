@@ -14,7 +14,7 @@ class RuleExecutionAuditService(metaclass=shd_core.Singleton):
 
     Each call to log() appends one JSON record capturing the execution metadata,
     domain, triggered rules in execution order, ordered per-rule evaluations
-    (outcome per rule: triggered / skipped_no_match / pruned / skipped_precondition),
+    (outcome per rule: triggered / skipped_no_match / pruned / skipped_precondition / not_evaluated),
     entity snapshots (claim and customer objects at execution time), and outputs produced.
     Self-initializes on first use with the default audit file path.
     """

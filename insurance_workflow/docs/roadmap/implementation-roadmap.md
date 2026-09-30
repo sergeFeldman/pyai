@@ -35,7 +35,7 @@ Complete.
 
 ### Scope
 
-- `RuleRegistry.execute()`: walks the DAG in topological generation order; before evaluating each rule, checks whether all producers of its required internal inputs have failed or been pruned. If so, the rule is pruned and never evaluated, rules on dead branches are skipped without evaluation. Rules that pass the pruning check are evaluated against context; fired rule outputs are written to the shared context, enabling downstream rules. Every rule is recorded in the evaluation log with one of four outcomes: `triggered`, `skipped_no_match`, `pruned`, or `skipped_precondition`
+- `RuleRegistry.execute()`: walks the DAG using a ready-queue model (Kahn's variant); a rule enters the queue only when all upstream producers have settled; cascade-prunes consumers whose required inputs will never arrive; stops on first terminal output; records every rule that entered the queue or was cascade-pruned with one of five outcomes: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated`
 - `ExecutionMetadata`: trace ID, executor name, UTC timestamp; mirrors `EntityMetadata` on persistent entities
 - `RuleExecutionResult`: carries `ExecutionMetadata`, the domain, triggered rules in execution order, and intermediate/terminal outputs; seeded claim/customer context excluded from result
 - `ClaimAppealAgent._build_context()`: builds the execution context from claim and customer using `dataclasses.fields()` + `getattr()` to preserve Python types for correct threshold coercion

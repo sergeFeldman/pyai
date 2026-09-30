@@ -18,7 +18,7 @@ async def list_executions(domain: str) -> dict:
     Returns:
         JSON with domain and sessions list. Each session includes trace_id,
         timestamp, triggered rule IDs and detail, ordered evaluations (one entry
-        per rule with outcome triggered/skipped_no_match/pruned/skipped_precondition),
+        per rule with outcome triggered/skipped_no_match/pruned/skipped_precondition/not_evaluated),
         entity snapshots (claim and customer objects at execution time), output
         keys, and eligibility.
     """

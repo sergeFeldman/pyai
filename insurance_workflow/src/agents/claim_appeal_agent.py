@@ -62,7 +62,7 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
         whose required internal inputs are unreachable is pruned. Claim and customer
         entity snapshots are captured
         at execution time and included in the audit record alongside the ordered
-        per-rule evaluation log (triggered / skipped_no_match / pruned / skipped_precondition).
+        per-rule evaluation log (triggered / skipped_no_match / pruned / skipped_precondition / not_evaluated).
         The execution result is persisted to the rule execution audit log.
 
         Args:

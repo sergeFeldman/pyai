@@ -54,7 +54,9 @@ Concurrency: the registry, its DAG cache, and `RuleFactory` are process-wide sin
 
 `execute(domain, context, trace_id, executed_by, group, entities)` walks the DAG and returns a `RuleExecutionResult` with `metadata`, `domain`, `triggered` (in execution order), `evaluations`, `entities`, and `outputs` (only keys added during execution). It mutates `context` in place.
 
-Every rule gets exactly one outcome: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated` (in the queue when early exit fired).
+A rule appears in `evaluations` if and only if it entered the ready queue or was cascade-pruned. Rules still waiting on a producer that was cut off by early exit never became ready and get no entry. Of rules that do appear, each gets exactly one outcome: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated` (was queued when early exit fired).
+
+Priority orders rules only within a cascade wave. A dependent rule always runs after all its producers regardless of its own priority, so the first triggered disqualifier depends on graph depth first and priority second.
 
 Pruning happens in `_cascade()` before enqueue; the in-loop prune check in `execute()` is a defensive fallback. For the pruning algorithm, outcome definitions, and worked examples, read [references/execution-semantics.md](references/execution-semantics.md) before changing `execute()` or debugging an outcome.
 
