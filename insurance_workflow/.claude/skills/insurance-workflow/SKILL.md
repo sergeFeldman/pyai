@@ -93,6 +93,7 @@ Match the surrounding code. The conventions below hold across `src/` and `../sha
 - Name class-level constants with a leading underscore and upper case (`_TYPES_MAPPING`, `_OPS`, `_WORKFLOWS_MAPPING`).
 - Use `TConfig`, `TRequest`, `TObject` style type variables for generic bases.
 - Keep comments sparse and explain why, not what.
+- When code behavior changes, update the docstring and any inline comments that describe that behavior in the same change. A docstring that describes superseded behavior is actively misleading.
 - Do not use em-dashes in comments, docstrings, docs, or user-facing text.
 
 ## Tests

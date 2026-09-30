@@ -56,7 +56,7 @@ Concurrency: the registry, its DAG cache, and `RuleFactory` are process-wide sin
 
 Every visited rule gets exactly one outcome: `triggered`, `skipped_no_match`, `pruned`, or `skipped_precondition`. For the pruning algorithm, the outcome definitions, and worked examples, read [references/execution-semantics.md](references/execution-semantics.md) before changing `execute()` or debugging an outcome.
 
-Status: partial (evaluations record `rule_id` and `outcome` only; rule version and output values per evaluation are planned). Ready-queue execution, graph validation linter, parallel execution, decision replay, goal-directed evaluation, and incremental re-evaluation are planned.
+Status: partial (evaluations record `rule_id` and `outcome` only; rule version and output values per evaluation are planned). Graph validation linter, parallel execution, decision replay, goal-directed evaluation, and incremental re-evaluation are planned.
 
 ## Domain output contracts
 
@@ -93,6 +93,7 @@ Raw rules live in `data/in/<domain>_rules.json`; the versioned output in `data/o
 
 - `python -m pytest tests/rules tests/agents -q`. `tests/rules/test_rule_registry.py::TestExecute` covers pruning and propagation; `tests/agents/test_claim_appeal_agent.py` covers appeal chains end to end.
 - For rule data changes, run the ETL, then `GET /rules/dag/claim_appeal` and confirm node count, edges, and order.
+- When writing tests for `execute()`: a field produced by a rule but consumed by no other rule in the test DAG is a terminal output -- if it appears in context, execution stops immediately and any rules still in the queue get no evaluation entry. To prevent early exit before all intended rules run, ensure each intermediate output is consumed by at least one downstream rule in the test DAG.
 
 ## Examples
 

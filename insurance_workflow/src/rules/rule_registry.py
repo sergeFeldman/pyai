@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 
 import networkx as nx
@@ -74,14 +75,11 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         returned graph directly.
 
     Execution:
-        execute() walks the DAG in topological generation order. Before evaluating
-        each rule it checks whether all producers of a required internal input have
-        failed or been pruned and the field is absent from context. If so, the rule
-        is pruned without calling ready() or evaluate() — rules on dead branches are
-        skipped without evaluation. Rules that pass the pruning check are evaluated
-        via rule.ready()/rule.evaluate(); outputs are propagated to context, enabling
-        downstream rules. Returns a RuleExecutionResult with provenance, triggered
-        rules, full evaluation log (including pruned entries), and outputs.
+        execute() uses a ready-queue model: a rule enters the queue only when every
+        upstream producer has been decided. When a rule is decided, its consumers are
+        cascaded immediately; any consumer whose last producer just settled is either
+        cascade-pruned or enqueued. Execution stops as soon as a terminal output
+        (a field produced by a rule but consumed by none) appears in context.
 
     Audit trail:
         The registry is append-only; add() never replaces an existing rule.
@@ -166,9 +164,17 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
     def _build_graph(self, rules: list[Rule]) -> nx.DiGraph:
         """Build a DiGraph from a rule list using input/output field overlap as edges.
 
-        An edge A → B is added for every field that appears in both A.output and
+        An edge A -> B is added for every field that appears in both A.output and
         B.input. External inputs (fields with no producer in the rule set) make
         their rule a root node with in-degree zero.
+
+        Four structures are precomputed and stored on the graph for use by execute():
+            G.graph["producers"]: field -> [rule_ids] that produce it.
+            G.graph["consumers"]: rule_id -> [rule_ids] that consume any of its outputs.
+            G.graph["terminal_outputs"]: fields produced but consumed by no rule;
+                presence in context signals early exit during execution.
+            G.graph["undecided_template"]: rule_id -> frozenset of upstream producer IDs;
+                execute() copies this per call to seed its mutable undecided tracking dict.
 
         Args:
             rules: Rule instances to include as nodes.
@@ -179,21 +185,41 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
             a list under the "fields" key.
         """
         G = nx.DiGraph()
-        producers: dict[str, list[str]] = {}
+        producers: defaultdict[str, list[str]] = defaultdict(list)
+        all_outputs: set[str] = set()
 
+        # Pass 1: register nodes and build producers; must complete before edges and consumers can be derived.
         for rule in rules:
             G.add_node(rule.id, rule=rule)
-            for f in rule.output:
-                producers.setdefault(f, []).append(rule.id)
+            for field_name in rule.output:
+                producers[field_name].append(rule.id)
+                all_outputs.add(field_name)
 
-        edge_fields: dict[tuple[str, str], list[str]] = {}
+        # Pass 2: connect producers to consumers via shared fields; accumulate all_inputs for terminal output detection.
+        # Two passes are required because producers must be fully populated before any edges can be added.
+        consumers: defaultdict[str, set[str]] = defaultdict(set)
+        all_inputs: set[str] = set()
         for rule in rules:
-            for f in rule.input:
-                for producer_id in producers.get(f, []):
-                    edge_fields.setdefault((producer_id, rule.id), []).append(f)
+            for field_name in rule.input:
+                all_inputs.add(field_name)
+                # One edge per producer-consumer pair; append the shared field if the edge already exists.
+                for producer_id in producers.get(field_name, []):
+                    consumers[producer_id].add(rule.id)
+                    edge_data = G.get_edge_data(producer_id, rule.id)
+                    if edge_data is not None:
+                        edge_data["fields"].append(field_name)
+                    else:
+                        G.add_edge(producer_id, rule.id, fields=[field_name])
 
-        for (src, dst), fields in edge_fields.items():
-            G.add_edge(src, dst, fields=fields)
+        # Store all structures on the graph so execute() reads them in O(1), avoiding per-call rebuilds.
+        G.graph["producers"] = dict(producers)  # plain dict: prevents defaultdict __missing__ side effects in execute()
+        G.graph["consumers"] = {k: list(v) for k, v in consumers.items()}
+        G.graph["terminal_outputs"] = all_outputs - all_inputs  # fields with no consumer; triggers early exit in execute()
+        # Per-rule upstream producer sets; execute() copies these per call instead of recomputing from the graph.
+        G.graph["undecided_template"] = {
+            rule.id: frozenset(p for f in rule.input for p in producers.get(f, []))
+            for rule in rules
+        }
 
         return G
 
@@ -272,20 +298,19 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
                 group: str = "", entities: dict | None = None) -> RuleExecutionResult:
         """Execute all active rules for a domain against a shared context dict.
 
-        Walks the DAG in topological generation order. 
-        Within each generation, rules are evaluated in priority descending order. 
-        For each rule:
-          1. rule.ready(context) checks all declared input preconditions.
-          2. rule.evaluate(context) tests the condition and returns outputs to write.
-          3. On match, outputs are merged into context, enabling downstream rules.
+        Uses a ready-queue model (Kahn's variant): a rule enters the queue only when
+        every upstream producer rule has been decided. When a rule is decided, its
+        consumers are cascaded immediately; any consumer whose last producer just
+        settled is either cascade-pruned or enqueued. Execution stops as soon as a
+        terminal output appears in context.
 
-        Every rule is recorded in evaluations with an outcome:
-          - triggered: preconditions met and condition matched.
+        Every rule is recorded in evaluations with one of four outcomes:
+          - triggered: preconditions met and condition matched; outputs written to context.
           - skipped_no_match: preconditions met but condition did not match.
-          - pruned: a required internal input field is absent from context and all its
-            producers either failed or were themselves pruned; rule never evaluated.
-          - skipped_precondition: a required external field was absent from context
-            (caller did not seed it); rule never evaluated.
+          - pruned: a required internal input is absent and all its producers failed or
+            were pruned; rule never evaluated.
+          - skipped_precondition: a required external field is absent from context;
+            rule never evaluated.
 
         Callers seed context with domain object fields using dot-notation keys
         (e.g. "claim.amount", "customer.tenure_years") before calling execute().
@@ -311,44 +336,96 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         triggered: list[Rule] = []
         evaluations: list[dict] = []
 
-        # Map each output field to the rule(s) that produce it, for pruning.
-        producers: dict[str, list[str]] = {}
-        for node_id in G.nodes:
-            for f in G.nodes[node_id]["rule"].output:
-                producers.setdefault(f, []).append(node_id)
+        # Precomputed at build time; reading here avoids rebuilding field maps on every execute() call.
+        producers: dict[str, list[str]] = G.graph["producers"]
+        consumers: dict[str, list[str]] = G.graph["consumers"]
+        terminal_outputs: set[str] = G.graph["terminal_outputs"]
 
-        failed: set[str] = set()   # rules that did not produce output
-        pruned: set[str] = set()   # rules whose required inputs are unreachable
+        # Track decided rules so _is_prunable can test whether inputs are permanently unreachable.
+        failed: set[str] = set()
+        pruned: set[str] = set()
 
-        for generation in nx.topological_generations(G):
-            rules = [G.nodes[rid]["rule"] for rid in generation]
-            rules.sort(key=lambda r: (-r.priority, r.id))
-            for rule in rules:
-                # Prune if every producer of any required internal input has failed or been pruned.
-                if any(
-                    f not in context
-                    and f in producers
-                    and all(p in failed or p in pruned for p in producers[f])
-                    for f in rule.input
-                ):
-                    pruned.add(rule.id)
-                    evaluations.append({"rule_id": rule.id, "outcome": "pruned"})
-                    continue
+        def _is_prunable(rule: Rule) -> bool:
+            # True if any required internal input is absent and all its producers failed/pruned.
+            return any(
+                field_name not in context
+                and field_name in producers
+                and all(p in failed or p in pruned for p in producers[field_name])
+                for field_name in rule.input
+            )
 
-                if not rule.ready(context):
-                    failed.add(rule.id)
-                    evaluations.append({"rule_id": rule.id, "outcome": "skipped_precondition"})
-                    continue
+        # Per-rule mutable copy of upstream producer IDs not yet decided; empties as producers settle.
+        undecided: dict[str, set[str]] = {
+            k: set(v) for k, v in G.graph["undecided_template"].items()
+        }
 
-                matched, rule_outputs = rule.evaluate(context)
-                if matched:
-                    context.update(rule_outputs)
-                    triggered.append(rule)
-                    evaluations.append({"rule_id": rule.id, "outcome": "triggered"})
-                else:
-                    failed.add(rule.id)
-                    evaluations.append({"rule_id": rule.id, "outcome": "skipped_no_match"})
+        # Seed the queue with rules that have no internal inputs (generation 0).
+        initial = sorted(
+            [rid for rid, s in undecided.items() if not s],
+            key=lambda rid: (-G.nodes[rid]["rule"].priority, rid)
+        )
+        queue: deque[str] = deque(initial)
 
+        def _cascade(decided_id: str) -> None:
+            # Iterative cascade: after a rule is decided, immediately settle consumers
+            # whose last producer just resolved. Prunable consumers are cascade-pruned
+            # without entering the queue; others are enqueued in priority order.
+            stack = [decided_id]
+            while stack:
+                src = stack.pop()
+                newly_ready = []
+                for consumer_id in consumers.get(src, []):
+                    undecided[consumer_id].discard(src)
+                    if undecided[consumer_id]:
+                        continue  # still waiting on other producers
+                    rule = G.nodes[consumer_id]["rule"]
+                    if _is_prunable(rule):
+                        pruned.add(consumer_id)
+                        evaluations.append({"rule_id": consumer_id, "outcome": "pruned"})
+                        stack.append(consumer_id)
+                    else:
+                        newly_ready.append(consumer_id)
+                # Preserve priority ordering within each cascade wave.
+                newly_ready.sort(key=lambda rid: (-G.nodes[rid]["rule"].priority, rid))
+                queue.extend(newly_ready)
+
+        # Evaluate each ready rule in priority order; a rule enters only after all its producers have settled,
+        # so its inputs are final by the time it runs.
+        while queue:
+            rule_id = queue.popleft()
+            rule = G.nodes[rule_id]["rule"]
+
+            # Prune check: any required internal input unreachable?
+            if _is_prunable(rule):
+                pruned.add(rule_id)
+                evaluations.append({"rule_id": rule_id, "outcome": "pruned"})
+                _cascade(rule_id)  # pruned is a decision; consumers waiting on this rule must be settled
+                continue
+
+            # Precondition check: all declared inputs present in context?
+            if not rule.ready(context):
+                failed.add(rule_id)
+                evaluations.append({"rule_id": rule_id, "outcome": "skipped_precondition"})
+                _cascade(rule_id)  # failure is a decision; settle consumers so they are not left waiting
+                continue
+
+            # Evaluate and propagate outputs to context.
+            matched, rule_outputs = rule.evaluate(context)
+            if matched:
+                context.update(rule_outputs)
+                triggered.append(rule)
+                evaluations.append({"rule_id": rule_id, "outcome": "triggered"})
+            else:
+                failed.add(rule_id)
+                evaluations.append({"rule_id": rule_id, "outcome": "skipped_no_match"})
+
+            _cascade(rule_id)  # rule evaluated; settle downstream consumers regardless of match outcome
+
+            # Early exit: terminal output produced; remaining rules cannot change the result.
+            if terminal_outputs & context.keys():
+                break
+
+        # Strip caller-seeded keys; the result contains only fields written during this execution.
         outputs = {k: v for k, v in context.items() if k not in seeded_keys}
         return RuleExecutionResult(
             metadata=shd_core.ExecutionMetadata(trace_id=trace_id, executed_by=executed_by),

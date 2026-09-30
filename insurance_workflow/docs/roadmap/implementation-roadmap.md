@@ -60,7 +60,7 @@ Complete.
 
 ### Status
 
-Pending.
+In progress. Ready-queue + eager cascade complete. Compound DecisionRule, appeal.qualified, and per-rule audit detail pending.
 
 ---
 

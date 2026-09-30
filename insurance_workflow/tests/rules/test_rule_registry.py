@@ -313,8 +313,10 @@ class TestExecuteEvaluations:
         reg = RuleRegistry()
         r1 = _drule("r1", "claim", "amount", "<", "500", out=["appeal.amount_tier"], priority=2)
         r2 = _drule("r2", "claim", "status", "==", "denied", out=["appeal.x"], priority=1)
+        # r3 consumes both intermediates so neither is a terminal output; early exit only
+        # fires when r3 produces appeal.disqualified, ensuring all three rules run.
         r3 = _drule("r3", "customer", "tenure_years", "<", "3",
-                    inp=["appeal.amount_tier"], out=["appeal.disqualified"])
+                    inp=["appeal.amount_tier", "appeal.x"], out=["appeal.disqualified"])
         reg.load([r1, r2, r3])
         result = reg.execute("d", {"claim.amount": 400, "claim.status": "denied",
                                    "customer.tenure_years": 2})
@@ -352,8 +354,10 @@ class TestExecuteEvaluations:
         reg = RuleRegistry()
         r_hi  = _drule("r_hi",  "claim", "amount", ">", "0", out=["appeal.flag"],    priority=10)
         r_lo  = _drule("r_lo",  "claim", "status", "==", "denied", out=["appeal.x"], priority=1)
+        # r_dep consumes both intermediates so neither is a terminal output; r_dep is
+        # only enqueued after both r_hi and r_lo have decided, verifying level ordering.
         r_dep = _drule("r_dep", "claim", "amount", ">", "0",
-                       inp=["appeal.flag"], out=["appeal.disqualified"],              priority=5)
+                       inp=["appeal.flag", "appeal.x"], out=["appeal.disqualified"],  priority=5)
         reg.load([r_hi, r_lo, r_dep])
         result = reg.execute("d", {"claim.amount": 100, "claim.status": "denied"})
         ids = [e["rule_id"] for e in result.evaluations]
