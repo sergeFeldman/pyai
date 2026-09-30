@@ -136,6 +136,6 @@ This means `ca_fraud_escalation_limit` is only enqueued after both of its produc
 | Phase 2 | Positive qualification rules (`appeal.qualified` output) | 🔲 Pending |
 | Phase 2 | Tokenization service for PII in rule inputs and audit output | 🔲 Pending |
 | Current | Execution audit trail: `RuleExecutionResult` persisted to JSONL per `execute()` call; trace ID threaded from orchestrator | ✅ Done |
-| Current | Per-rule evaluation log: ordered `evaluations` list with outcome per rule (triggered / skipped_no_match / pruned / skipped_precondition) | ✅ Done |
+| Current | Per-rule evaluation log: ordered `evaluations` list with outcome per rule (triggered / skipped_no_match / pruned / skipped_precondition / not_evaluated) | ✅ Done |
 | Current | Entity snapshots: claim and customer objects captured at execution time and included in the audit record | ✅ Done |
 | Phase 3 | Extraction rules for nested backend payloads | 🔲 Pending |

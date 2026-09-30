@@ -29,8 +29,10 @@ class RuleExecutionResult(shd_core.SerializableMixin):
         metadata: Trace and audit metadata (trace ID, executor, timestamp).
         domain: The rule domain that was executed, e.g. "claim_appeal".
         triggered: Rules that matched and triggered, in topological execution order.
-        evaluations: Ordered record of every rule visited during execution. Each entry is
-            {"rule_id": str, "outcome": "triggered"|"skipped_no_match"|"pruned"|"skipped_precondition"}.
+        evaluations: Ordered record of rules that entered the ready queue or were cascade-pruned.
+            Rules still waiting on a producer cut off by early exit never became ready and get
+            no entry. Each entry is {"rule_id": str, "outcome": str} where outcome is one of:
+            "triggered"|"skipped_no_match"|"pruned"|"skipped_precondition"|"not_evaluated".
             triggered means preconditions met and condition matched;
             skipped_no_match means the rule was evaluated but did not match;
             pruned means a required internal input field was unreachable because all its
@@ -310,7 +312,9 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         settled is either cascade-pruned or enqueued. Execution stops as soon as a
         terminal output appears in context.
 
-        Every rule is recorded in evaluations with one of five outcomes:
+        A rule appears in evaluations if and only if it entered the ready queue or was
+        cascade-pruned. Rules still waiting on a producer cut off by early exit never became
+        ready and get no entry. Of rules that do appear, each gets one of five outcomes:
           - triggered: preconditions met and condition matched; outputs written to context.
           - skipped_no_match: preconditions met but condition did not match.
           - pruned: a required internal input is absent and all its producers failed or
