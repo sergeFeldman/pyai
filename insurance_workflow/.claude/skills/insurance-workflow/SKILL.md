@@ -94,6 +94,8 @@ Match the surrounding code. The conventions below hold across `src/` and `../sha
 - Use `TConfig`, `TRequest`, `TObject` style type variables for generic bases.
 - Keep comments sparse and explain why, not what.
 - When code behavior changes, update the docstring and any inline comments that describe that behavior in the same change. A docstring that describes superseded behavior is actively misleading.
+- Guard `all()`/`any()` over rule fields against the empty-collection case: `all([])` is `True` in Python. Prepend a non-empty check: `field and all(...)`.
+- Before describing a code path as primary, verify it is reachable. In the ready-queue executor, pruning happens in `_cascade()` before enqueue; the in-loop prune check is a defensive fallback.
 - Do not use em-dashes in comments, docstrings, docs, or user-facing text.
 
 ## Tests

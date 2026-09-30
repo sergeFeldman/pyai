@@ -35,7 +35,9 @@ class RuleExecutionResult(shd_core.SerializableMixin):
             skipped_no_match means the rule was evaluated but did not match;
             pruned means a required internal input field was unreachable because all its
             producers failed or were themselves pruned; the rule was never evaluated;
-            skipped_precondition means a required external field was absent from context.
+            skipped_precondition means a required external field was absent from context;
+            not_evaluated means the rule was in the ready queue when early exit fired and
+            was never dequeued.
         entities: Snapshot of domain objects at execution time, keyed by entity
             type e.g. {"claim": {...}, "customer": {...}}.
         outputs: Intermediate and terminal outputs produced during execution,
@@ -188,21 +190,25 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         producers: defaultdict[str, list[str]] = defaultdict(list)
         all_outputs: set[str] = set()
 
-        # Pass 1: register nodes and build producers; must complete before edges and consumers can be derived.
+        # Register nodes and build producers; 
+        # must complete before edges and consumers can be derived.
         for rule in rules:
             G.add_node(rule.id, rule=rule)
             for field_name in rule.output:
                 producers[field_name].append(rule.id)
                 all_outputs.add(field_name)
 
-        # Pass 2: connect producers to consumers via shared fields; accumulate all_inputs for terminal output detection.
-        # Two passes are required because producers must be fully populated before any edges can be added.
+        # Connect producers to consumers via shared fields; 
+        # accumulate all_inputs for terminal output detection.
+        # (two passes are required because producers must be fully populated 
+        # before any edges can be added.)
         consumers: defaultdict[str, set[str]] = defaultdict(set)
         all_inputs: set[str] = set()
         for rule in rules:
             for field_name in rule.input:
                 all_inputs.add(field_name)
-                # One edge per producer-consumer pair; append the shared field if the edge already exists.
+                # One edge per producer-consumer pair; 
+                # append the shared field if the edge already exists.
                 for producer_id in producers.get(field_name, []):
                     consumers[producer_id].add(rule.id)
                     edge_data = G.get_edge_data(producer_id, rule.id)
@@ -304,13 +310,14 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         settled is either cascade-pruned or enqueued. Execution stops as soon as a
         terminal output appears in context.
 
-        Every rule is recorded in evaluations with one of four outcomes:
+        Every rule is recorded in evaluations with one of five outcomes:
           - triggered: preconditions met and condition matched; outputs written to context.
           - skipped_no_match: preconditions met but condition did not match.
           - pruned: a required internal input is absent and all its producers failed or
             were pruned; rule never evaluated.
           - skipped_precondition: a required external field is absent from context;
             rule never evaluated.
+          - not_evaluated: rule was in the ready queue when early exit fired; never dequeued.
 
         Callers seed context with domain object fields using dot-notation keys
         (e.g. "claim.amount", "customer.tenure_years") before calling execute().
@@ -395,7 +402,9 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
             rule_id = queue.popleft()
             rule = G.nodes[rule_id]["rule"]
 
-            # Prune check: any required internal input unreachable?
+            # Defensive prune check: _cascade() detects prunable consumers and records them
+            # before they are enqueued; this guard catches the edge case where a rule
+            # reaches the queue in a prunable state despite that.
             if _is_prunable(rule):
                 pruned.add(rule_id)
                 evaluations.append({"rule_id": rule_id, "outcome": "pruned"})
@@ -424,6 +433,10 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
             # Early exit: terminal output produced; remaining rules cannot change the result.
             if terminal_outputs & context.keys():
                 break
+
+        # Record rules still in the queue when early exit fired; they were ready but never reached.
+        for remaining_id in queue:
+            evaluations.append({"rule_id": remaining_id, "outcome": "not_evaluated"})
 
         # Strip caller-seeded keys; the result contains only fields written during this execution.
         outputs = {k: v for k, v in context.items() if k not in seeded_keys}

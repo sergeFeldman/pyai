@@ -379,6 +379,20 @@ class TestExecuteEvaluations:
         result = reg.execute("d", {})
         assert result.entities == {}
 
+    def test_not_evaluated_for_rules_in_queue_at_early_exit(self):
+        reg = RuleRegistry()
+        # r1 fires first (higher priority) and writes the terminal output; early exit fires
+        r1 = _drule("r1", "claim", "is_fraud", "==", "True",
+                    out=["appeal.disqualified"], priority=2)
+        # r2 is in the initial queue but early exit fires before it is dequeued
+        r2 = _drule("r2", "claim", "amount", "<", "500",
+                    out=["appeal.flag"], priority=1)
+        reg.load([r1, r2])
+        result = reg.execute("d", {"claim.is_fraud": True, "claim.amount": 400})
+        outcomes = {e["rule_id"]: e["outcome"] for e in result.evaluations}
+        assert outcomes["r1"] == "triggered"
+        assert outcomes["r2"] == "not_evaluated"
+
 
 class TestLoadFrom:
     def _rule_dict(self, rule_id: str, domain: str,

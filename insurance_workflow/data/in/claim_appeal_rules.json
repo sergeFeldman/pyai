@@ -8,7 +8,7 @@
     "input": ["claim.claim_type"],
     "output": ["appeal.disqualified"],
     "match_keys": {"claim.claim_type": "commercial"},
-    "output_values": {"appeal.disqualified": "true"},
+    "output_values": {"appeal.disqualified": true},
     "reason": "Commercial claims are not eligible for appeal."
   },
   {
@@ -20,7 +20,7 @@
     "input": ["claim.repair_shop"],
     "output": ["appeal.disqualified"],
     "match_keys": {"claim.repair_shop": "shop_rouge"},
-    "output_values": {"appeal.disqualified": "true"},
+    "output_values": {"appeal.disqualified": true},
     "reason": "Claim filed through a repair shop with active fraud flags."
   },
   {

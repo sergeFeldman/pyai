@@ -54,7 +54,9 @@ Concurrency: the registry, its DAG cache, and `RuleFactory` are process-wide sin
 
 `execute(domain, context, trace_id, executed_by, group, entities)` walks the DAG and returns a `RuleExecutionResult` with `metadata`, `domain`, `triggered` (in execution order), `evaluations`, `entities`, and `outputs` (only keys added during execution). It mutates `context` in place.
 
-Every visited rule gets exactly one outcome: `triggered`, `skipped_no_match`, `pruned`, or `skipped_precondition`. For the pruning algorithm, the outcome definitions, and worked examples, read [references/execution-semantics.md](references/execution-semantics.md) before changing `execute()` or debugging an outcome.
+Every rule gets exactly one outcome: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated` (in the queue when early exit fired).
+
+Pruning happens in `_cascade()` before enqueue; the in-loop prune check in `execute()` is a defensive fallback. For the pruning algorithm, outcome definitions, and worked examples, read [references/execution-semantics.md](references/execution-semantics.md) before changing `execute()` or debugging an outcome.
 
 Status: partial (evaluations record `rule_id` and `outcome` only; rule version and output values per evaluation are planned). Graph validation linter, parallel execution, decision replay, goal-directed evaluation, and incremental re-evaluation are planned.
 
@@ -64,7 +66,7 @@ Each domain's rules write agreed field names. Agents and APIs read only these fi
 
 **claim_appeal**
 
-- Mixes `DecisionRule`s and `LookupRule`s (for example `ca_commercial_type` matches `claim.claim_type == "commercial"`). Decision rules write `True`; the lookup rules write the string `"true"`.
+- Mixes `DecisionRule`s and `LookupRule`s (for example `ca_commercial_type` matches `claim.claim_type == "commercial"`). All rules write boolean `True` to `appeal.disqualified`; lookup rules declare this in `output_values` as a JSON boolean (`true`), not a string.
 - Terminal: `appeal.disqualified`. Intermediate: `appeal.risk_flagged` (produced by more than one rule), `appeal.amount_tier`.
 - Eligibility rule: a claim is eligible for appeal if and only if executing the `claim_appeal` domain produces no `appeal.disqualified` output. Key presence decides, never its value. When it is produced, the decision reason is the `reason` of the first rule in `triggered` whose `output` contains `appeal.disqualified`.
 - Context keys are `claim.<field>` and `customer.<field>` with native Python types.
