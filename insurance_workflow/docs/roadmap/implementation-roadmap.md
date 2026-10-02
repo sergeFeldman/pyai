@@ -55,11 +55,9 @@ Complete.
 
 - **Ready-queue + eager cascade**: Replace the topological generation sweep in `RuleRegistry.execute()` with a queue-based model (Kahn's variant). A rule enters the queue only when all its producers are settled (evaluated, failed, or pruned). When a rule enters `failed` or `pruned`, immediately walk its consumers and cascade pruning to any whose remaining producers are all decided; pruned rules never enter the queue at all. Precompute and cache the producers map, consumers map, and sorted generation lists on the DAG at build time rather than rebuilding on every `execute()` call. A hard disqualifier firing in an early generation causes immediate early exit without visiting any downstream rules; cascade pruning completes before the next rule is dequeued
 - Compound `DecisionRule`: replace the single `operator`/`threshold` pair with a condition list supporting AND/OR/IN logic; `matches()` evaluates the condition tree
-- Per-rule audit detail: extend each entry in the execution audit record's `evaluations` list with the rule version and the output values written. The per-rule outcome (triggered, skipped_no_match, pruned, skipped_precondition) is already recorded (done in Phase 3)
-
 ### Status
 
-Partially complete. Ready-queue + eager cascade complete. Compound DecisionRule (`RuleCondition` tree with `RuleOperator`/`RuleLogic` StrEnums, `_eval_condition()` recursion, `RuleFactory._build_conditions()` deserialization) complete. Per-rule audit detail (rule version and output values per evaluation entry) pending.
+Complete.
 
 ---
 
@@ -107,6 +105,7 @@ Pending.
 
 ### Scope
 
+- **Per-rule audit detail**: Extend each entry in the execution audit record's `evaluations` list with the rule version and the output values written on trigger. Required by decision replay to reconstruct exactly which version of a rule produced which output at the time of the original decision.
 - **Decision replay / shadow testing**: Before a rule change goes live, re-run all historical decisions stored in `rule_executions.jsonl` against a candidate rule set and report which outcomes flip; for example, "37 appeals would move from eligible to disqualified." The `entities` snapshot already stored in every `RuleExecutionResult` provides the frozen claim/customer context required for replay. Combined with `nx.descendants` to show the structural blast radius (which rules in the graph a given change touches), this is the compliance checkpoint before any rule deployment in a regulated environment
 - **Goal-directed evaluation**: Accept a `goal` parameter on `execute()`. Use `nx.ancestors` to build the subgraph of rules that can contribute to the requested output, then run only that subgraph. At production scale different call sites need different slices of the graph (a fraud check API, a quick eligibility pre-check, a full appeal evaluation), and each should traverse only the rules it actually needs. Enables partial evaluation for mid-workflow agent checks without running the full domain
 
