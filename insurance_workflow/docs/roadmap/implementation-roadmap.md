@@ -55,12 +55,11 @@ Complete.
 
 - **Ready-queue + eager cascade**: Replace the topological generation sweep in `RuleRegistry.execute()` with a queue-based model (Kahn's variant). A rule enters the queue only when all its producers are settled (evaluated, failed, or pruned). When a rule enters `failed` or `pruned`, immediately walk its consumers and cascade pruning to any whose remaining producers are all decided; pruned rules never enter the queue at all. Precompute and cache the producers map, consumers map, and sorted generation lists on the DAG at build time rather than rebuilding on every `execute()` call. A hard disqualifier firing in an early generation causes immediate early exit without visiting any downstream rules; cascade pruning completes before the next rule is dequeued
 - Compound `DecisionRule`: replace the single `operator`/`threshold` pair with a condition list supporting AND/OR/IN logic; `matches()` evaluates the condition tree
-- Positive qualification rules: `appeal.qualified` output alongside `appeal.disqualified`; result includes both disqualifying and qualifying rules that fired
 - Per-rule audit detail: extend each entry in the execution audit record's `evaluations` list with the rule version and the output values written. The per-rule outcome (triggered, skipped_no_match, pruned, skipped_precondition) is already recorded (done in Phase 3)
 
 ### Status
 
-In progress. Ready-queue + eager cascade complete. Compound DecisionRule, appeal.qualified, and per-rule audit detail pending.
+Partially complete. Ready-queue + eager cascade complete. Compound DecisionRule (`RuleCondition` tree with `RuleOperator`/`RuleLogic` StrEnums, `_eval_condition()` recursion, `RuleFactory._build_conditions()` deserialization) complete. Per-rule audit detail (rule version and output values per evaluation entry) pending.
 
 ---
 

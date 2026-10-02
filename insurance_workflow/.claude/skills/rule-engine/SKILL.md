@@ -23,10 +23,10 @@ All rules are `@dataclass(kw_only=True)` subclasses of `Rule` (`src/rules/rule.p
 
 Rule types:
 
-- `DecisionRule` compares `context["<subject>.<attribute>"]` with `threshold` using `operator` (`>=`, `<=`, `==`, `!=`, `>`, `<`). The threshold is stored as a string and coerced to the value's type: `"true"`/`"1"` for bool (never `bool(str)`), `type(value)(threshold)` otherwise, so an Enum value compares against `Enum(threshold)`. On match every `output` field is set to `True`.
+- `DecisionRule` supports two modes. **Simple mode** (empty `conditions`): compares `context["<subject>.<attribute>"]` with `threshold` using `operator` (`>=`, `<=`, `==`, `!=`, `>`, `<`). **Compound mode** (non-empty `conditions`): evaluates a `RuleCondition` tree where leaf nodes are scalar comparisons and group nodes combine sub-conditions with `RuleLogic.AND` or `RuleLogic.OR`; groups nest arbitrarily (e.g. `(fraud == True OR prior_claim_count >= 5) AND escalation_history_count >= 2`). In both modes the threshold is coerced to the value's type via module-level `_coerce()`: `"true"`/`"1"` for bool (never `bool(str)`), `type(value)(threshold)` otherwise. `RuleOperator` and `RuleLogic` are `StrEnum`s; `RuleCondition` is a dataclass with leaf fields (`subject`, `attribute`, `operator: RuleOperator`, `threshold`) and group fields (`logic: RuleLogic`, `conditions: list[RuleCondition]`). Module-level `_eval_condition()` recurses the tree. `RuleFactory._build_conditions()` converts raw condition dicts to `RuleCondition` trees on deserialization. On match every `output` field is set to `True`.
 - `LookupRule` matches when every `match_keys` entry equals the context value, and writes a copy of `output_values`. It writes the `output_values` keys, not the declared `output` list, so when a lookup rule feeds another rule in `execute()`, its `output_values` keys must equal its `output` fields.
 
-Callers check `ready(context)` before `evaluate(context)`. `ready` requires every `input` key (plus `subject.attribute` or every `match_keys` key) to be present; `evaluate` assumes it.
+Callers check `ready(context)` before `evaluate(context)`. `ready` requires every `input` key to be present. For `DecisionRule` in simple mode, it also requires `subject.attribute` to be present. For `LookupRule`, it also requires every `match_keys` key. `evaluate` assumes `ready` passed.
 
 ## Adding a rule type
 
@@ -36,7 +36,7 @@ Callers check `ready(context)` before `evaluate(context)`. `ready` requires ever
 
 `RuleFactory.detect_type` picks the first registered class whose unique fields (fields not on `Rule`) appear in the raw dict; the `kind` key is not used. Keep unique field names disjoint across types.
 
-Status: planned (compound AND/OR/IN decision conditions, `appeal.qualified` qualification rules, `ExtractionRule`; see [docs/roadmap/implementation-roadmap.md](../../../docs/roadmap/implementation-roadmap.md))
+Status: `ExtractionRule` planned; see [docs/roadmap/implementation-roadmap.md](../../../docs/roadmap/implementation-roadmap.md)
 
 ## Registry
 
@@ -69,7 +69,7 @@ Each domain's rules write agreed field names. Agents and APIs read only these fi
 **claim_appeal**
 
 - Mixes `DecisionRule`s and `LookupRule`s (for example `ca_commercial_type` matches `claim.claim_type == "commercial"`). All rules write boolean `True` to `appeal.disqualified`; lookup rules declare this in `output_values` as a JSON boolean (`true`), not a string.
-- Terminal: `appeal.disqualified`. Intermediate: `appeal.risk_flagged` (produced by more than one rule), `appeal.amount_tier`.
+- Terminal: `appeal.disqualified`. Intermediates: `appeal.high_value_flagged` (produced by `ca_high_value_flag`, consumed by `ca_high_value_repeat_claimant`) and `appeal.low_value_flagged` (produced by `ca_low_value_flag`, consumed by `ca_low_tier_tenure_check`, `ca_low_value_escalation`, and `ca_low_value_repeat_claimant`). These two producer/consumer chains are the only DAG edges in the domain.
 - Eligibility rule: a claim is eligible for appeal if and only if executing the `claim_appeal` domain produces no `appeal.disqualified` output. Key presence decides, never its value. When it is produced, the decision reason is the `reason` of the first rule in `triggered` whose `output` contains `appeal.disqualified`.
 - Context keys are `claim.<field>` and `customer.<field>` with native Python types.
 
@@ -101,9 +101,11 @@ Raw rules live in `data/in/<domain>_rules.json`; the versioned output in `data/o
 
 ## Examples
 
-- Normal: `ca_min_amount` (`claim.amount < 1000`) on a denied 500.0 claim that no other rule disqualifies triggers and writes `appeal.disqualified: True`; the claim is not eligible, with that rule's reason.
-- Edge: a claim with `is_fraud=True` and `escalation_history_count=0` triggers `ca_fraud_check` (`appeal.risk_flagged`) but `ca_fraud_escalation_limit` gets `skipped_no_match`; no disqualification comes from the fraud branch.
-- Edge: when both `ca_fraud_check` and `ca_repeat_claimant_flag` fail, `ca_fraud_escalation_limit` is `pruned`; if either triggers, it is evaluated.
+- Normal: `ca_min_amount` (simple, `claim.amount < 1000`) on a denied claim with `amount=500.0` triggers and writes `appeal.disqualified: True`; the claim is not eligible, with that rule's reason.
+- Normal: `ca_fraud` (simple, `claim.is_fraud == True`) fires immediately for a fraud claim and triggers early exit; all lower-priority rules receive `not_evaluated`.
+- Normal: `ca_theft_min_tenure` (compound AND, `claim.claim_type == "theft" AND customer.tenure_years < 4`) fires for a theft claim with 3 years tenure; a theft claim with 5 years tenure does not match.
+- Normal: `ca_low_value_flag` (simple, `claim.amount < 500`) produces `appeal.low_value_flagged`; this unlocks `ca_low_tier_tenure_check`, `ca_low_value_escalation`, and `ca_low_value_repeat_claimant`. If amount is not below 500 the flag is never set and all three consumers are cascade-pruned.
+- Normal: `ca_fraud_escalation_limit` (compound AND, `prior_claim_count >= 5 AND escalation_history_count >= 2`) fires for a repeat claimant with 6 prior claims and 2 escalations; with only 1 escalation it gets `skipped_no_match`.
 - Edge: a threshold of `"False"` against a bool field coerces to `False`, not `True`.
 
 ## Background

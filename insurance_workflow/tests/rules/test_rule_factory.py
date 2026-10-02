@@ -2,7 +2,7 @@
 
 import pytest
 
-from rules import DecisionRule, LookupRule, RuleFactory
+from rules import DecisionRule, LookupRule, RuleCondition, RuleFactory, RuleLogic, RuleOperator
 from shared.core import EntityMetadata, Singleton
 
 
@@ -18,6 +18,9 @@ class TestDetectType:
 
     def test_detects_lookup_from_match_keys_field(self):
         assert RuleFactory().detect_type({"id": "r1", "match_keys": {"type": "auto"}}) == "lookup"
+
+    def test_detects_decision_from_conditions_field(self):
+        assert RuleFactory().detect_type({"id": "r1", "conditions": [{"subject": "claim", "attribute": "amount", "operator": "<", "threshold": "500"}]}) == "decision"
 
     def test_unknown_fields_raises_value_error(self):
         with pytest.raises(ValueError):
@@ -79,3 +82,66 @@ class TestFromDict:
         rule = RuleFactory().from_dict(data)
         assert isinstance(rule, DecisionRule)
         assert not hasattr(rule, "nonexistent_field")
+
+    def test_compound_rule_conditions_deserialized_as_rule_conditions(self):
+        data = {
+            "id": "r1", "domain": "claim_appeal",
+            "logic": "AND",
+            "conditions": [
+                {"subject": "customer", "attribute": "prior_claim_count", "operator": ">=", "threshold": "5"},
+                {"subject": "customer", "attribute": "escalation_history_count", "operator": ">=", "threshold": "2"},
+            ],
+            "input": ["customer.prior_claim_count", "customer.escalation_history_count"],
+            "output": ["appeal.disqualified"],
+        }
+        rule = RuleFactory().from_dict(data)
+        assert isinstance(rule, DecisionRule)
+        assert rule.logic == RuleLogic.AND
+        assert len(rule.conditions) == 2
+        assert all(isinstance(c, RuleCondition) for c in rule.conditions)
+        assert rule.conditions[0].operator == RuleOperator.GTE
+        assert rule.conditions[0].threshold == "5"
+
+    def test_compound_rule_nested_group_deserialized_recursively(self):
+        data = {
+            "id": "r1", "domain": "claim_appeal",
+            "logic": "AND",
+            "conditions": [
+                {"logic": "OR", "conditions": [
+                    {"subject": "claim", "attribute": "is_fraud", "operator": "==", "threshold": "True"},
+                    {"subject": "customer", "attribute": "prior_claim_count", "operator": ">=", "threshold": "5"},
+                ]},
+                {"subject": "customer", "attribute": "escalation_history_count", "operator": ">=", "threshold": "2"},
+            ],
+            "input": ["claim.is_fraud", "customer.prior_claim_count", "customer.escalation_history_count"],
+            "output": ["appeal.disqualified"],
+        }
+        rule = RuleFactory().from_dict(data)
+        assert len(rule.conditions) == 2
+        group_node = rule.conditions[0]
+        assert isinstance(group_node, RuleCondition)
+        assert group_node.logic == RuleLogic.OR
+        assert len(group_node.conditions) == 2
+        assert all(isinstance(c, RuleCondition) for c in group_node.conditions)
+
+    def test_compound_rule_evaluates_correctly_after_deserialization(self):
+        data = {
+            "id": "r1", "domain": "claim_appeal",
+            "logic": "AND",
+            "conditions": [
+                {"subject": "customer", "attribute": "prior_claim_count", "operator": ">=", "threshold": "5"},
+                {"subject": "customer", "attribute": "escalation_history_count", "operator": ">=", "threshold": "2"},
+            ],
+            "input": ["customer.prior_claim_count", "customer.escalation_history_count"],
+            "output": ["appeal.disqualified"],
+        }
+        rule = RuleFactory().from_dict(data)
+        matched, outputs = rule.evaluate(
+            {"customer.prior_claim_count": 6, "customer.escalation_history_count": 3}
+        )
+        assert matched is True
+        assert outputs == {"appeal.disqualified": True}
+        matched_not, _ = rule.evaluate(
+            {"customer.prior_claim_count": 6, "customer.escalation_history_count": 1}
+        )
+        assert matched_not is False

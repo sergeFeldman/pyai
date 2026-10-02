@@ -18,9 +18,12 @@ IF claim.amount < 1000
 THEN appeal.disqualified, reason = "Claim value too low to qualify for appeal."
 ```
 
-**Current implementation:** `DecisionRule` in the `rules` package. Single scalar comparison (`subject.attribute operator threshold`). Supports `>=`, `<=`, `==`, `!=`, `>`, `<` via the `_OPS` class constant. Type coercion handles bool, int, and float thresholds automatically. One condition per rule; no compound AND/OR logic yet.
+**Current implementation:** `DecisionRule` in the `rules` package. Supports two modes:
 
-**Extension path:** Support compound conditions by replacing the single `operator`/`threshold` pair with a list of conditions joined by `AND`/`OR`. The `matches()` method would evaluate the condition tree rather than a single comparison.
+- **Simple mode** (empty `conditions` list): evaluates a single `subject.attribute` comparison against `threshold` using `operator`. Operator support: `>=`, `<=`, `==`, `!=`, `>`, `<` via module-level `_OPS`. Type coercion handles bool, int, and float thresholds automatically via module-level `_coerce()`.
+- **Compound mode** (non-empty `conditions` list): evaluates a `RuleCondition` tree where leaf nodes are scalar comparisons and group nodes combine sub-conditions with `AND` or `OR`. Groups nest arbitrarily; for example `(is_fraud == True OR prior_claim_count >= 5) AND escalation_history_count >= 2`. Evaluated recursively by module-level `_eval_condition()`.
+
+Shared types: `RuleOperator` (StrEnum: `>=`, `<=`, `==`, `!=`, `>`, `<`), `RuleLogic` (StrEnum: `AND`, `OR`), `RuleCondition` (dataclass with leaf fields `subject/attribute/operator/threshold` and group fields `logic/conditions`). `RuleFactory._build_conditions()` converts raw condition dicts into `RuleCondition` trees on deserialization. On match every `output` field is set to `True`.
 
 ---
 
@@ -102,23 +105,25 @@ The DAG is visualized at `GET /dashboard` using vis-network with a hierarchical 
 
 ## Claim Appeal: DAG Execution
 
-The claim appeal domain has eleven rules across two topological levels. Two of them (`ca_commercial_type`, `ca_blacklisted_shop`) are LookupRules; the rest are DecisionRules.
+The claim appeal domain has sixteen rules. Twelve are topological Level 0 (roots); four are Level 1 consumers. Two roots (`ca_commercial_type`, `ca_blacklisted_shop`) are LookupRules; the rest are DecisionRules. Two use compound mode (`ca_fraud_escalation_limit`, `ca_theft_min_tenure`); the rest are simple single-condition rules.
 
-**Level 0 (roots):** `ca_commercial_type` (priority 10), `ca_blacklisted_shop` (9), `ca_fraud_check` (8), `ca_repeat_claimant_flag` (7), `ca_max_escalations` (6), `ca_status_denied` (5), `ca_amount_tier` (4), `ca_min_tenure` (2), `ca_min_amount` (1)
+Most rules produce `appeal.disqualified` directly. Two producer/consumer chains create the only DAG edges:
 
-**Level 1 (dependents):**
-- `ca_fraud_escalation_limit` (priority 7): requires `appeal.risk_flagged`, which has two producers, `ca_fraud_check` and `ca_repeat_claimant_flag`; it is pruned only when both fail
-- `ca_low_tier_tenure_check` (priority 3): requires `appeal.amount_tier` produced by `ca_amount_tier`
+- `ca_high_value_flag` produces `appeal.high_value_flagged`; `ca_high_value_repeat_claimant` consumes it before writing `appeal.disqualified`.
+- `ca_low_value_flag` produces `appeal.low_value_flagged`; `ca_low_tier_tenure_check`, `ca_low_value_escalation`, and `ca_low_value_repeat_claimant` each consume it before writing `appeal.disqualified`.
+
+**Execution order — Level 0 roots (priority descending):** `ca_low_value_flag` (14), `ca_high_value_flag` (13), `ca_theft_min_tenure` (11), `ca_commercial_type` (10), `ca_blacklisted_shop` (9), `ca_fraud` (8), `ca_fraud_escalation_limit` (7), `ca_max_escalations` (6), `ca_status_denied` (5), `ca_max_prior_claims` (4), `ca_min_tenure` (2), `ca_min_amount` (1).
+
+**Level 1 consumers (run after their producer fires):** `ca_high_value_repeat_claimant` (12, unlocked by `ca_high_value_flag`); `ca_low_value_escalation` (6), `ca_low_value_repeat_claimant` (5), `ca_low_tier_tenure_check` (3) (all unlocked by `ca_low_value_flag`).
 
 `ClaimAppealAgent.check_eligibility()` builds a flat execution context from the claim and customer objects using `dataclasses.fields()` + `getattr()`, preserving Python types (`bool`, `Enum`) required for correct threshold coercion. It also captures entity snapshots (`claim.to_dict()`, `customer.to_dict()`) and passes them as `entities` to `RuleRegistry.execute()` so the audit record carries the full domain object state at the time of evaluation. The executor:
 
-1. Uses a ready-queue model: a rule enters the queue only when every upstream producer has been decided
-2. When a rule is decided, cascades immediately to consumers; any consumer whose last producer just settled is either cascade-pruned or enqueued
-3. Gates each rule on its declared `input` fields before evaluating it
-4. Writes each triggered rule's `output` fields to the shared context, enabling downstream rules
-5. Stops as soon as a terminal output (`appeal.disqualified`) appears in context
+1. Enqueues all rules immediately (no upstream dependencies)
+2. Gates each rule on its declared `input` fields before evaluating it
+3. Writes each triggered rule's `output` to the shared context
+4. Stops as soon as `appeal.disqualified` appears in context; remaining queued rules receive `not_evaluated`
 
-This means `ca_fraud_escalation_limit` is only enqueued after both of its producers (`ca_fraud_check`, `ca_repeat_claimant_flag`) have been decided. If both fail, it is cascade-pruned immediately without ever entering the queue. A claim with `is_fraud=True` but `escalation_history_count < 2` passes the fraud check but is not disqualified; the escalation limit rule correctly gates on its precondition.
+Since `appeal.disqualified` is a terminal output, only the highest-priority matching rule determines the eligibility outcome and its reason.
 
 ---
 
@@ -132,8 +137,7 @@ This means `ca_fraud_escalation_limit` is only enqueued after both of its produc
 | Current | ETL pipeline with version detection and audit history | ✅ Done |
 | Current | DAG dashboard with hierarchical priority-ordered visualization | ✅ Done |
 | Current | Rule Executor: DAG-driven context propagation with branch pruning | ✅ Done |
-| Phase 2 | Compound Decision rules (AND/OR/IN, multi-condition) | 🔲 Pending |
-| Phase 2 | Positive qualification rules (`appeal.qualified` output) | 🔲 Pending |
+| Phase 4 | Compound Decision rules (AND/OR, multi-condition, nested groups) | ✅ Done |
 | Phase 2 | Tokenization service for PII in rule inputs and audit output | 🔲 Pending |
 | Current | Execution audit trail: `RuleExecutionResult` persisted to JSONL per `execute()` call; trace ID threaded from orchestrator | ✅ Done |
 | Current | Per-rule evaluation log: ordered `evaluations` list with outcome per rule (triggered / skipped_no_match / pruned / skipped_precondition / not_evaluated) | ✅ Done |

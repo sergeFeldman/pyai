@@ -37,7 +37,7 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
 
         Uses dataclasses.fields() + getattr() to preserve original Python types.
         to_dict() must not be used here; it converts bool to "true"/"false" strings
-        and Enum to .value, both of which would break DecisionRule._coerce().
+        and Enum to .value, both of which would break the module-level _coerce() in rules.rule.
 
         Args:
             claim: Claim to include in context.

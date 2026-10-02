@@ -55,9 +55,10 @@ class RuleEtl(shd_core.Configurable[RuleEtlConfig]):
     Processes one domain per run. Each run:
       1. Loads output_file_path into the registry, if it exists.
          Skipped on first run when no output file exists yet.
-      2. Reads raw input rules. For each rule: inserts at version 0 if new,
-         or bumps its version if any business field has changed. Unchanged rules
-         are skipped.
+      2. Reads raw input rules. For each rule: coerces typed sub-fields
+         (``conditions`` list → ``RuleCondition`` tree), then inserts at version 0
+         if new, or bumps its version if any business field has changed. Unchanged
+         rules are skipped.
       3. Writes the full registry (all versions) back to output_file_path.
 
     Input:  raw JSON - rule fields only.
@@ -102,6 +103,8 @@ class RuleEtl(shd_core.Configurable[RuleEtlConfig]):
                 kind_cache[kind] = (rule_class, {f.name for f in dataclasses.fields(rule_class)})
             rule_class, valid = kind_cache[kind]
             fields = {k: v for k, v in raw.items() if k in valid}
+            if "conditions" in fields and isinstance(fields["conditions"], list):
+                fields["conditions"] = rls.RuleFactory._build_conditions(fields["conditions"])
             existing = self._registry.get_latest(raw["id"], domain)
 
             if existing is None:

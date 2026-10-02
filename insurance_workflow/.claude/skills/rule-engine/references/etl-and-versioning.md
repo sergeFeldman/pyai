@@ -24,7 +24,7 @@ Restart the app afterwards; the registry is loaded only at startup.
 For each domain, `RuleEtl.run()`:
 
 1. Loads the existing output file into the registry (empty on the first run).
-2. For each raw rule, detects its type and keeps only that type's fields, then:
+2. For each raw rule, detects its type and keeps only that type's fields, then coerces typed sub-fields (`conditions` → `RuleCondition` tree via `RuleFactory._build_conditions()`) so that `is_changed()` comparisons work correctly against the registry copy (which was loaded via `from_dict()`). Then:
    - new id: added at version 0, `created_by = updated_by`;
    - existing id with any business field different from the latest version (`is_changed`, all fields except `metadata`, including priority, effective dates, input, output, and reason): added as a new version with `metadata.bump(updated_by)`;
    - unchanged: skipped.
@@ -34,6 +34,6 @@ Rules are never deleted. To retire a rule, set its `effective_to` to a past time
 
 ## Examples
 
-- Normal: raising `ca_min_amount`'s threshold from `"1000"` to `"1500"` in `data/in` and running the ETL adds version N+1; `GET /rules/history/claim_appeal/ca_min_amount` shows `threshold` in `changed_fields`.
+- Normal: raising `ca_min_amount`'s threshold from `"100"` to `"200"` in `data/in` and running the ETL adds version N+1; `GET /rules/history/claim_appeal/ca_min_amount` shows `threshold` in `changed_fields`.
 - Edge: running the ETL twice with no input change adds no versions.
 - Edge: a raw rule with neither decision fields nor `match_keys`/`output_values` makes `detect_type` raise `ValueError` and stops the run.

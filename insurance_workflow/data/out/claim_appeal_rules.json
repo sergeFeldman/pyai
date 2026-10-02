@@ -5,6 +5,64 @@
     "group": "",
     "priority": 4,
     "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2024-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.amount_tier"
+    ],
+    "reason": "Claim amount triggers additional tenure check.",
+    "kind": "decision",
+    "metadata": {
+      "version": 3,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:03:30.834530+00:00"
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "500",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_amount_tier",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 4,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.amount_tier"
+    ],
+    "reason": "Claim amount triggers additional tenure check.",
+    "kind": "decision",
+    "metadata": {
+      "version": 2,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-01T18:03:17.380527+00:00"
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "500",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_amount_tier",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 4,
+    "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [
       "claim.amount"
@@ -24,7 +82,9 @@
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
-    "threshold": "500"
+    "threshold": "500",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_amount_tier",
@@ -51,7 +111,9 @@
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
-    "threshold": "500"
+    "threshold": "500",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_blacklisted_shop",
@@ -168,6 +230,64 @@
     "output_values": {
       "appeal.disqualified": "true"
     }
+  },
+  {
+    "id": "ca_fraud",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 8,
+    "effective_from": "2026-10-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.is_fraud"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Fraud claims are not eligible for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T02:27:16.061969+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "is_fraud",
+    "operator": "==",
+    "threshold": "True",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_fraud_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 8,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2024-12-31T23:59:59+00:00",
+    "input": [
+      "claim.is_fraud"
+    ],
+    "output": [
+      "appeal.risk_flagged"
+    ],
+    "reason": "Claim flagged for potential fraud.",
+    "kind": "decision",
+    "metadata": {
+      "version": 3,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:03:30.834530+00:00"
+    },
+    "subject": "claim",
+    "attribute": "is_fraud",
+    "operator": "==",
+    "threshold": "True",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_fraud_check",
@@ -194,7 +314,9 @@
     "subject": "claim",
     "attribute": "is_fraud",
     "operator": "==",
-    "threshold": "True"
+    "threshold": "True",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_fraud_check",
@@ -221,7 +343,9 @@
     "subject": "claim",
     "attribute": "is_fraud",
     "operator": "==",
-    "threshold": "True"
+    "threshold": "True",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_fraud_check",
@@ -248,7 +372,168 @@
     "subject": "claim",
     "attribute": "is_fraud",
     "operator": "==",
-    "threshold": "True"
+    "threshold": "True",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_fraud_escalation_limit",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "customer.prior_claim_count",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Repeat claimant with multiple escalation attempts.",
+    "kind": "decision",
+    "metadata": {
+      "version": 5,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:27:16.061969+00:00"
+    },
+    "subject": "",
+    "attribute": "",
+    "operator": "==",
+    "threshold": "",
+    "conditions": [
+      {
+        "subject": "customer",
+        "attribute": "prior_claim_count",
+        "operator": ">=",
+        "threshold": "5",
+        "logic": "AND",
+        "conditions": []
+      },
+      {
+        "subject": "customer",
+        "attribute": "escalation_history_count",
+        "operator": ">=",
+        "threshold": "2",
+        "logic": "AND",
+        "conditions": []
+      }
+    ],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_fraud_escalation_limit",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "customer.prior_claim_count",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Repeat claimant with multiple escalation attempts.",
+    "kind": "decision",
+    "metadata": {
+      "version": 4,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:24:03.153645+00:00"
+    },
+    "subject": "",
+    "attribute": "",
+    "operator": "==",
+    "threshold": "",
+    "conditions": [
+      {
+        "subject": "customer",
+        "attribute": "prior_claim_count",
+        "operator": ">=",
+        "threshold": "5",
+        "logic": "AND",
+        "conditions": []
+      },
+      {
+        "subject": "customer",
+        "attribute": "escalation_history_count",
+        "operator": ">=",
+        "threshold": "2",
+        "logic": "AND",
+        "conditions": []
+      }
+    ],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_fraud_escalation_limit",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.is_fraud",
+      "customer.prior_claim_count",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "High-risk claim with multiple prior escalation attempts.",
+    "kind": "decision",
+    "metadata": {
+      "version": 3,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:03:30.834530+00:00"
+    },
+    "subject": "",
+    "attribute": "",
+    "operator": "==",
+    "threshold": "",
+    "conditions": [
+      {
+        "subject": "",
+        "attribute": "",
+        "operator": "==",
+        "threshold": "",
+        "logic": "OR",
+        "conditions": [
+          {
+            "subject": "claim",
+            "attribute": "is_fraud",
+            "operator": "==",
+            "threshold": "True",
+            "logic": "AND",
+            "conditions": []
+          },
+          {
+            "subject": "customer",
+            "attribute": "prior_claim_count",
+            "operator": ">=",
+            "threshold": "5",
+            "logic": "AND",
+            "conditions": []
+          }
+        ]
+      },
+      {
+        "subject": "customer",
+        "attribute": "escalation_history_count",
+        "operator": ">=",
+        "threshold": "2",
+        "logic": "AND",
+        "conditions": []
+      }
+    ],
+    "logic": "AND"
   },
   {
     "id": "ca_fraud_escalation_limit",
@@ -276,7 +561,9 @@
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
-    "threshold": "2"
+    "threshold": "2",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_fraud_escalation_limit",
@@ -304,7 +591,9 @@
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
-    "threshold": "2"
+    "threshold": "2",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_fraud_escalation_limit",
@@ -332,7 +621,240 @@
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
-    "threshold": "2"
+    "threshold": "2",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_high_value_flag",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 13,
+    "effective_from": "2026-10-02T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.high_value_flagged"
+    ],
+    "reason": "High-value claim flagged for repeat claimant review.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T12:01:50.225401+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">=",
+    "threshold": "5000",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_high_value_repeat_claimant",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 12,
+    "effective_from": "2026-10-02T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount",
+      "customer.prior_claim_count",
+      "appeal.high_value_flagged"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "High-value claims from customers with 3 or more prior claims are not eligible for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T12:01:50.225401+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "3",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_low_tier_tenure_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "appeal.low_value_flagged",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claim requires minimum 5 years customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 5,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T13:03:59.199244+00:00"
+    },
+    "subject": "customer",
+    "attribute": "tenure_years",
+    "operator": "<",
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_low_tier_tenure_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claim requires minimum 5 years customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 4,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:27:16.062501+00:00"
+    },
+    "subject": "",
+    "attribute": "",
+    "operator": "==",
+    "threshold": "",
+    "conditions": [
+      {
+        "subject": "claim",
+        "attribute": "amount",
+        "operator": "<",
+        "threshold": "500",
+        "logic": "AND",
+        "conditions": []
+      },
+      {
+        "subject": "customer",
+        "attribute": "tenure_years",
+        "operator": "<",
+        "threshold": "5",
+        "logic": "AND",
+        "conditions": []
+      }
+    ],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_low_tier_tenure_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claim requires minimum 5 years customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 3,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:24:03.153645+00:00"
+    },
+    "subject": "",
+    "attribute": "",
+    "operator": "==",
+    "threshold": "",
+    "conditions": [
+      {
+        "subject": "claim",
+        "attribute": "amount",
+        "operator": "<",
+        "threshold": "500",
+        "logic": "AND",
+        "conditions": []
+      },
+      {
+        "subject": "customer",
+        "attribute": "tenure_years",
+        "operator": "<",
+        "threshold": "5",
+        "logic": "AND",
+        "conditions": []
+      }
+    ],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_low_tier_tenure_check",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claim requires minimum 5 years customer tenure for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 2,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:03:30.834530+00:00"
+    },
+    "subject": "",
+    "attribute": "",
+    "operator": "==",
+    "threshold": "",
+    "conditions": [
+      {
+        "subject": "claim",
+        "attribute": "amount",
+        "operator": "<",
+        "threshold": "500",
+        "logic": "AND",
+        "conditions": []
+      },
+      {
+        "subject": "customer",
+        "attribute": "tenure_years",
+        "operator": "<",
+        "threshold": "5",
+        "logic": "AND",
+        "conditions": []
+      }
+    ],
+    "logic": "AND"
   },
   {
     "id": "ca_low_tier_tenure_check",
@@ -360,7 +882,9 @@
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
-    "threshold": "5"
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_low_tier_tenure_check",
@@ -388,7 +912,98 @@
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
-    "threshold": "5"
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_low_value_escalation",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 6,
+    "effective_from": "2026-10-02T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "appeal.low_value_flagged",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claims with prior escalation history are not eligible for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T13:03:59.199244+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "escalation_history_count",
+    "operator": ">=",
+    "threshold": "1",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_low_value_flag",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 14,
+    "effective_from": "2026-10-02T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.low_value_flagged"
+    ],
+    "reason": "Low-value claim flagged for tenure and history review.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T13:03:59.199244+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "500",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_low_value_repeat_claimant",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 5,
+    "effective_from": "2026-10-02T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "appeal.low_value_flagged",
+      "customer.prior_claim_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Low-value claims from customers with 5 or more prior claims are not eligible for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T13:03:59.199244+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_max_escalations",
@@ -415,7 +1030,9 @@
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
-    "threshold": "5"
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_max_escalations",
@@ -442,7 +1059,67 @@
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
-    "threshold": "5"
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_max_prior_claims",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 4,
+    "effective_from": "2026-10-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "customer.prior_claim_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Customer has exceeded the maximum prior claim count eligible for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T02:27:16.062501+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "10",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_min_amount",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 1,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Claim value too low to qualify for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 2,
+      "created_by": "etl",
+      "created_timestamp": "2026-06-15T02:58:25.845819+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-01T17:57:14.266338+00:00"
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "100",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_min_amount",
@@ -469,7 +1146,9 @@
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
-    "threshold": "1000"
+    "threshold": "1000",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_min_amount",
@@ -496,7 +1175,9 @@
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
-    "threshold": "1000"
+    "threshold": "1000",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_min_tenure",
@@ -523,7 +1204,9 @@
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
-    "threshold": "3"
+    "threshold": "3",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_min_tenure",
@@ -550,7 +1233,38 @@
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
-    "threshold": "3"
+    "threshold": "3",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_repeat_claimant_flag",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2024-12-31T23:59:59+00:00",
+    "input": [
+      "customer.prior_claim_count"
+    ],
+    "output": [
+      "appeal.risk_flagged"
+    ],
+    "reason": "Repeat claimant pattern detected.",
+    "kind": "decision",
+    "metadata": {
+      "version": 2,
+      "created_by": "etl",
+      "created_timestamp": "2026-09-24T19:08:36.336799+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-02T02:03:30.834530+00:00"
+    },
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_repeat_claimant_flag",
@@ -577,7 +1291,9 @@
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
-    "threshold": "5"
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_repeat_claimant_flag",
@@ -604,7 +1320,9 @@
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
-    "threshold": "5"
+    "threshold": "5",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_status_denied",
@@ -631,7 +1349,9 @@
     "subject": "claim",
     "attribute": "status",
     "operator": "!=",
-    "threshold": "denied"
+    "threshold": "denied",
+    "conditions": [],
+    "logic": "AND"
   },
   {
     "id": "ca_status_denied",
@@ -658,6 +1378,55 @@
     "subject": "claim",
     "attribute": "status",
     "operator": "!=",
-    "threshold": "denied"
+    "threshold": "denied",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_theft_min_tenure",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 11,
+    "effective_from": "2026-10-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "claim.claim_type",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Theft claims require a minimum of 4 years customer tenure to be eligible for appeal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-02T02:27:16.061969+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "",
+    "attribute": "",
+    "operator": "==",
+    "threshold": "",
+    "conditions": [
+      {
+        "subject": "claim",
+        "attribute": "claim_type",
+        "operator": "==",
+        "threshold": "theft",
+        "logic": "AND",
+        "conditions": []
+      },
+      {
+        "subject": "customer",
+        "attribute": "tenure_years",
+        "operator": "<",
+        "threshold": "4",
+        "logic": "AND",
+        "conditions": []
+      }
+    ],
+    "logic": "AND"
   }
 ]

@@ -591,7 +591,7 @@ function selectSession(traceId) {
   selectedTraceId = traceId;
   const session = (executionsData || []).find(s => s.trace_id === traceId);
   if (!session) return;
-  renderSessionsList(executionsData);
+  filterSessions();
   applyOverlay(session.evaluations);
   showSessionDetail(session);
 }
@@ -776,6 +776,44 @@ function nodeTooltip(r) {
   return rows.join('<br/>');
 }
 
+// ── compound condition tree renderer ─────────────────────────────────────────
+function renderCondTree(conditions, logic, opts = {}) {
+  const muted   = opts.muted   ?? false;
+  const small   = opts.small   ?? false;
+  const sz      = small ? '10px' : '11px';
+  const logicC  = muted ? '#7D8590' : '#FF7B72';
+  const subjC   = muted ? '#7D8590' : '#79C0FF';
+  const attrC   = muted ? '#7D8590' : '#D2A8FF';
+  const opC     = muted ? '#7D8590' : '#FF7B72';
+  const valC    = muted ? '#7D8590' : '#FFA657';
+
+  function leaf(c) {
+    return `<span style="color:${subjC}">${esc(c.subject)}</span>`
+         + `.<span style="color:${attrC}">${esc(c.attribute)}</span>`
+         + `<span style="color:${opC}"> ${esc(c.operator)} </span>`
+         + `<span style="color:${valC}">${esc(c.threshold)}</span>`;
+  }
+
+  function node(c, depth) {
+    if (!c.conditions || !c.conditions.length) return `<div style="margin-left:${depth*10}px;font-size:${sz}">${leaf(c)}</div>`;
+    const lbl = c.logic || 'AND';
+    return `<div style="margin-left:${depth*10}px">`
+         + `<span style="color:${logicC};font-size:${sz};font-weight:600">${esc(lbl)}</span>`
+         + `<div style="margin-left:8px;border-left:1px solid #30363D;padding-left:6px">`
+         + c.conditions.map(ch => node(ch, 0)).join('')
+         + `</div></div>`;
+  }
+
+  const lbl  = logic || 'AND';
+  const wrap = conditions.length === 1 && !(conditions[0].conditions && conditions[0].conditions.length);
+  if (wrap) return `<div style="font-size:${sz}">${leaf(conditions[0])}</div>`;
+  return `<div>`
+       + `<span style="color:${logicC};font-size:${sz};font-weight:600">${esc(lbl)}</span>`
+       + `<div style="margin-left:8px;border-left:1px solid #30363D;padding-left:6px">`
+       + conditions.map(c => node(c, 0)).join('')
+       + `</div></div>`;
+}
+
 // ── detail panel — rule ───────────────────────────────────────────────────────
 let _historyCache = null;
 
@@ -826,10 +864,14 @@ function buildRuleDetail(r, versions, selectedVer) {
 
   if (r.kind === 'decision') {
     h.push(`<div class="sec">Condition</div>`);
-    h.push(`<div class="cond-box">
-      <span class="cs">${esc(r.subject)}</span>.<span class="ca">${esc(r.attribute)}</span>
-      <span class="co"> ${esc(r.operator)} </span><span class="ct">${esc(r.threshold)}</span>
-    </div>`);
+    if (r.conditions?.length) {
+      h.push(`<div class="cond-box" style="font-family:monospace">${renderCondTree(r.conditions, r.logic)}</div>`);
+    } else {
+      h.push(`<div class="cond-box">
+        <span class="cs">${esc(r.subject)}</span>.<span class="ca">${esc(r.attribute)}</span>
+        <span class="co"> ${esc(r.operator)} </span><span class="ct">${esc(r.threshold)}</span>
+      </div>`);
+    }
   }
 
   if (r.kind === 'lookup' && r.match_keys) {
@@ -998,7 +1040,9 @@ function showSessionDetail(session) {
           <span class="eval-badge eval-triggered">triggered</span>
         </div>`);
 
-        if (rule.subject && rule.attribute && rule.operator !== undefined) {
+        if (rule.conditions?.length) {
+          h.push(`<div style="font-family:monospace;font-size:11px;margin:3px 0 4px">${renderCondTree(rule.conditions, rule.logic)}</div>`);
+        } else if (rule.subject && rule.attribute && rule.operator !== undefined) {
           h.push(`<div style="font-family:monospace;font-size:11px;margin:3px 0 4px">
             <span style="color:#79C0FF">${esc(rule.subject)}</span>.<span style="color:#D2A8FF">${esc(rule.attribute)}</span>
             <span style="color:#FF7B72"> ${esc(rule.operator)} </span><span style="color:#FFA657">${esc(rule.threshold)}</span>
@@ -1049,7 +1093,9 @@ function showSessionDetail(session) {
           <span class="eval-badge ${badgeClass}">${badgeLabel}</span>
         </div>`);
 
-        if (outcome === 'skipped_no_match' && rule.subject && rule.attribute) {
+        if (outcome === 'skipped_no_match' && rule.conditions?.length) {
+          h.push(`<div style="font-family:monospace;font-size:10px">${renderCondTree(rule.conditions, rule.logic, {muted: true, small: true})}</div>`);
+        } else if (outcome === 'skipped_no_match' && rule.subject && rule.attribute) {
           h.push(`<div style="font-family:monospace;font-size:10px;color:#7D8590">
             ${esc(rule.subject)}.${esc(rule.attribute)} ${esc(rule.operator)} ${esc(rule.threshold)}
           </div>`);

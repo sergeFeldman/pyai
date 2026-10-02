@@ -5,9 +5,89 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import StrEnum
 
 import shared.core as shd_core
 
+
+class RuleOperator(StrEnum):
+    """Comparison operators supported by DecisionRule conditions."""
+
+    GTE = ">="
+    LTE = "<="
+    EQ  = "=="
+    NEQ = "!="
+    GT  = ">"
+    LT  = "<"
+
+
+class RuleLogic(StrEnum):
+    """Boolean logic used to combine conditions in a compound DecisionRule."""
+
+    AND = "AND"
+    OR  = "OR"
+
+
+_OPS = {
+    RuleOperator.GTE: lambda a, b: a >= b,
+    RuleOperator.LTE: lambda a, b: a <= b,
+    RuleOperator.EQ:  lambda a, b: a == b,
+    RuleOperator.NEQ: lambda a, b: a != b,
+    RuleOperator.GT:  lambda a, b: a > b,
+    RuleOperator.LT:  lambda a, b: a < b,
+}
+
+
+def _coerce(value, threshold: str):
+    """Coerce threshold string to the type of value.
+
+    bool requires special handling: bool("False") == True in Python because
+    any non-empty string is truthy.
+    """
+    if isinstance(value, bool):
+        return threshold.lower() in ("true", "1")
+    return type(value)(threshold)
+
+
+def _eval_condition(cond: RuleCondition, context: dict) -> bool:
+    """Recursively evaluate a RuleCondition leaf or group against context.
+
+    Leaf node (empty conditions list): extracts the context value for
+    subject.attribute, coerces the threshold, and applies the operator.
+    Group node (non-empty conditions list): recurses and combines results
+    with AND (all) or OR (any) according to cond.logic.
+    """
+    if not cond.conditions:
+        value = context[f"{cond.subject}.{cond.attribute}"]
+        return _OPS[cond.operator](value, _coerce(value, cond.threshold))
+    if cond.logic == RuleLogic.AND:
+        return all(_eval_condition(c, context) for c in cond.conditions)
+    return any(_eval_condition(c, context) for c in cond.conditions)
+
+
+@dataclass(kw_only=True)
+class RuleCondition:
+    """A single condition or a named group of conditions for use in a DecisionRule.
+
+    A leaf node has subject, attribute, operator, and threshold set; conditions
+    is empty. A group node has logic and a non-empty conditions list; the leaf
+    fields are unused.
+
+    Attributes:
+        subject: Domain object, e.g. "claim" or "customer". Empty for group nodes.
+        attribute: Attribute on the subject, e.g. "amount". Empty for group nodes.
+        operator: Comparison operator applied to the attribute value.
+        threshold: Value to compare against, stored as a string.
+        logic: How sub-conditions are combined. Meaningful only for group nodes.
+        conditions: Sub-conditions. Non-empty marks this node as a group.
+    """
+
+    subject:    str           = ""
+    attribute:  str           = ""
+    operator:   RuleOperator  = RuleOperator.EQ
+    threshold:  str           = ""
+    logic:      RuleLogic     = RuleLogic.AND
+    conditions: list[RuleCondition] = field(default_factory=list)
 
 
 @dataclass(kw_only=True)
@@ -107,50 +187,35 @@ class Rule(ABC, shd_core.SerializableMixin):
 
 @dataclass(kw_only=True)
 class DecisionRule(Rule):
-    """A rule that evaluates a single attribute against a threshold.
+    """A rule that evaluates one condition or a compound condition tree against context.
 
-    Extends Rule with the condition fields needed to test a specific
-    attribute on a subject domain object.
+    In simple mode (conditions is empty), evaluates a single subject.attribute
+    against a threshold using operator. In compound mode (conditions is non-empty),
+    evaluates a tree of RuleCondition nodes combined with logic (AND/OR), allowing
+    nested groups such as (A OR B) AND C.
 
     Attributes:
-        subject: Domain object the rule applies to, e.g. "claim" or "customer".
-        attribute: Attribute on the subject being tested, e.g. "status".
-        operator: Comparison operator: one of >=, <=, ==, !=, >, <.
+        subject: Domain object for simple mode, e.g. "claim" or "customer".
+        attribute: Attribute on the subject for simple mode, e.g. "status".
+        operator: Comparison operator for simple mode.
         threshold: Value the attribute is compared against, always stored as a string.
-        reason: Human-readable explanation returned when the rule matches.
+        conditions: Condition tree for compound mode. Non-empty activates compound evaluation.
+        logic: How top-level conditions are combined in compound mode.
     """
 
-    _OPS = {
-        ">=": lambda a, b: a >= b,
-        "<=": lambda a, b: a <= b,
-        "==": lambda a, b: a == b,
-        "!=": lambda a, b: a != b,
-        ">":  lambda a, b: a > b,
-        "<":  lambda a, b: a < b,
-    }
-
-    kind: str = "decision"
-    subject: str = ""
-    attribute: str = ""
-    operator: str = ""
-    threshold: str = ""
-
-    def _coerce(self, value):
-        """Coerce threshold string to the type of value.
-
-        bool requires special handling: bool("False") == True in Python because
-        any non-empty string is truthy.
-        """
-        if isinstance(value, bool):
-            return self.threshold.lower() in ("true", "1")
-        return type(value)(self.threshold)
-
-    def ready(self, context: dict) -> bool:
-        """Return True if all input preconditions and the subject.attribute key are in context."""
-        return super().ready(context) and f"{self.subject}.{self.attribute}" in context
+    kind:       str                 = "decision"
+    subject:    str                 = ""
+    attribute:  str                 = ""
+    operator:   RuleOperator        = RuleOperator.EQ
+    threshold:  str                 = ""
+    conditions: list[RuleCondition] = field(default_factory=list)
+    logic:      RuleLogic           = RuleLogic.AND
 
     def matches(self, value) -> bool:
-        """Return True if the provided value satisfies this rule's condition.
+        """Return True if the provided value satisfies this rule's single condition.
+
+        Used in simple mode only. Callers in compound mode should use evaluate()
+        directly; it routes to _eval_condition for the compound path.
 
         Args:
             value: Actual attribute value from the subject; threshold is cast to its type.
@@ -158,18 +223,38 @@ class DecisionRule(Rule):
         Returns:
             bool: True if the condition is met.
         """
-        return self._OPS[self.operator](value, self._coerce(value))
+        return _OPS[self.operator](value, _coerce(value, self.threshold))
+
+    def ready(self, context: dict) -> bool:
+        """Return True if all input preconditions are satisfied in context.
+
+        Compound mode: delegates entirely to super().ready() since self.input
+        declares all required context keys explicitly.
+        Simple mode: additionally checks that the subject.attribute key is present.
+        """
+        if self.conditions:
+            return super().ready(context)
+        return super().ready(context) and f"{self.subject}.{self.attribute}" in context
 
     def evaluate(self, context: dict) -> tuple[bool, dict]:
-        """Evaluate the condition and return output fields set to True on match.
+        """Evaluate the condition or condition tree and return outputs on match.
+
+        Routes to _eval_condition for compound mode (conditions non-empty) or
+        matches() for simple mode.
 
         Args:
-            context: Shared execution context dict; must contain subject.attribute key.
+            context: Shared execution context dict.
 
         Returns:
             tuple[bool, dict]: (matched, {output_field: True, ...}) or (False, {}).
         """
-        if self.matches(context[f"{self.subject}.{self.attribute}"]):
+        if self.conditions:
+            matched = _eval_condition(
+                RuleCondition(logic=self.logic, conditions=self.conditions), context
+            )
+        else:
+            matched = self.matches(context[f"{self.subject}.{self.attribute}"])
+        if matched:
             return True, {f: True for f in self.output}
         return False, {}
 

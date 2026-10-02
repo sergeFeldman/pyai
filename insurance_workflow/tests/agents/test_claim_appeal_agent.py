@@ -7,7 +7,7 @@ import pytest
 
 from agents.claim_appeal_agent import ClaimAppealAgent, ClaimAppealAgentConfig
 import models as mdl
-from rules import DecisionRule, RuleFactory, RuleRegistry
+from rules import DecisionRule, RuleCondition, RuleFactory, RuleLogic, RuleOperator, RuleRegistry
 from services import RuleExecutionAuditService
 from shared.core import Singleton
 
@@ -56,6 +56,29 @@ def _customer(**kwargs) -> mdl.Customer:
     return mdl.Customer(**(defaults | kwargs))
 
 
+def _cond(subject: str, attribute: str, operator: str, threshold: str) -> RuleCondition:
+    return RuleCondition(subject=subject, attribute=attribute,
+                         operator=RuleOperator(operator), threshold=threshold)
+
+
+def _group(logic: str, conditions: list) -> RuleCondition:
+    return RuleCondition(logic=RuleLogic(logic), conditions=conditions)
+
+
+def _compound_rule(rule_id: str, conditions: list, logic: str = "AND",
+                   inp: list | None = None, out: list | None = None,
+                   priority: int = 0, reason: str = "") -> DecisionRule:
+    return DecisionRule(
+        id=rule_id, domain="claim_appeal", priority=priority,
+        input=inp or [],
+        output=out or ["appeal.disqualified"],
+        conditions=conditions,
+        logic=RuleLogic(logic),
+        reason=reason,
+        effective_from=_ts(-1), effective_to=_ts(365),
+    )
+
+
 @pytest.fixture(autouse=True)
 def reset_singletons():
     yield
@@ -85,65 +108,107 @@ class TestClaimAppealAgent:
         assert result.eligible is False
         assert result.reason == "Claim amount too low for appeal."
 
-    def test_fraud_check_alone_does_not_disqualify(self):
-        """ca_fraud_check fires but ca_fraud_escalation_limit is precondition-gated."""
+    def test_fraud_alone_disqualifies(self):
         RuleRegistry().load([
             _rule("r1", "claim", "is_fraud", "==", "True",
-                  out=["appeal.fraud_flagged"], priority=2),
-            _rule("r2", "customer", "escalation_history_count", ">=", "2",
-                  inp=["appeal.fraud_flagged"], out=["appeal.disqualified"],
-                  reason="Fraud with escalation history.", priority=1),
+                  out=["appeal.disqualified"],
+                  reason="Fraud claims are not eligible for appeal."),
+        ])
+        result = self._agent().check_eligibility(_claim(is_fraud=True), _customer())
+        assert result.eligible is False
+        assert result.reason == "Fraud claims are not eligible for appeal."
+
+    def test_repeat_claimant_with_escalation_disqualifies(self):
+        RuleRegistry().load([
+            _compound_rule(
+                "r1",
+                [_cond("customer", "prior_claim_count", ">=", "5"),
+                 _cond("customer", "escalation_history_count", ">=", "2")],
+                reason="Repeat claimant with multiple escalation attempts.",
+            ),
         ])
         result = self._agent().check_eligibility(
-            _claim(is_fraud=True),
-            _customer(escalation_history_count=1),
+            _claim(),
+            _customer(prior_claim_count=6, escalation_history_count=2),
+        )
+        assert result.eligible is False
+        assert result.reason == "Repeat claimant with multiple escalation attempts."
+
+    def test_repeat_claimant_low_escalation_eligible(self):
+        RuleRegistry().load([
+            _compound_rule(
+                "r1",
+                [_cond("customer", "prior_claim_count", ">=", "5"),
+                 _cond("customer", "escalation_history_count", ">=", "2")],
+            ),
+        ])
+        result = self._agent().check_eligibility(
+            _claim(),
+            _customer(prior_claim_count=6, escalation_history_count=1),
         )
         assert result.eligible is True
 
-    def test_fraud_with_escalation_history_disqualifies(self):
-        """Both ca_fraud_check and ca_fraud_escalation_limit fire."""
+    def test_low_amount_low_tenure_disqualifies(self):
         RuleRegistry().load([
-            _rule("r1", "claim", "is_fraud", "==", "True",
-                  out=["appeal.fraud_flagged"], priority=2),
-            _rule("r2", "customer", "escalation_history_count", ">=", "2",
-                  inp=["appeal.fraud_flagged"], out=["appeal.disqualified"],
-                  reason="Fraud with escalation history.", priority=1),
+            _compound_rule(
+                "r1",
+                [_cond("claim", "amount", "<", "500"),
+                 _cond("customer", "tenure_years", "<", "5")],
+                reason="Low-value claim requires minimum 5 years customer tenure for appeal.",
+            ),
+        ])
+        result = self._agent().check_eligibility(_claim(amount=400.0), _customer(tenure_years=3))
+        assert result.eligible is False
+        assert result.reason == "Low-value claim requires minimum 5 years customer tenure for appeal."
+
+    def test_low_amount_sufficient_tenure_eligible(self):
+        RuleRegistry().load([
+            _compound_rule(
+                "r1",
+                [_cond("claim", "amount", "<", "500"),
+                 _cond("customer", "tenure_years", "<", "5")],
+            ),
+        ])
+        result = self._agent().check_eligibility(_claim(amount=400.0), _customer(tenure_years=10))
+        assert result.eligible is True
+
+    def test_nested_or_group_and_leaf_disqualifies(self):
+        RuleRegistry().load([
+            _compound_rule(
+                "r1",
+                [_group("OR", [
+                    _cond("claim", "is_fraud", "==", "True"),
+                    _cond("customer", "prior_claim_count", ">=", "5"),
+                 ]),
+                 _cond("customer", "escalation_history_count", ">=", "2")],
+                inp=["claim.is_fraud", "customer.prior_claim_count",
+                     "customer.escalation_history_count"],
+                reason="High-risk claimant with escalation history.",
+            ),
         ])
         result = self._agent().check_eligibility(
             _claim(is_fraud=True),
-            _customer(escalation_history_count=2),
+            _customer(prior_claim_count=1, escalation_history_count=2),
         )
         assert result.eligible is False
-        assert result.reason == "Fraud with escalation history."
+        assert result.reason == "High-risk claimant with escalation history."
 
-    def test_low_amount_with_low_tenure_disqualifies(self):
-        """ca_amount_tier fires → ca_low_tier_tenure_check fires → disqualified."""
+    def test_nested_or_group_escalation_below_threshold_eligible(self):
         RuleRegistry().load([
-            _rule("r1", "claim", "amount", "<", "500",
-                  out=["appeal.amount_tier"], priority=2),
-            _rule("r2", "customer", "tenure_years", "<", "5",
-                  inp=["appeal.amount_tier"], out=["appeal.disqualified"],
-                  reason="Low-tier claim with insufficient tenure.", priority=1),
+            _compound_rule(
+                "r1",
+                [_group("OR", [
+                    _cond("claim", "is_fraud", "==", "True"),
+                    _cond("customer", "prior_claim_count", ">=", "5"),
+                 ]),
+                 _cond("customer", "escalation_history_count", ">=", "2")],
+                inp=["claim.is_fraud", "customer.prior_claim_count",
+                     "customer.escalation_history_count"],
+            ),
         ])
         result = self._agent().check_eligibility(
-            _claim(amount=400.0),
-            _customer(tenure_years=3),
-        )
-        assert result.eligible is False
-        assert result.reason == "Low-tier claim with insufficient tenure."
-
-    def test_low_amount_with_sufficient_tenure_eligible(self):
-        """ca_amount_tier fires but ca_low_tier_tenure_check does not."""
-        RuleRegistry().load([
-            _rule("r1", "claim", "amount", "<", "500",
-                  out=["appeal.amount_tier"], priority=2),
-            _rule("r2", "customer", "tenure_years", "<", "5",
-                  inp=["appeal.amount_tier"], out=["appeal.disqualified"],
-                  reason="Low-tier claim with insufficient tenure.", priority=1),
-        ])
-        result = self._agent().check_eligibility(
-            _claim(amount=400.0),
-            _customer(tenure_years=10),
+            _claim(is_fraud=True),
+            _customer(prior_claim_count=1, escalation_history_count=1),
         )
         assert result.eligible is True
 
@@ -208,3 +273,71 @@ class TestClaimAppealAgentEvaluations:
         RuleRegistry().load([])
         self._agent().check_eligibility(_claim(), _customer(customer_id="cust_xyz"), trace_id="t1")
         assert self._last_record()["entities"]["customer"]["customer_id"] == "cust_xyz"
+
+
+class TestClaimAppealAgentIntegration:
+    """Integration tests loading production rules from data/out/claim_appeal_rules.json."""
+
+    _RULES_FILE = Path(__file__).parent.parent.parent / "data" / "out" / "claim_appeal_rules.json"
+    _AUDIT_FILE = Path(__file__).parent.parent.parent / "data" / "test" / "audit" / "rule_executions.jsonl"
+
+    @pytest.fixture(autouse=True)
+    def load_production_rules(self):
+        RuleRegistry.load_from(str(self._RULES_FILE))
+        yield
+        if self._AUDIT_FILE.exists():
+            self._AUDIT_FILE.write_text("")
+
+    def _agent(self) -> ClaimAppealAgent:
+        return ClaimAppealAgent(ClaimAppealAgentConfig())
+
+    def test_commercial_claim_disqualified(self):
+        result = self._agent().check_eligibility(
+            _claim(claim_type="commercial"),
+            _customer(tenure_years=10, prior_claim_count=0),
+        )
+        assert result.eligible is False
+
+    def test_blacklisted_shop_disqualified(self):
+        result = self._agent().check_eligibility(
+            _claim(repair_shop="shop_rouge"),
+            _customer(tenure_years=10),
+        )
+        assert result.eligible is False
+
+    def test_fraud_claim_disqualified(self):
+        result = self._agent().check_eligibility(
+            _claim(is_fraud=True),
+            _customer(tenure_years=10, escalation_history_count=0),
+        )
+        assert result.eligible is False
+
+    def test_theft_low_tenure_disqualified(self):
+        result = self._agent().check_eligibility(
+            _claim(claim_type="theft"),
+            _customer(tenure_years=3),
+        )
+        assert result.eligible is False
+
+    def test_theft_sufficient_tenure_not_disqualified_by_tenure_rule(self):
+        result = self._agent().check_eligibility(
+            _claim(claim_type="theft", amount=5000.0, is_fraud=False,
+                   repair_shop="shop_1", status=mdl.ClaimStatus.DENIED),
+            _customer(tenure_years=5, prior_claim_count=0, escalation_history_count=0),
+        )
+        assert result.eligible is True
+
+    def test_non_denied_status_disqualified(self):
+        result = self._agent().check_eligibility(
+            _claim(status=mdl.ClaimStatus.UNDER_REVIEW),
+            _customer(tenure_years=10),
+        )
+        assert result.eligible is False
+
+    def test_standard_clean_claim_eligible(self):
+        result = self._agent().check_eligibility(
+            _claim(claim_type="auto_collision", amount=5000.0, is_fraud=False,
+                   repair_shop="shop_1", status=mdl.ClaimStatus.DENIED),
+            _customer(tenure_years=10, prior_claim_count=0, escalation_history_count=0),
+        )
+        assert result.eligible is True

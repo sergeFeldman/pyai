@@ -4,7 +4,7 @@ import dataclasses
 
 import shared.core as shd_core
 
-from .rule import DecisionRule, LookupRule, Rule
+from .rule import DecisionRule, LookupRule, Rule, RuleCondition, RuleLogic, RuleOperator
 
 
 class RuleFactory(metaclass=shd_core.Singleton):
@@ -60,11 +60,38 @@ class RuleFactory(metaclass=shd_core.Singleton):
             raise ValueError(f"Unknown rule kind '{kind}'. Known: {sorted(self._TYPES_MAPPING)}")
         return self._TYPES_MAPPING[kind]
 
+    @staticmethod
+    def _build_conditions(raw: list) -> list[RuleCondition]:
+        """Recursively convert a list of raw dicts into RuleCondition instances.
+
+        Each dict may be a leaf (subject/attribute/operator/threshold) or a group
+        (logic/conditions). Groups are recursed before construction so the full
+        tree is built bottom-up.
+
+        Args:
+            raw: List of raw condition dicts from a JSON input file.
+
+        Returns:
+            list[RuleCondition]: Fully constructed condition tree.
+        """
+        result = []
+        for item in raw:
+            kwargs = dict(item)
+            if "conditions" in kwargs and isinstance(kwargs["conditions"], list):
+                kwargs["conditions"] = RuleFactory._build_conditions(kwargs["conditions"])
+            if "operator" in kwargs and isinstance(kwargs["operator"], str):
+                kwargs["operator"] = RuleOperator(kwargs["operator"])
+            if "logic" in kwargs and isinstance(kwargs["logic"], str):
+                kwargs["logic"] = RuleLogic(kwargs["logic"])
+            result.append(RuleCondition(**kwargs))
+        return result
+
     def from_dict(self, data: dict) -> Rule:
         """Deserialize a rule dict into the appropriate typed Rule instance.
 
         Resolves the concrete subclass via detect_type(), filters to valid
-        fields only, and reconstructs any nested EntityMetadata dict.
+        fields only, and reconstructs any nested EntityMetadata dict and
+        RuleCondition trees.
 
         Args:
             data: Raw or persisted rule dict.
@@ -77,4 +104,10 @@ class RuleFactory(metaclass=shd_core.Singleton):
         kwargs = {k: v for k, v in data.items() if k in valid}
         if "metadata" in kwargs and isinstance(kwargs["metadata"], dict):
             kwargs["metadata"] = shd_core.EntityMetadata(**kwargs["metadata"])
+        if "conditions" in kwargs and isinstance(kwargs["conditions"], list):
+            kwargs["conditions"] = self._build_conditions(kwargs["conditions"])
+        if "operator" in kwargs and isinstance(kwargs["operator"], str):
+            kwargs["operator"] = RuleOperator(kwargs["operator"])
+        if "logic" in kwargs and isinstance(kwargs["logic"], str):
+            kwargs["logic"] = RuleLogic(kwargs["logic"])
         return rule_class(**kwargs)

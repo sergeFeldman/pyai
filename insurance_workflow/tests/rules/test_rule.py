@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from rules import DecisionRule, LookupRule
+from rules import DecisionRule, LookupRule, RuleCondition, RuleLogic, RuleOperator
 from shared.core import EntityMetadata
 
 
@@ -222,3 +222,146 @@ class TestLookupRuleMatches:
         assert self._rule({"claim_type": "auto"}).matches(
             {"claim_type": "auto", "unrelated": "value"}
         ) is True
+
+
+class TestCompoundDecisionRule:
+    def _and_rule(self, conditions, inp=None):
+        return DecisionRule(
+            id="r", domain="test", effective_from=_FROM, effective_to=_TO,
+            input=inp or [],
+            output=["appeal.disqualified"],
+            conditions=conditions,
+            logic=RuleLogic.AND,
+        )
+
+    def _or_rule(self, conditions):
+        return DecisionRule(
+            id="r", domain="test", effective_from=_FROM, effective_to=_TO,
+            output=["appeal.disqualified"],
+            conditions=conditions,
+            logic=RuleLogic.OR,
+        )
+
+    def test_and_both_match_fires(self):
+        conds = [
+            RuleCondition(subject="claim", attribute="amount", operator=RuleOperator.LT, threshold="500"),
+            RuleCondition(subject="customer", attribute="tenure_years", operator=RuleOperator.LT, threshold="5"),
+        ]
+        matched, outputs = self._and_rule(conds).evaluate(
+            {"claim.amount": 200.0, "customer.tenure_years": 3}
+        )
+        assert matched is True
+        assert outputs == {"appeal.disqualified": True}
+
+    def test_and_first_condition_fails_no_match(self):
+        conds = [
+            RuleCondition(subject="claim", attribute="amount", operator=RuleOperator.LT, threshold="500"),
+            RuleCondition(subject="customer", attribute="tenure_years", operator=RuleOperator.LT, threshold="5"),
+        ]
+        matched, _ = self._and_rule(conds).evaluate({"claim.amount": 600.0, "customer.tenure_years": 3})
+        assert matched is False
+
+    def test_and_second_condition_fails_no_match(self):
+        conds = [
+            RuleCondition(subject="claim", attribute="amount", operator=RuleOperator.LT, threshold="500"),
+            RuleCondition(subject="customer", attribute="tenure_years", operator=RuleOperator.LT, threshold="5"),
+        ]
+        matched, _ = self._and_rule(conds).evaluate({"claim.amount": 200.0, "customer.tenure_years": 7})
+        assert matched is False
+
+    def test_or_first_branch_fires(self):
+        conds = [
+            RuleCondition(subject="claim", attribute="is_fraud", operator=RuleOperator.EQ, threshold="True"),
+            RuleCondition(subject="customer", attribute="prior_claim_count", operator=RuleOperator.GTE, threshold="5"),
+        ]
+        matched, _ = self._or_rule(conds).evaluate(
+            {"claim.is_fraud": True, "customer.prior_claim_count": 1}
+        )
+        assert matched is True
+
+    def test_or_second_branch_fires(self):
+        conds = [
+            RuleCondition(subject="claim", attribute="is_fraud", operator=RuleOperator.EQ, threshold="True"),
+            RuleCondition(subject="customer", attribute="prior_claim_count", operator=RuleOperator.GTE, threshold="5"),
+        ]
+        matched, _ = self._or_rule(conds).evaluate(
+            {"claim.is_fraud": False, "customer.prior_claim_count": 6}
+        )
+        assert matched is True
+
+    def test_or_neither_branch_no_match(self):
+        conds = [
+            RuleCondition(subject="claim", attribute="is_fraud", operator=RuleOperator.EQ, threshold="True"),
+            RuleCondition(subject="customer", attribute="prior_claim_count", operator=RuleOperator.GTE, threshold="5"),
+        ]
+        matched, _ = self._or_rule(conds).evaluate(
+            {"claim.is_fraud": False, "customer.prior_claim_count": 2}
+        )
+        assert matched is False
+
+    def test_nested_or_group_and_leaf_fires(self):
+        conds = [
+            RuleCondition(logic=RuleLogic.OR, conditions=[
+                RuleCondition(subject="claim", attribute="is_fraud", operator=RuleOperator.EQ, threshold="True"),
+                RuleCondition(subject="customer", attribute="prior_claim_count", operator=RuleOperator.GTE, threshold="5"),
+            ]),
+            RuleCondition(subject="customer", attribute="escalation_history_count", operator=RuleOperator.GTE, threshold="2"),
+        ]
+        matched, _ = self._and_rule(conds).evaluate({
+            "claim.is_fraud": True,
+            "customer.prior_claim_count": 1,
+            "customer.escalation_history_count": 2,
+        })
+        assert matched is True
+
+    def test_nested_or_group_leaf_fails_no_match(self):
+        conds = [
+            RuleCondition(logic=RuleLogic.OR, conditions=[
+                RuleCondition(subject="claim", attribute="is_fraud", operator=RuleOperator.EQ, threshold="True"),
+                RuleCondition(subject="customer", attribute="prior_claim_count", operator=RuleOperator.GTE, threshold="5"),
+            ]),
+            RuleCondition(subject="customer", attribute="escalation_history_count", operator=RuleOperator.GTE, threshold="2"),
+        ]
+        matched, _ = self._and_rule(conds).evaluate({
+            "claim.is_fraud": True,
+            "customer.prior_claim_count": 1,
+            "customer.escalation_history_count": 1,
+        })
+        assert matched is False
+
+    def test_nested_or_group_fails_no_match(self):
+        conds = [
+            RuleCondition(logic=RuleLogic.OR, conditions=[
+                RuleCondition(subject="claim", attribute="is_fraud", operator=RuleOperator.EQ, threshold="True"),
+                RuleCondition(subject="customer", attribute="prior_claim_count", operator=RuleOperator.GTE, threshold="5"),
+            ]),
+            RuleCondition(subject="customer", attribute="escalation_history_count", operator=RuleOperator.GTE, threshold="2"),
+        ]
+        matched, _ = self._and_rule(conds).evaluate({
+            "claim.is_fraud": False,
+            "customer.prior_claim_count": 2,
+            "customer.escalation_history_count": 5,
+        })
+        assert matched is False
+
+    def test_ready_uses_input_list_not_subject_attribute(self):
+        rule = self._and_rule(
+            [RuleCondition(subject="claim", attribute="amount", operator=RuleOperator.LT, threshold="500")],
+            inp=["claim.amount", "customer.tenure_years"],
+        )
+        assert rule.ready({"claim.amount": 200, "customer.tenure_years": 3}) is True
+        assert rule.ready({"claim.amount": 200}) is False
+
+    def test_bool_coercion_in_compound_condition(self):
+        conds = [RuleCondition(subject="claim", attribute="is_fraud", operator=RuleOperator.EQ, threshold="True")]
+        assert self._and_rule(conds).evaluate({"claim.is_fraud": True})[0] is True
+        assert self._and_rule(conds).evaluate({"claim.is_fraud": False})[0] is False
+
+    def test_is_changed_detects_threshold_change(self):
+        conds_a = [RuleCondition(subject="claim", attribute="amount", operator=RuleOperator.LT, threshold="500")]
+        conds_b = [RuleCondition(subject="claim", attribute="amount", operator=RuleOperator.LT, threshold="600")]
+        assert self._and_rule(conds_a).is_changed(self._and_rule(conds_b)) is True
+
+    def test_is_changed_identical_conditions_not_changed(self):
+        conds = [RuleCondition(subject="claim", attribute="amount", operator=RuleOperator.LT, threshold="500")]
+        assert self._and_rule(conds).is_changed(self._and_rule(conds)) is False
