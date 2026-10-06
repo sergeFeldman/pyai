@@ -10,3 +10,8 @@ policy:
   input_file_path: data/in/policy_rules.json
   output_file_path: data/out/policy_rules.json
   updated_by: etl
+
+policy_coverage:
+  input_file_path: data/in/policy_coverage_rules.json
+  output_file_path: data/out/policy_coverage_rules.json
+  updated_by: etl

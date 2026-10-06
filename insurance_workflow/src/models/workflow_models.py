@@ -153,6 +153,34 @@ class ClaimAppealResult:
 
 
 @dataclass
+class Policy(shd_core.SerializableMixin):
+    """Policy data used for coverage verification."""
+
+    policy_id: str
+    customer_id: str
+    policy_type: str
+    policy_status: str
+    coverage_limit: float
+    deductible_amount: float
+
+
+@dataclass
+class PolicyRequest:
+    """Input data required to retrieve a policy by customer ID."""
+
+    customer_id: str
+
+
+@dataclass
+class PolicyCoverageResult:
+    """Result of a policy coverage verification check."""
+
+    claim_id: str
+    verified: bool
+    reason: str
+
+
+@dataclass
 class UserRequest:
     """Normalized user input passed into the workflow layer."""
 

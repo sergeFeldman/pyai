@@ -22,3 +22,11 @@ rule_registry:
 
 rule_registry_policy:
   file_path: data/out/policy_rules.json
+
+rule_registry_policy_coverage:
+  file_path: data/out/policy_coverage_rules.json
+
+policy:
+  storage_type: csv
+  model_type: policy
+  file_path: data/in/policy.csv

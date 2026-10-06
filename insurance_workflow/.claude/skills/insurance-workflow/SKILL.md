@@ -31,7 +31,7 @@ Routes never read config or construct agents. Agents never import from `workflow
 
 `src/app/dependencies.py` runs at import time:
 
-1. Loads the rule registry once with `RuleRegistry.load_from(...)`, using the `rule_registry` and `rule_registry_policy` paths from `config/storage.yaml`. A cycle among any domain's effective rules raises here, before any request is served.
+1. Loads the rule registry once with `RuleRegistry.load_from(...)`, using the `rule_registry`, `rule_registry_policy`, and `rule_registry_policy_coverage` paths from `config/storage.yaml`. A cycle among any domain's effective rules raises here, before any request is served.
 2. Builds `_AGENT_CONFIGS`, one dict per agent key (MCP agents' dicts hold an already built client config object), from `config/storage.yaml` and `config/agents.yaml`.
 3. `get_workflow_orchestrator()` returns the orchestrator singleton holding `_AGENT_CONFIGS`; `get_request_handler()` wraps it for FastAPI `Depends`.
 
@@ -58,6 +58,7 @@ Current use cases:
 | `POST /claim-status` | `claim_status` | `get_claim_status` | claim |
 | `POST /claim-explanation` | `claim_explanation` | `get_claim_explanation` (async) | claim_explanation |
 | `POST /claim-appeal` | `claim_appeal` | `get_claim_appeal_eligibility` | claim, customer, claim_appeal |
+| `POST /claim-coverage` | `claim_coverage` | `get_claim_coverage_verification` | claim, customer, policy, claim_coverage |
 
 To add a use case, read [references/new-use-case.md](references/new-use-case.md).
 
@@ -108,7 +109,7 @@ python -m pytest tests/ -q
 
 The root `conftest.py` adds `src` and `../shared/src` to `sys.path`. Before writing or changing tests, read [references/testing.md](references/testing.md).
 
-Status: partial (tests cover `rules` and `ClaimAppealAgent` only; no tests yet for `../shared`, MCP clients, the orchestrator, handlers, or routes)
+Status: partial (tests cover `rules`, `ClaimAppealAgent`, and `ClaimCoverageAgent`; no tests yet for `../shared`, MCP clients, the orchestrator, handlers, or routes)
 
 ## Verification
 

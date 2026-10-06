@@ -14,6 +14,7 @@ import workflow as wfl
 _MODEL_CLASS_MAPPING: dict[str, type] = {
     "claim": mdl.Claim,
     "customer": mdl.Customer,
+    "policy": mdl.Policy,
     "policy_rule": mdl.PolicyRule,
 }
 
@@ -97,6 +98,24 @@ def get_claim_appeal_agent_config() -> dict:
     return {}
 
 
+def get_policy_agent_config() -> dict:
+    """Build the policy-agent configuration from config/storage.yaml.
+
+    Returns:
+        dict: Policy-agent configuration keyed by 'policy_mcp_client_config'.
+    """
+    return {"policy_mcp_client_config": _build_mcp_client_config("policy", mcp.PolicyMcpClientConfig)}
+
+
+def get_claim_coverage_agent_config() -> dict:
+    """Build the claim coverage agent configuration.
+
+    Returns:
+        dict: Empty configuration; ClaimCoverageAgent requires no storage config.
+    """
+    return {}
+
+
 def get_claim_explanation_agent_config() -> dict:
     """Build the claim explanation agent configuration from config/agents.yaml.
 
@@ -112,13 +131,16 @@ def get_claim_explanation_agent_config() -> dict:
 rls.RuleRegistry.load_from(
     _load_config("storage.yaml", "rule_registry")["file_path"],
     _load_config("storage.yaml", "rule_registry_policy")["file_path"],
+    _load_config("storage.yaml", "rule_registry_policy_coverage")["file_path"],
 )
 
 _AGENT_CONFIGS = {
     "claim": get_claim_agent_config(),
     "claim_appeal": get_claim_appeal_agent_config(),
+    "claim_coverage": get_claim_coverage_agent_config(),
     "claim_explanation": get_claim_explanation_agent_config(),
     "customer": get_customer_agent_config(),
+    "policy": get_policy_agent_config(),
     "policy_rule": get_policy_rule_agent_config(),
 }
 

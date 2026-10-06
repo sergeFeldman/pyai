@@ -36,6 +36,21 @@ class ClaimAppealHttpResponse(WorkflowBaseModel):
     trace_id: str
 
 
+class ClaimCoverageHttpRequest(WorkflowBaseModel):
+    """HTTP request payload for the claim coverage verification workflow."""
+
+    message: str
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+
+class ClaimCoverageHttpResponse(WorkflowBaseModel):
+    """HTTP response payload for the claim coverage verification workflow."""
+
+    message: str
+    trace_id: str
+
+
 class ClaimStatusHttpRequest(WorkflowBaseModel):
     """HTTP request payload for the claim-status workflow."""
 

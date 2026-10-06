@@ -5,8 +5,10 @@ import shared.core as shd_core
 from .base_agent import LlmEnabledAgent
 from .claim_agent import ClaimAgent
 from .claim_appeal_agent import ClaimAppealAgent
+from .claim_coverage_agent import ClaimCoverageAgent
 from .claim_explanation_agent import ClaimExplanationAgent
 from .customer_agent import CustomerAgent
+from .policy_agent import PolicyAgent
 from .policy_rule_agent import PolicyRuleAgent
 
 
@@ -16,8 +18,10 @@ class AgentFactory(shd_core.ConfigurableObjectFactory):
     _TYPES_MAPPING = {
         "claim": ClaimAgent,
         "claim_appeal": ClaimAppealAgent,
+        "claim_coverage": ClaimCoverageAgent,
         "claim_explanation": ClaimExplanationAgent,
         "customer": CustomerAgent,
+        "policy": PolicyAgent,
         "policy_rule": PolicyRuleAgent,
     }
 

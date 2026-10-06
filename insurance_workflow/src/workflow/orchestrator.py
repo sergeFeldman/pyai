@@ -86,6 +86,52 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
         ))
         return response
 
+    def get_claim_coverage_verification(self, request: mdl.UserRequest) -> mdl.UserResponse:
+        """Execute claim coverage verification workflow.
+
+        Fetches the claim, its customer context, and the customer's active policy,
+        then delegates to ClaimCoverageAgent which runs the policy_coverage rule
+        domain through the DAG executor. Uses the negative-gating model: if
+        policy_coverage.disqualified fires, coverage is denied; otherwise verified.
+
+        Args:
+            request (mdl.UserRequest): Normalized user request object; message is the claim ID.
+
+        Returns:
+            mdl.UserResponse: User-facing workflow response.
+        """
+        context = self._trace_service.create_context(request)
+        claim_agent = agt.AgentFactory().get_obj("claim", self._agent_configs["claim"])
+        customer_agent = agt.AgentFactory().get_obj("customer", self._agent_configs["customer"])
+        policy_agent = agt.AgentFactory().get_obj("policy", self._agent_configs["policy"])
+        coverage_agent = agt.AgentFactory().get_obj("claim_coverage", self._agent_configs["claim_coverage"])
+
+        claim = claim_agent.get_obj(mdl.ClaimRequest(claim_id=request.message))
+        if claim is None:
+            return mdl.UserResponse(message=f"Claim {request.message} was not found.",
+                                    trace_id=context.trace_id)
+
+        customer = customer_agent.get_obj(mdl.CustomerRequest(customer_id=claim.customer_id))
+        if customer is None:
+            return mdl.UserResponse(message=f"Customer context for claim {request.message} was not found.",
+                                    trace_id=context.trace_id)
+
+        policy = policy_agent.get_obj(mdl.PolicyRequest(customer_id=claim.customer_id))  # type: ignore[union-attr]
+        if policy is None:
+            return mdl.UserResponse(message=f"No policy found for claim {request.message}.",
+                                    trace_id=context.trace_id)
+
+        message = coverage_agent.get_coverage_message(claim, customer, policy, trace_id=context.trace_id)  # type: ignore[union-attr]
+        response = mdl.UserResponse(message=message, trace_id=context.trace_id)
+        self._audit_service.log(mdl.AuditRecord(
+            trace_id=context.trace_id,
+            request_type="claim_coverage",
+            agent_names=["claim", "customer", "policy", "claim_coverage"],
+            response=message,
+            timestamp=datetime.now(timezone.utc),
+        ))
+        return response
+
     def get_claim_status(self, request: mdl.UserRequest) -> mdl.UserResponse:
         """Execute claim-status workflow.
 

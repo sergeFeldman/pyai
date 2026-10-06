@@ -61,12 +61,24 @@ Complete.
 
 ---
 
-## Phase 5: Data and Traceability Hardening
+## Phase 5: New Domains and Policy Migration
 
 ### Scope
 
-- Extraction rules: `ExtractionRule` with a path expression (JSONPath or dot-notation) and a target field name; applied as a preprocessing step before Decision or Lookup rules are evaluated; relevant when integrating with backends that return complex JSON payloads
-- PII tokenization service: tokenize sensitive values in rule inputs and audit output before persistence
+- **Policy domain migration (5.1)**: migrated `PolicyRuleRegistryClient.find()` from a linear `matches()` loop to `RuleRegistry.execute()`; fixed the `input` field on all policy rules from dot-notation claim fields (`["claim.claim_type", "claim.is_fraud"]`) to `[]`, since policy LookupRules are roots with no upstream producers and `LookupRule.ready()` already validates context via `match_keys`; `find()` calls `execute()` with a context copy, logs the result via `RuleExecutionAuditService`, and returns the first triggered rule; public API and MCP server are unchanged
+- **Coverage Verification (5.2)** (`policy_coverage`): new domain; 6 disqualifier rules and a 2-rule DAG chain (pc_high_value_flag → pc_high_value_repeat_claimant) evaluate claim, customer, and policy context; negative-gating model: if `policy_coverage.disqualified` fires, coverage is denied; otherwise verified; new endpoint `POST /claim-coverage`; `PolicyMcpClient` reads `data/in/policy.csv` keyed by `customer_id`
+
+### Status
+
+Complete.
+
+---
+
+## Phase 5b: Policy Eligibility
+
+### Scope
+
+- **Policy Eligibility** (`policy_eligibility`): new domain; DecisionRules on customer profile fields (tenure, prior claims, escalation history) produce `policy_eligibility.disqualified`; mirrors the claim_appeal pattern; new endpoint `POST /policy-eligibility`
 
 ### Status
 
@@ -81,6 +93,7 @@ Pending.
 - Capture LangChain ReAct agent intermediate steps from `AgentExecutor` result for the `claim_explanation` workflow; currently the reasoning trace (tool calls, inputs, responses) is only visible in the terminal and optionally in LangSmith, with nothing stored in the application
 - Store intermediate steps in a new audit record per `claim_explanation` request, alongside the final response
 - Add a dashboard execution view for `claim_explanation` showing the full reasoning chain: each tool called, its input, the data returned, and the final answer; gives reviewers full visibility into why the agent said what it said
+- **Policy trace_id symmetry**: thread the workflow trace_id from the orchestrator into the MCP subprocess so policy execution audit records share the same trace_id as the outer workflow request; currently policy records generate an independent `policy-{uuid}` because the MCP tool interface has no access to the outer trace context
 
 ### Status
 
@@ -92,8 +105,23 @@ Pending.
 
 ### Scope
 
-- **Graph validation linter**: Extend `load_from()` beyond cycle detection to catch phantom consumers (a rule declaring an `input` field no active rule produces), orphan producers (fields produced but never consumed by any rule), and cross-domain field mismatches. Validation runs at load time and returns a structured report; phantom consumers are errors that block startup, orphan producers are warnings. Prevents silent `skipped_precondition` decisions at scale where a typo in a field name goes undetected across thousands of executions
+- **Graph validation linter**: Extend `load_from()` beyond cycle detection to catch phantom consumers (a rule declaring an `input` field no active rule produces) and orphan producers (fields produced but consumed by no other rule). Single traversal per domain builds `produced` and `consumed` field maps; set differences derive both finding types. Phantom consumers are excluded from the DAG and logged at ERROR level but do not block startup — the broken rule is simply removed from execution. Orphan producers are logged at WARNING level; terminal outputs like `appeal.disqualified` are expected orphan producers since they are consumed by the agent, not by other rules. New types: `RuleGraphValidation` (one finding, `RuleValidationSeverity` and `RuleValidationKind` StrEnums), `RuleGraphValidationReport` (aggregates findings, exposes `.errors`, `.warnings`, `is_valid()`), `RuleGraphValidator` (runs validation). Registry stores `_excluded_rule_ids` and `_validation_report` after load. New `GET /validation-report` endpoint. Dashboard: header badge (green/yellow/red) and new Graph Health tab showing findings grouped by domain. Prevents silent `skipped_precondition` decisions at scale where a typo in a field name goes undetected across thousands of executions
 - **Parallel execution**: Fire all rules currently in the ready queue concurrently via `asyncio.gather`. Rules in the queue at the same moment have no unsettled dependencies on each other and are safe to evaluate in parallel. Primary payoff is when rules call external services such as fraud scoring APIs, compliance watchlists, and credit bureaus; independent calls in the same topological wave run simultaneously rather than serially. Depends on ready-queue + eager cascade completed in Phase 4
+- **Claims Routing** (`claim_routing`): new domain; DecisionRules on claim type, amount, and fraud flag produce non-boolean string outputs (`routing.team`, `routing.priority`); first domain with non-flag outputs, exercising correct context propagation and audit record handling for string/enum values alongside the parallel execution model; new endpoint `POST /claim-routing`
+
+### Status
+
+Pending.
+
+---
+
+## Phase 7b: Standalone Rule Registry Service
+
+### Scope
+
+- **Extract `RuleRegistry` as a standalone service**: currently rules are loaded as part of main app startup; reloading rules requires restarting the entire application. Extract the registry into its own FastAPI service that starts up independently, loads rules once on startup, and exposes a `POST /reload` endpoint the ETL pipeline calls after writing new rules — the main app keeps running, rule changes take effect immediately without redeployment
+- **Agent communication over HTTP/MCP**: agents currently import `RuleRegistry` directly; replace with HTTP/MCP calls to the registry service via `McpRuleClient` wrappers, consistent with the pattern already established by `PolicyRuleRegistryClient`
+- **Validation report endpoint**: `GET /validation-report` moves to the registry service; the main app dashboard proxies it from there
 
 ### Status
 
@@ -105,6 +133,7 @@ Pending.
 
 ### Scope
 
+- **PII tokenization**: tokenize sensitive customer and claim field values in rule inputs and audit records before persistence to `rule_executions.jsonl`; required before audit records are used for governance replay
 - **Per-rule audit detail**: Extend each entry in the execution audit record's `evaluations` list with the rule version and the output values written on trigger. Required by decision replay to reconstruct exactly which version of a rule produced which output at the time of the original decision.
 - **Decision replay / shadow testing**: Before a rule change goes live, re-run all historical decisions stored in `rule_executions.jsonl` against a candidate rule set and report which outcomes flip; for example, "37 appeals would move from eligible to disqualified." The `entities` snapshot already stored in every `RuleExecutionResult` provides the frozen claim/customer context required for replay. Combined with `nx.descendants` to show the structural blast radius (which rules in the graph a given change touches), this is the compliance checkpoint before any rule deployment in a regulated environment
 - **Goal-directed evaluation**: Accept a `goal` parameter on `execute()`. Use `nx.ancestors` to build the subgraph of rules that can contribute to the requested output, then run only that subgraph. At production scale different call sites need different slices of the graph (a fraud check API, a quick eligibility pre-check, a full appeal evaluation), and each should traverse only the rules it actually needs. Enables partial evaluation for mid-workflow agent checks without running the full domain

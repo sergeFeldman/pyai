@@ -3,8 +3,10 @@
 from .mcp_client import McpStorageClient, McpStorageClientConfig, McpRuleClient
 from .claim_mcp_client import ClaimMcpClient, ClaimMcpClientConfig
 from .customer_mcp_client import CustomerMcpClient, CustomerMcpClientConfig
+from .policy_mcp_client import PolicyMcpClient, PolicyMcpClientConfig
 from .policy_rule_mcp_client import PolicyRuleMcpClient, PolicyRuleMcpClientConfig
 from .claim_appeal_rule_mcp_client import ClaimAppealRuleMcpClient
+from .policy_coverage_rule_mcp_client import PolicyCoverageRuleMcpClient
 from .policy_rule_registry_client import PolicyRuleRegistryClient
 
 __all__ = [
@@ -15,8 +17,11 @@ __all__ = [
     "ClaimMcpClientConfig",
     "CustomerMcpClient",
     "CustomerMcpClientConfig",
+    "PolicyMcpClient",
+    "PolicyMcpClientConfig",
     "PolicyRuleMcpClient",
     "PolicyRuleMcpClientConfig",
     "ClaimAppealRuleMcpClient",
+    "PolicyCoverageRuleMcpClient",
     "PolicyRuleRegistryClient",
 ]

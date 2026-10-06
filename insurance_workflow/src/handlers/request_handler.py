@@ -12,6 +12,7 @@ class RequestHandler:
 
     _WORKFLOWS_MAPPING = {
         "claim_appeal": "get_claim_appeal_eligibility",
+        "claim_coverage": "get_claim_coverage_verification",
         "claim_explanation": "get_claim_explanation",
         "claim_status": "get_claim_status",
     }

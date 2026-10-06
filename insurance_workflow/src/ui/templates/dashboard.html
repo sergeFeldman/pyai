@@ -776,6 +776,19 @@ function nodeTooltip(r) {
   return rows.join('<br/>');
 }
 
+// ── convert LookupRule match_keys to a flat conditions array ─────────────────
+function matchKeysToConditions(match_keys) {
+  return Object.entries(match_keys).map(([k, v]) => {
+    const dot = k.indexOf('.');
+    return {
+      subject:   dot >= 0 ? k.slice(0, dot)  : k,
+      attribute: dot >= 0 ? k.slice(dot + 1) : k,
+      operator:  '==',
+      threshold: String(v),
+    };
+  });
+}
+
 // ── compound condition tree renderer ─────────────────────────────────────────
 function renderCondTree(conditions, logic, opts = {}) {
   const muted   = opts.muted   ?? false;
@@ -875,10 +888,8 @@ function buildRuleDetail(r, versions, selectedVer) {
   }
 
   if (r.kind === 'lookup' && r.match_keys) {
-    h.push(`<div class="sec">Match Keys</div>`);
-    Object.entries(r.match_keys).forEach(([k, v]) =>
-      h.push(`<div class="kv"><span class="kk">${esc(k)}</span><span class="kv_">${esc(v)}</span></div>`)
-    );
+    h.push(`<div class="sec">Condition</div>`);
+    h.push(`<div class="cond-box" style="font-family:monospace">${renderCondTree(matchKeysToConditions(r.match_keys), 'AND')}</div>`);
   }
 
   if (r.reason) {
@@ -1048,14 +1059,7 @@ function showSessionDetail(session) {
             <span style="color:#FF7B72"> ${esc(rule.operator)} </span><span style="color:#FFA657">${esc(rule.threshold)}</span>
           </div>`);
         } else if (rule.kind === 'lookup' && rule.match_keys) {
-          const pairs = Object.entries(rule.match_keys).map(([k, v]) => {
-            const dot = k.indexOf('.');
-            const subj = dot >= 0 ? k.slice(0, dot) : k;
-            const attr = dot >= 0 ? k.slice(dot + 1) : '';
-            return `<span style="color:#79C0FF">${esc(subj)}</span>${attr ? '.<span style="color:#D2A8FF">'+esc(attr)+'</span>' : ''}` +
-                   `<span style="color:#FF7B72"> == </span><span style="color:#FFA657">${esc(String(v))}</span>`;
-          }).join('<span style="color:var(--muted)"> &amp; </span>');
-          h.push(`<div style="font-family:monospace;font-size:11px;margin:3px 0 4px">${pairs}</div>`);
+          h.push(`<div style="font-family:monospace;font-size:11px;margin:3px 0 4px">${renderCondTree(matchKeysToConditions(rule.match_keys), 'AND')}</div>`);
         }
 
         const upstreamInputs = (rule.input || []).filter(f => f.startsWith('appeal.'));
@@ -1100,9 +1104,7 @@ function showSessionDetail(session) {
             ${esc(rule.subject)}.${esc(rule.attribute)} ${esc(rule.operator)} ${esc(rule.threshold)}
           </div>`);
         } else if (outcome === 'skipped_no_match' && rule.kind === 'lookup' && rule.match_keys) {
-          const pairs = Object.entries(rule.match_keys)
-            .map(([k, v]) => `${esc(k)} == ${esc(String(v))}`).join(' & ');
-          h.push(`<div style="font-family:monospace;font-size:10px;color:#7D8590">${pairs}</div>`);
+          h.push(`<div style="font-family:monospace;font-size:10px">${renderCondTree(matchKeysToConditions(rule.match_keys), 'AND', {muted: true, small: true})}</div>`);
         }
 
         if (outcome === 'skipped_precondition') {

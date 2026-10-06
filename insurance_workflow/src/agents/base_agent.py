@@ -3,8 +3,8 @@
 from abc import abstractmethod
 from typing import Generic, Optional, TypeVar
 
-from langchain.agents import AgentExecutor, create_structured_chat_agent
-from langchain import hub
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel
 
 import shared.core as shd_core
@@ -27,7 +27,7 @@ class LlmAgentConfig(BaseModel):
 
     llm_provider: str
     model: str
-    prompt_name: str
+    prompt_name: str = ""
 
 
 def _create_llm(provider: str, model: str):
@@ -104,7 +104,13 @@ class LlmEnabledAgent(shd_core.Configurable[TLlmConfig], Generic[TLlmConfig]):
         """
         tools = await cls._load_tools()
         llm = _create_llm(config.llm_provider, config.model)
-        agent = create_structured_chat_agent(llm, tools, hub.pull(config.prompt_name))
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a helpful insurance claims assistant. Use the available tools to look up claim and policy information."),
+            MessagesPlaceholder("chat_history", optional=True),
+            ("human", "{input}"),
+            MessagesPlaceholder("agent_scratchpad"),
+        ])
+        agent = create_tool_calling_agent(llm, tools, prompt)
         executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
         return cls(config, executor)
 

@@ -1,0 +1,223 @@
+[
+  {
+    "id": "pc_auto_third_party",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 8,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "reason": "Auto collision claims are not covered under third-party-only policies.",
+    "kind": "lookup",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.899811+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "match_keys": {
+      "claim.claim_type": "auto_collision",
+      "policy.policy_type": "third_party_only"
+    },
+    "output_values": {
+      "policy_coverage.disqualified": true
+    }
+  },
+  {
+    "id": "pc_below_deductible",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 5,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "reason": "Claim amount is below the policy deductible and is not eligible for coverage.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.900918+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "below_deductible",
+    "operator": "==",
+    "threshold": "True",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "pc_high_value_flag",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 4,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "policy_coverage.high_value_flagged"
+    ],
+    "reason": "High-value claim flagged for repeat claimant review.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.900918+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">",
+    "threshold": "10000",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "pc_high_value_repeat_claimant",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 3,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "policy_coverage.high_value_flagged"
+    ],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "reason": "High-value claim from a customer with 3 or more prior claims is flagged for manual review.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.900918+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "customer",
+    "attribute": "prior_claim_count",
+    "operator": ">=",
+    "threshold": "3",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "pc_policy_cancelled",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 10,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "reason": "Policy has been cancelled and no longer provides coverage.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.899811+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "policy",
+    "attribute": "policy_status",
+    "operator": "==",
+    "threshold": "cancelled",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "pc_policy_lapsed",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 9,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "reason": "Policy has lapsed due to non-payment and coverage is suspended.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.899811+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "policy",
+    "attribute": "policy_status",
+    "operator": "==",
+    "threshold": "lapsed",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "pc_property_third_party",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 6,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "reason": "Property damage claims are not covered under third-party-only policies.",
+    "kind": "lookup",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.900812+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "match_keys": {
+      "claim.claim_type": "property_damage",
+      "policy.policy_type": "third_party_only"
+    },
+    "output_values": {
+      "policy_coverage.disqualified": true
+    }
+  },
+  {
+    "id": "pc_theft_basic_auto",
+    "domain": "policy_coverage",
+    "group": "",
+    "priority": 7,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "reason": "Theft claims are not covered under basic auto policies.",
+    "kind": "lookup",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-03T02:29:49.900812+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "match_keys": {
+      "claim.claim_type": "theft",
+      "policy.policy_type": "basic_auto"
+    },
+    "output_values": {
+      "policy_coverage.disqualified": true
+    }
+  }
+]
