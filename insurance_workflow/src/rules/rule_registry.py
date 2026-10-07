@@ -186,7 +186,16 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
             domain: set(cfg.terminal_outputs)
             for domain, cfg in registry._domain_configs.items()
         }
-        report = RuleGraphValidator().validate(all_effective, terminal_outputs=terminal_outputs_map)
+        context_inputs_map = {
+            domain: set(cfg.context_inputs)
+            for domain, cfg in registry._domain_configs.items()
+            if cfg.context_inputs
+        }
+        report = RuleGraphValidator().validate(
+            all_effective,
+            terminal_outputs=terminal_outputs_map,
+            context_inputs=context_inputs_map or None,
+        )
         for finding in report.findings:
             if finding.severity == RuleValidationSeverity.ERROR:
                 logger.error(f"[{finding.kind}] {finding.domain}/{finding.rule_id} field='{finding.field}': {finding.message}")
@@ -195,6 +204,7 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
 
         registry._excluded_rule_ids = {f.rule_id for f in report.errors}
         registry._validation_report = report
+        registry._dags.clear()  # invalidate DAGs built during cycle detection; rebuild excludes phantom consumers
 
         return registry
 

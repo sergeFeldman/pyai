@@ -37,10 +37,19 @@ class DomainConfig(WorkflowBaseModel):
             terminal fields; a misspelling in a rule's output will not match
             and will still warn. Agents and APIs use this as the single source
             of truth for domain output contracts instead of hardcoding field names.
+        context_inputs: External context prefixes (before the first dot) that
+            rules in this domain consume but no rule produces, e.g. ["claim",
+            "customer"]. When declared, the graph validation linter uses an
+            explicit allowlist for phantom consumer detection: any consumed
+            prefix not in this list and not produced by an active rule is
+            flagged. Without this field, the linter falls back to namespace
+            scoping and prefix typos in context fields go undetected.
     """
 
     domain: str
     terminal_outputs: list[str] = []
+    context_inputs: list[str] = []
+
 
 @dataclass
 class AttributeExplanation:

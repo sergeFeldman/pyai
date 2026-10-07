@@ -83,11 +83,13 @@ class RuleGraphValidator:
         phantom_fields = consumed.keys() - produced.keys()  -> ERROR per consumer rule
         orphan_fields  = produced.keys() - consumed.keys()  -> WARNING per producer rule
 
-    Phantom consumer detection is scoped to the domain's internal namespace —
-    the set of field prefixes (before the first dot) found in the domain's
-    produced fields. External context fields (e.g. claim.amount, customer.tenure_years)
-    provided by the agent via _build_context() are excluded from the check because
-    their prefix does not appear in any rule's output.
+    Phantom consumer detection has two modes. Explicit mode (when context_inputs is
+    declared for the domain): any consumed field whose prefix is not in context_inputs
+    and is not produced by an active rule is flagged. This catches prefix typos in
+    external context fields (e.g. "cliam.amount" instead of "claim.amount").
+    Namespace-scoping fallback (no context_inputs declared): only fields whose prefix
+    matches the domain's own produced-field prefixes are checked; external context
+    fields are excluded because their prefix never appears in any rule's output.
 
     Orphan producers include legitimate terminal outputs (e.g. appeal.disqualified)
     that are consumed by the agent rather than by other rules.
@@ -97,6 +99,7 @@ class RuleGraphValidator:
         self,
         rules: list[Rule],
         terminal_outputs: dict[str, set[str]] | None = None,
+        context_inputs: dict[str, set[str]] | None = None,
     ) -> RuleGraphValidationReport:
         """Validate field-link integrity across all domains in the rule list.
 
@@ -108,6 +111,13 @@ class RuleGraphValidator:
                 are suppressed for fields present in their domain's terminal set;
                 a misspelling in a rule's output will not match and will still warn.
                 Defaults to empty (all orphan producers warn).
+            context_inputs: Optional map of domain -> set of external context
+                prefixes (e.g. {"claim", "customer"}) declared in DomainConfig.
+                When provided for a domain, phantom consumer detection uses an
+                explicit allowlist: any consumed field whose prefix is not in
+                context_inputs and not produced by an active rule is flagged.
+                Without this, the fallback namespace-scoping mode applies and
+                prefix typos in context fields go undetected.
 
         Returns:
             RuleGraphValidationReport with all findings and a validated_at timestamp.
@@ -133,17 +143,24 @@ class RuleGraphValidator:
                 for f in rule.input:
                     consumed[f].append(rule.id)
 
-            # Internal namespace: prefixes (before the first dot) of all fields
-            # this domain produces. Only fields sharing this namespace are
-            # inter-rule dependencies; others are external context fields
-            # provided by the agent (e.g. claim.amount, customer.tenure_years)
-            # and are not subject to phantom consumer detection.
-            internal_prefixes = {f.split(".")[0] for f in produced}
-
-            phantom_fields = {
-                f for f in consumed.keys() - produced.keys()
-                if f.split(".")[0] in internal_prefixes
-            }
+            domain_context = (context_inputs or {}).get(domain, None)
+            if domain_context is not None:
+                # Explicit mode: flag any consumed field whose prefix is not a
+                # declared context input and is not produced by an active rule.
+                phantom_fields = {
+                    f for f in consumed.keys() - produced.keys()
+                    if f.split(".")[0] not in domain_context
+                }
+            else:
+                # Namespace-scoped fallback: only flag fields whose prefix matches
+                # the domain's own produced-field prefixes (external context fields
+                # like claim.amount are excluded because their prefix never appears
+                # in any rule's output).
+                internal_prefixes = {f.split(".")[0] for f in produced}
+                phantom_fields = {
+                    f for f in consumed.keys() - produced.keys()
+                    if f.split(".")[0] in internal_prefixes
+                }
             for f in phantom_fields:
                 for rule_id in consumed[f]:
                     findings.append(RuleGraphFinding(

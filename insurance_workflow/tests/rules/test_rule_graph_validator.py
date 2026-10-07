@@ -277,3 +277,98 @@ class TestLoadFromValidation:
         assert "r_broken" in registry._excluded_rule_ids
         assert "r_broken" not in {r.id for r in registry._get_effective("test_domain")}
         assert "r_broken" in {r.id for r in registry.all()}
+
+    def test_phantom_consumer_absent_from_get_dag_after_load_from(self, tmp_path):
+        # Fix 1: DAG cache must be cleared after _excluded_rule_ids is set, so that
+        # get_dag() returns a graph that excludes phantom consumers (not the stale
+        # graph built during cycle detection before exclusions were applied).
+        import json
+        rules = [
+            {
+                "id": "r_producer",
+                "domain": "td",
+                "priority": 2,
+                "input": [],
+                "output": ["td.flag"],
+                "subject": "claim", "attribute": "status", "operator": "==", "threshold": "open",
+                "effective_from": (datetime.now(timezone.utc) + timedelta(days=-1)).isoformat(),
+                "effective_to":   (datetime.now(timezone.utc) + timedelta(days=365)).isoformat(),
+            },
+            {
+                "id": "r_phantom",
+                "domain": "td",
+                "priority": 1,
+                "input": ["td.ghost"],   # no producer -- phantom consumer
+                "output": ["td.result"],
+                "subject": "claim", "attribute": "status", "operator": "==", "threshold": "open",
+                "effective_from": (datetime.now(timezone.utc) + timedelta(days=-1)).isoformat(),
+                "effective_to":   (datetime.now(timezone.utc) + timedelta(days=365)).isoformat(),
+            },
+        ]
+        rule_file = tmp_path / "td_rules.json"
+        rule_file.write_text(json.dumps(rules))
+
+        registry = RuleRegistry.load_from(str(rule_file))
+        dag = registry.get_dag("td")
+        dag_ids = {data["rule"].id for _, data in dag.nodes(data=True)}
+        assert "r_phantom" not in dag_ids
+        assert "r_producer" in dag_ids
+
+
+# ── TestContextInputs ─────────────────────────────────────────────────────────
+
+class TestContextInputs:
+    """Tests for the context_inputs explicit-allowlist mode (Fix 2)."""
+
+    def test_misspelled_context_prefix_caught_with_context_inputs(self):
+        # Without context_inputs the "cliam" typo goes undetected because the
+        # namespace-scoping mode only checks internal prefixes. With context_inputs
+        # declared, any consumed prefix not in the allowlist is flagged.
+        rules = [
+            _rule("r1", out=["d.flag"], inp=["cliam.amount"]),  # typo: cliam vs claim
+        ]
+        report = RuleGraphValidator().validate(
+            rules,
+            context_inputs={"d": {"claim", "customer"}},
+        )
+        assert len(report.errors) == 1
+        assert report.errors[0].rule_id == "r1"
+        assert report.errors[0].field == "cliam.amount"
+        assert report.errors[0].kind == RuleValidationKind.PHANTOM_CONSUMER
+
+    def test_misspelled_context_prefix_not_caught_without_context_inputs(self):
+        # Documents the backward-compat behaviour: the namespace-scoping fallback
+        # cannot see prefix typos because "cliam" is not in the domain's produced
+        # prefixes ("d"), so the field is treated as an external context input.
+        rules = [
+            _rule("r1", out=["d.flag"], inp=["cliam.amount"]),  # typo
+        ]
+        report = RuleGraphValidator().validate(rules)
+        assert report.errors == []
+
+    def test_valid_context_field_not_flagged_with_context_inputs(self):
+        # A correctly spelled external context field must not produce an error
+        # when context_inputs is declared for the domain.
+        rules = [
+            _rule("r1", out=["d.flag"], inp=["claim.amount", "customer.tenure_years"]),
+        ]
+        report = RuleGraphValidator().validate(
+            rules,
+            context_inputs={"d": {"claim", "customer"}},
+        )
+        assert report.errors == []
+
+    def test_context_inputs_only_applies_to_declared_domain(self):
+        # context_inputs declared for "d1" should not affect phantom detection
+        # for "d2" -- "d2" still uses the namespace-scoping fallback.
+        rules = [
+            _rule("r1", domain="d1", out=["d1.flag"], inp=["cliam.amount"]),  # typo -- flagged
+            _rule("r2", domain="d2", out=["d2.flag"], inp=["cliam.amount"]),  # typo -- NOT flagged (fallback)
+        ]
+        report = RuleGraphValidator().validate(
+            rules,
+            context_inputs={"d1": {"claim", "customer"}},
+        )
+        error_domains = {e.domain for e in report.errors}
+        assert "d1" in error_domains
+        assert "d2" not in error_domains
