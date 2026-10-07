@@ -6,7 +6,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "auto_collision",
       "attribute": "is_fraud",
@@ -25,7 +29,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "property_damage",
       "attribute": "is_fraud",
@@ -44,7 +52,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "theft",
       "attribute": "is_fraud",
@@ -63,7 +75,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "auto_collision",
       "attribute": "status",
@@ -82,7 +98,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "property_damage",
       "attribute": "status",
@@ -101,7 +121,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "theft",
       "attribute": "status",
@@ -120,7 +144,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "auto_collision",
       "attribute": "status",
@@ -139,7 +167,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "property_damage",
       "attribute": "status",
@@ -158,7 +190,11 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"],
+    "output": [
+      "policy.denial_basis",
+      "policy.next_steps",
+      "policy.policy_section"
+    ],
     "match_keys": {
       "claim_type": "theft",
       "attribute": "status",
@@ -169,5 +205,23 @@
       "next_steps": "Submit all supporting documents within 15 days.",
       "policy_section": "5.2"
     }
+  },
+  {
+    "id": "pr_test_phantom_consumer",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2026-01-02T00:00:00+00:00",
+    "input": [
+      "policy.coverage_tier"
+    ],
+    "output": [
+      "policy.denial_basis"
+    ],
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">",
+    "threshold": "5000",
+    "reason": "Demo phantom consumer (retired)."
   }
 ]

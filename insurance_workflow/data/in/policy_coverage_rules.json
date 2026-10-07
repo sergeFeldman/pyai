@@ -6,7 +6,9 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy_coverage.disqualified"],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
     "subject": "policy",
     "attribute": "policy_status",
     "operator": "==",
@@ -20,7 +22,9 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy_coverage.disqualified"],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
     "subject": "policy",
     "attribute": "policy_status",
     "operator": "==",
@@ -34,9 +38,16 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy_coverage.disqualified"],
-    "match_keys": {"claim.claim_type": "auto_collision", "policy.policy_type": "third_party_only"},
-    "output_values": {"policy_coverage.disqualified": true},
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "match_keys": {
+      "claim.claim_type": "auto_collision",
+      "policy.policy_type": "third_party_only"
+    },
+    "output_values": {
+      "policy_coverage.disqualified": true
+    },
     "reason": "Auto collision claims are not covered under third-party-only policies."
   },
   {
@@ -46,9 +57,16 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy_coverage.disqualified"],
-    "match_keys": {"claim.claim_type": "theft", "policy.policy_type": "basic_auto"},
-    "output_values": {"policy_coverage.disqualified": true},
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "match_keys": {
+      "claim.claim_type": "theft",
+      "policy.policy_type": "basic_auto"
+    },
+    "output_values": {
+      "policy_coverage.disqualified": true
+    },
     "reason": "Theft claims are not covered under basic auto policies."
   },
   {
@@ -58,9 +76,16 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy_coverage.disqualified"],
-    "match_keys": {"claim.claim_type": "property_damage", "policy.policy_type": "third_party_only"},
-    "output_values": {"policy_coverage.disqualified": true},
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "match_keys": {
+      "claim.claim_type": "property_damage",
+      "policy.policy_type": "third_party_only"
+    },
+    "output_values": {
+      "policy_coverage.disqualified": true
+    },
     "reason": "Property damage claims are not covered under third-party-only policies."
   },
   {
@@ -70,7 +95,9 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy_coverage.disqualified"],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
     "subject": "claim",
     "attribute": "below_deductible",
     "operator": "==",
@@ -84,7 +111,9 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": ["policy_coverage.high_value_flagged"],
+    "output": [
+      "policy_coverage.high_value_flagged"
+    ],
     "subject": "claim",
     "attribute": "amount",
     "operator": ">",
@@ -97,12 +126,34 @@
     "priority": 3,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["policy_coverage.high_value_flagged"],
-    "output": ["policy_coverage.disqualified"],
+    "input": [
+      "policy_coverage.high_value_flagged"
+    ],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
     "threshold": "3",
     "reason": "High-value claim from a customer with 3 or more prior claims is flagged for manual review."
+  },
+  {
+    "id": "pc_test_phantom_consumer",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2026-01-02T00:00:00+00:00",
+    "input": [
+      "policy_coverage.age_verified"
+    ],
+    "output": [
+      "policy_coverage.disqualified"
+    ],
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">",
+    "threshold": "5000",
+    "reason": "Demo phantom consumer (retired)."
   }
 ]

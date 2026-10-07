@@ -14,7 +14,7 @@
 | `mcp_clients.servers` | `csv_mcp_server.py`: stdio MCP server; exposes `get_claim`, `get_customer`, `get_policy_rule`, `get_policy_rule_by_filter` tools backed by registry and CSV |
 | `rules` | Rule taxonomy (`DecisionRule`, `LookupRule`), `RuleRegistry` (versioned singleton, DAG-aware, executor), `RuleFactory` (type detection and instantiation), `RuleExecutionResult` (execution result with metadata, triggered rules, ordered per-rule evaluations, entity snapshots, and outputs) |
 | `etl` | `RuleEtl`: versioning ETL pipeline; reads raw JSON, detects changes, bumps versions, writes full audit history; driven by `config/etl.yaml` |
-| `models` | Pydantic/dataclass models: `Claim`, `Customer`, `PolicyRule`, `ClaimAppealResult`, `UserRequest`, `UserResponse`, `AuditRecord` |
+| `models` | Pydantic/dataclass models: `Claim`, `Customer`, `PolicyRule`, `ClaimAppealResult`, `DomainConfig`, `UserRequest`, `UserResponse`, `AuditRecord` |
 | `services` | `TraceService` (trace context creation), `AuditService` (request-level audit log), `RuleExecutionAuditService` (rule execution audit log; appends to JSONL) |
 | `core` | Cross-cutting concerns: `Configurable`, `ConfigurableObjectFactory`, `Singleton`, `SerializableMixin`, `EntityMetadata`, `ExecutionMetadata`; provided by the [`shared`](../../../shared/docs/core.md) foundation library |
 | `handlers` | Request handler wiring HTTP layer to orchestrator |
@@ -81,7 +81,7 @@
 | 7 | `agents.ClaimAppealAgent._build_context()` | Builds flat execution context from claim + customer using `dataclasses.fields()` + `getattr()`, preserving `bool` and `Enum` types for correct threshold coercion |
 | 8 | `rules.RuleRegistry.execute("claim_appeal", context, entities=...)` | Walks the DAG using a ready-queue model (Kahn's variant): rules enter the queue only when all upstream producers have settled; cascade-prunes consumers whose required inputs will never arrive; stops as soon as any terminal output appears in context; records every rule with one of five outcomes (triggered / skipped_no_match / pruned / skipped_precondition / not_evaluated); returns `RuleExecutionResult` |
 | 9 | `services.RuleExecutionAuditService.log(result)` | Appends one JSONL record to `data/audit/rule_executions.jsonl` capturing trace ID, domain, triggered rules in execution order, ordered per-rule evaluations, entity snapshots (claim and customer), and outputs |
-| 10 | `agents.ClaimAppealAgent.check_eligibility()` | If `"appeal.disqualified"` in `result.outputs` → `ClaimAppealResult(eligible=False, reason)`; else → `ClaimAppealResult(eligible=True)` |
+| 10 | `agents.ClaimAppealAgent.check_eligibility()` | Calls `RuleRegistry.terminal_outputs("claim_appeal")`; if any terminal field is in `result.outputs` → `ClaimAppealResult(eligible=False, reason)`; else → `ClaimAppealResult(eligible=True)` |
 | 11 | `workflow.WorkflowOrchestrator` | Wraps message in `models.UserResponse`; returns to HTTP layer |
 | 12 | `app.routes.claim_appeal` | Returns HTTP 200 JSON response |
 
@@ -114,6 +114,7 @@ Business rules (appeal eligibility, policy lookup, routing decisions, pricing) f
 | `RuleRegistry` append-only versioning | `etl.RuleEtl`, `app.dependencies` | ETL bumps versions on change and preserves all history; startup loads current active versions |
 | `RuleRegistry.get_effective()` topological sort | `ClaimAppealRuleMcpClient.rules`, `app.routes.rules` | Rules returned in DAG execution order: root rules first, priority descending within each level |
 | `RuleRegistry.execute()` DAG execution | `ClaimAppealAgent.check_eligibility()` | Walks rules using a ready-queue model; cascade-prunes consumers whose required inputs will never arrive; stops on first terminal output; records every rule with one of five outcomes (triggered / skipped_no_match / pruned / skipped_precondition / not_evaluated); returns `RuleExecutionResult` |
+| `DomainConfig` + `terminal_outputs()` | `ClaimAppealAgent`, `ClaimCoverageAgent`, `app.routes.executions`, `app.routes.rules` | Terminal output fields declared in `data/in/domain_config.json`; loaded at startup via `load_from(domain_config_path=...)`; `terminal_outputs(domain)` returns the set so no agent or route hardcodes a field name |
 | `_build_context()` with `dataclasses.fields()` | `ClaimAppealAgent.check_eligibility()` | Preserves Python types (`bool`, `Enum`) for correct threshold coercion; `to_dict()` must not be used here as it converts `bool` to `"true"` string |
 | `entities` in `RuleRegistry.execute()` | `ClaimAppealAgent.check_eligibility()` | `claim.to_dict()` and `customer.to_dict()` passed as entity snapshots; captured at execution time so the audit record carries full domain object state regardless of later mutations |
 | `ExecutionMetadata` / `RuleExecutionResult` | `RuleRegistry.execute()` | Audit metadata (trace ID, executor, timestamp) composed into execution results, mirroring `EntityMetadata` on persistent entities |

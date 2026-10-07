@@ -79,9 +79,10 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
             entities={"claim": claim.to_dict(), "customer": customer.to_dict()},
         )
         svc.RuleExecutionAuditService().log(result)
-        if "appeal.disqualified" in result.outputs:
+        terminals = rls.RuleRegistry().terminal_outputs("claim_appeal")
+        if result.outputs.keys() & terminals:
             reason = next(
-                (r.reason for r in result.triggered if "appeal.disqualified" in r.output),
+                (r.reason for r in result.triggered if set(r.output) & terminals),
                 None,
             )
             return mdl.ClaimAppealResult(claim.claim_id, False, reason)

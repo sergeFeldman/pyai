@@ -88,6 +88,11 @@ def reset_singletons():
 
 
 class TestClaimAppealAgent:
+    def setup_method(self):
+        RuleRegistry()._domain_configs["claim_appeal"] = mdl.DomainConfig(
+            domain="claim_appeal", terminal_outputs=["appeal.disqualified"]
+        )
+
     def _agent(self) -> ClaimAppealAgent:
         return ClaimAppealAgent(ClaimAppealAgentConfig())
 
@@ -281,9 +286,14 @@ class TestClaimAppealAgentIntegration:
     _RULES_FILE = Path(__file__).parent.parent.parent / "data" / "out" / "claim_appeal_rules.json"
     _AUDIT_FILE = Path(__file__).parent.parent.parent / "data" / "test" / "audit" / "rule_executions.jsonl"
 
+    _DOMAIN_CONFIG_FILE = Path(__file__).parent.parent.parent / "data" / "out" / "domain_config.json"
+
     @pytest.fixture(autouse=True)
     def load_production_rules(self):
-        RuleRegistry.load_from(str(self._RULES_FILE))
+        RuleRegistry.load_from(
+            str(self._RULES_FILE),
+            domain_config_path=str(self._DOMAIN_CONFIG_FILE),
+        )
         yield
         if self._AUDIT_FILE.exists():
             self._AUDIT_FILE.write_text("")

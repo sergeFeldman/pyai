@@ -5,10 +5,18 @@
     "priority": 10,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.claim_type"],
-    "output": ["appeal.disqualified"],
-    "match_keys": {"claim.claim_type": "commercial"},
-    "output_values": {"appeal.disqualified": true},
+    "input": [
+      "claim.claim_type"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "match_keys": {
+      "claim.claim_type": "commercial"
+    },
+    "output_values": {
+      "appeal.disqualified": true
+    },
     "reason": "Commercial claims are not eligible for appeal."
   },
   {
@@ -17,8 +25,12 @@
     "priority": 8,
     "effective_from": "2026-10-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.is_fraud"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "claim.is_fraud"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "claim",
     "attribute": "is_fraud",
     "operator": "==",
@@ -31,12 +43,27 @@
     "priority": 11,
     "effective_from": "2026-10-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.claim_type", "customer.tenure_years"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "claim.claim_type",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "logic": "AND",
     "conditions": [
-      {"subject": "claim", "attribute": "claim_type", "operator": "==", "threshold": "theft"},
-      {"subject": "customer", "attribute": "tenure_years", "operator": "<", "threshold": "4"}
+      {
+        "subject": "claim",
+        "attribute": "claim_type",
+        "operator": "==",
+        "threshold": "theft"
+      },
+      {
+        "subject": "customer",
+        "attribute": "tenure_years",
+        "operator": "<",
+        "threshold": "4"
+      }
     ],
     "reason": "Theft claims require a minimum of 4 years customer tenure to be eligible for appeal."
   },
@@ -46,24 +73,47 @@
     "priority": 9,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.repair_shop"],
-    "output": ["appeal.disqualified"],
-    "match_keys": {"claim.repair_shop": "shop_rouge"},
-    "output_values": {"appeal.disqualified": true},
+    "input": [
+      "claim.repair_shop"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "match_keys": {
+      "claim.repair_shop": "shop_rouge"
+    },
+    "output_values": {
+      "appeal.disqualified": true
+    },
     "reason": "Claim filed through a repair shop with active fraud flags."
   },
-{
+  {
     "id": "ca_fraud_escalation_limit",
     "group": "",
     "priority": 7,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["customer.prior_claim_count", "customer.escalation_history_count"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "customer.prior_claim_count",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "logic": "AND",
     "conditions": [
-      {"subject": "customer", "attribute": "prior_claim_count", "operator": ">=", "threshold": "5"},
-      {"subject": "customer", "attribute": "escalation_history_count", "operator": ">=", "threshold": "2"}
+      {
+        "subject": "customer",
+        "attribute": "prior_claim_count",
+        "operator": ">=",
+        "threshold": "5"
+      },
+      {
+        "subject": "customer",
+        "attribute": "escalation_history_count",
+        "operator": ">=",
+        "threshold": "2"
+      }
     ],
     "reason": "Repeat claimant with multiple escalation attempts."
   },
@@ -73,8 +123,12 @@
     "priority": 6,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["customer.escalation_history_count"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
@@ -87,8 +141,12 @@
     "priority": 5,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.status"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "claim.status"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "claim",
     "attribute": "status",
     "operator": "!=",
@@ -101,8 +159,12 @@
     "priority": 4,
     "effective_from": "2026-10-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["customer.prior_claim_count"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "customer.prior_claim_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
@@ -115,8 +177,12 @@
     "priority": 14,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.amount"],
-    "output": ["appeal.low_value_flagged"],
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.low_value_flagged"
+    ],
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
@@ -129,8 +195,13 @@
     "priority": 3,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["appeal.low_value_flagged", "customer.tenure_years"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "appeal.low_value_flagged",
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
@@ -143,8 +214,13 @@
     "priority": 6,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["appeal.low_value_flagged", "customer.escalation_history_count"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "appeal.low_value_flagged",
+      "customer.escalation_history_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
@@ -157,8 +233,13 @@
     "priority": 5,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["appeal.low_value_flagged", "customer.prior_claim_count"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "appeal.low_value_flagged",
+      "customer.prior_claim_count"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
@@ -171,8 +252,12 @@
     "priority": 2,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["customer.tenure_years"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "customer.tenure_years"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
@@ -185,8 +270,12 @@
     "priority": 1,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.amount"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
@@ -199,8 +288,12 @@
     "priority": 13,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.amount"],
-    "output": ["appeal.high_value_flagged"],
+    "input": [
+      "claim.amount"
+    ],
+    "output": [
+      "appeal.high_value_flagged"
+    ],
     "subject": "claim",
     "attribute": "amount",
     "operator": ">=",
@@ -213,12 +306,52 @@
     "priority": 12,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": ["claim.amount", "customer.prior_claim_count", "appeal.high_value_flagged"],
-    "output": ["appeal.disqualified"],
+    "input": [
+      "claim.amount",
+      "customer.prior_claim_count",
+      "appeal.high_value_flagged"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
     "threshold": "3",
     "reason": "High-value claims from customers with 3 or more prior claims are not eligible for appeal."
+  },
+  {
+    "id": "ca_test_orphan_producer",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "appeal.test_orphan"
+    ],
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "-999999",
+    "reason": "Demo orphan producer: produces appeal.test_orphan which no rule consumes and is not a declared terminal."
+  },
+  {
+    "id": "ca_test_phantom_consumer",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "appeal.fraud_score"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">",
+    "threshold": "5000",
+    "reason": "Demo phantom consumer: references appeal.fraud_score which no rule produces (likely typo for appeal.fraud_flagged)."
   }
 ]

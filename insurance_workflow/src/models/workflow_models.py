@@ -7,6 +7,8 @@ from typing import Annotated, Optional
 
 import shared.core as shd_core
 
+from .base_model import WorkflowBaseModel
+
 
 # Enums
 
@@ -23,6 +25,22 @@ class ClaimStatus(Enum):
 
 
 # Classes
+
+class DomainConfig(WorkflowBaseModel):
+    """Configuration for a single rule domain.
+
+    Attributes:
+        domain: Domain key, e.g. "claim_appeal".
+        terminal_outputs: Fields produced by rules in this domain that are
+            consumed by the agent rather than by other rules. The graph
+            validation linter suppresses orphan producer warnings for declared
+            terminal fields; a misspelling in a rule's output will not match
+            and will still warn. Agents and APIs use this as the single source
+            of truth for domain output contracts instead of hardcoding field names.
+    """
+
+    domain: str
+    terminal_outputs: list[str] = []
 
 @dataclass
 class AttributeExplanation:

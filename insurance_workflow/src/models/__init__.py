@@ -13,6 +13,7 @@ from .api_models import (
 from .base_model import WorkflowBaseModel
 from .workflow_models import (
     AuditRecord,
+    DomainConfig,
     AttributeExplanation,
     Claim,
     ClaimAppealResult,
@@ -60,6 +61,7 @@ __all__ = [
     "PolicyRuleRequest",
     "UserRequest",
     "UserResponse",
+    "DomainConfig",
     "WorkflowBaseModel",
     "WorkflowContext",
 ]

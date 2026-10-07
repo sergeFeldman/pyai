@@ -11,8 +11,10 @@ import networkx as nx
 import shared.core as shd_core
 import shared.data as shd_data
 
+import models as mdl
 from .rule import Rule
 from .rule_factory import RuleFactory
+from .rule_graph_validator import RuleGraphFinding, RuleGraphValidationReport, RuleGraphValidator, RuleValidationSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +95,9 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
     def __init__(self) -> None:
         super().__init__(Rule, key_field="domain")
         self._dags: dict[str, nx.DiGraph] = {}  # lazy cache, mirrors ConfigurableObjectFactory._objects
+        self._excluded_rule_ids: set[str] = set()
+        self._validation_report: RuleGraphValidationReport = RuleGraphValidationReport()
+        self._domain_configs: dict[str, mdl.DomainConfig] = {}
 
     def load(self, items: list[Rule]) -> None:
         """Replace registry contents and invalidate the DAG cache.
@@ -106,18 +111,44 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         super().load(items)
         self._dags.clear()
 
+    def terminal_outputs(self, domain: str) -> set[str]:
+        """Return the declared terminal output fields for a domain.
+
+        Returns the set from mdl.DomainConfig if one was loaded for this domain,
+        otherwise an empty set. Agents and APIs use this instead of hardcoding
+        terminal field names.
+
+        Args:
+            domain: Domain key, e.g. "claim_appeal".
+
+        Returns:
+            Set of terminal output field names, or empty set if domain has no config.
+        """
+        config = self._domain_configs.get(domain)
+        return set(config.terminal_outputs) if config else set()
+
     @classmethod
-    def load_from(cls, *file_paths: str) -> RuleRegistry:
+    def load_from(cls, *file_paths: str, domain_config_path: str | None = None) -> RuleRegistry:
         """Create and populate a registry from one or more rule data files.
 
         Deserializes all rules from every file via RuleFactory, loads them into
-        the registry in a single pass, then validates that every domain's active
-        rule graph is acyclic. Raises at startup before any request is served if
-        a cycle is found.
+        the registry in a single pass, then runs three validations over the active
+        rule graph before any request is served:
+
+        1. Cycle detection: raises if any domain's active graph contains a cycle.
+        2. Phantom consumer detection: rules that declare an input field no active
+           rule produces are logged at ERROR level and stored in _excluded_rule_ids;
+           they are filtered out of _get_effective() and never reach the DAG.
+        3. Orphan producer detection: rules that produce a field no active rule
+           consumes are logged at WARNING level; terminal outputs consumed by agents
+           rather than rules are expected orphan producers.
+
+        The full validation report is stored on the registry as _validation_report
+        and is available to the dashboard via GET /validation-report.
 
         Args:
             file_paths: One or more paths to JSON rule data files. All files are
-                combined before loading so cycle detection covers every domain.
+                combined before loading so validation covers every domain.
 
         Returns:
             RuleRegistry populated with rules from all provided files.
@@ -125,19 +156,45 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
         Raises:
             ValueError: If any domain's active rule graph contains a cycle.
         """
+        factory = RuleFactory()
         all_rules = []
         for file_path in file_paths:
             storage = shd_data.JsonDataStorage(
                 shd_data.JsonDataStorageConfig(model_class=Rule, key_field="id", file_path=file_path)
             )
-            all_rules.extend(RuleFactory().from_dict(raw) for raw in storage.read_as_dicts())
+            all_rules.extend(factory.from_dict(raw) for raw in storage.read_as_dicts())
 
         registry = cls()
         registry.load(all_rules)
 
-        for domain in {r.domain for r in registry.all()}:
+        if domain_config_path:
+            import json
+            from pathlib import Path
+            raw_configs = json.loads(Path(domain_config_path).read_text())
+            registry._domain_configs = {
+                dc["domain"]: mdl.DomainConfig.model_validate(dc) for dc in raw_configs
+            }
+
+        domains = {r.domain for r in registry.all()}
+        for domain in domains:
             if not nx.is_directed_acyclic_graph(registry.get_dag(domain)):
                 raise ValueError(f"Cycle detected in rules for domain: {domain}")
+
+        all_effective = [r for d in domains for r in registry._get_effective(d)]
+
+        terminal_outputs_map = {
+            domain: set(cfg.terminal_outputs)
+            for domain, cfg in registry._domain_configs.items()
+        }
+        report = RuleGraphValidator().validate(all_effective, terminal_outputs=terminal_outputs_map)
+        for finding in report.findings:
+            if finding.severity == RuleValidationSeverity.ERROR:
+                logger.error(f"[{finding.kind}] {finding.domain}/{finding.rule_id} field='{finding.field}': {finding.message}")
+            else:
+                logger.warning(f"[{finding.kind}] {finding.domain}/{finding.rule_id} field='{finding.field}': {finding.message}")
+
+        registry._excluded_rule_ids = {f.rule_id for f in report.errors}
+        registry._validation_report = report
 
         return registry
 
@@ -163,7 +220,7 @@ class RuleRegistry(shd_core.KeyedRegistry[Rule], metaclass=shd_core.Singleton):
             prev = latest.get(rule.id)
             if prev is None or rule.metadata.version > prev.metadata.version:
                 latest[rule.id] = rule
-        return [rule for rule in latest.values() if rule.is_effective]
+        return [rule for rule in latest.values() if rule.is_effective and rule.id not in self._excluded_rule_ids]
 
     def _build_graph(self, rules: list[Rule]) -> nx.DiGraph:
         """Build a DiGraph from a rule list using input/output field overlap as edges.

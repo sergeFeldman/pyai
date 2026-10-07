@@ -174,6 +174,7 @@
 
     /* ── graph ── */
     #graph-wrap { flex: 1; position: relative; overflow: hidden; }
+    #graph-wrap.hidden { display: none; }
     #graph { width: 100%; height: 100%; background: var(--bg); }
 
     #overlay {
@@ -340,6 +341,58 @@
     .dot-pruned      { background: #1D3A5F; }
     .dot-precondition{ background: #1D3A5F; border: 1px solid #2F81F7; }
     .legend-hint     { color: var(--muted); font-size: 10px; margin-left: auto; }
+
+    /* ── graph health ── */
+    .health-badge {
+      padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      letter-spacing: .04em; white-space: nowrap; flex-shrink: 0;
+    }
+    .health-ok    { background: #0F3D1F; color: #7EE787; border: 1px solid #3FB950; }
+    .health-warn  { background: #2D1F0D; color: #E3B341; border: 1px solid #9E6A03; }
+    .health-error { background: #3D1515; color: #FF7B72; border: 1px solid #CF222E; }
+
+    #health-panel {
+      flex: 1; overflow-y: auto; padding: 20px 24px;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+    #health-panel.hidden { display: none; }
+
+    .health-summary {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .health-stat {
+      font-size: 11px; color: var(--muted);
+    }
+    .health-stat b { font-variant-numeric: tabular-nums; }
+    .health-ts { font-family: monospace; font-size: 11px; color: var(--muted); }
+
+    .findings-table {
+      width: 100%; border-collapse: collapse; font-size: 12px;
+    }
+    .findings-table th {
+      text-align: left; padding: 6px 10px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .findings-table td {
+      padding: 7px 10px; border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .findings-table tr:last-child td { border-bottom: none; }
+    .findings-table tr:hover td { background: var(--surface2); }
+    .finding-sev {
+      padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .04em; white-space: nowrap;
+    }
+    .finding-error { background: #3D1515; color: #FF7B72; border: 1px solid #CF222E; }
+    .finding-warn  { background: #2D1F0D; color: #E3B341; border: 1px solid #9E6A03; }
+    .finding-kind { font-family: monospace; font-size: 11px; color: var(--muted); }
+    .finding-rule { font-family: monospace; font-size: 11px; color: var(--accent); }
+    .finding-field { font-family: monospace; font-size: 11px; color: #D2A8FF; }
+    .finding-msg { font-size: 11px; color: var(--muted); line-height: 1.45; }
+    .findings-empty { padding: 16px 10px; color: var(--muted); font-size: 12px; }
   </style>
 </head>
 <body>
@@ -347,11 +400,13 @@
 
   <header>
     <span class="brand">Rule Registry<span class="brand-sub">DAG Dashboard</span></span>
+    <span id="health-header-badge" class="health-badge" style="display:none"></span>
     <div class="divider"></div>
 
     <div class="tab-group">
       <button class="tab active" id="tab-rules"      onclick="switchTab('rules')">Rules</button>
       <button class="tab"        id="tab-executions" onclick="switchTab('executions')">Executions</button>
+      <button class="tab"        id="tab-health"     onclick="switchTab('health')">Health</button>
     </div>
 
     <div class="divider"></div>
@@ -393,6 +448,16 @@
       </div>
     </div>
 
+    <div id="health-panel" class="hidden">
+      <div class="health-summary">
+        <span id="health-panel-badge" class="health-badge"></span>
+        <span class="health-stat">Errors: <b id="hp-errors">—</b></span>
+        <span class="health-stat">Warnings: <b id="hp-warnings">—</b></span>
+        <span class="health-ts" id="hp-ts"></span>
+      </div>
+      <div id="hp-table-wrap"></div>
+    </div>
+
     <div id="detail">
       <div id="detail-header">Rule Detail</div>
       <div id="detail-body">
@@ -425,6 +490,7 @@
 let network        = null;
 let currentDomain  = null;
 let currentData    = null;
+let terminalOutputs = new Set();
 let panelOpen      = true;
 let activeTab      = 'rules';
 let executionsData = null;
@@ -432,6 +498,7 @@ let selectedTraceId = null;
 
 // ── boot ──────────────────────────────────────────────────────────────────────
 async function init() {
+  loadValidationReport();
   try {
     const res  = await fetch('/rules/domains');
     const data = await res.json();
@@ -455,22 +522,148 @@ function switchTab(tab) {
   activeTab = tab;
   document.getElementById('tab-rules').classList.toggle('active', tab === 'rules');
   document.getElementById('tab-executions').classList.toggle('active', tab === 'executions');
+  document.getElementById('tab-health').classList.toggle('active', tab === 'health');
   document.getElementById('sessions-panel').classList.toggle('hidden', tab !== 'executions');
+  document.getElementById('graph-wrap').classList.toggle('hidden', tab === 'health');
+  document.getElementById('health-panel').classList.toggle('hidden', tab !== 'health');
+  document.getElementById('detail').classList.toggle('collapsed', tab === 'health');
+  document.getElementById('panel-toggle').style.visibility = tab === 'health' ? 'hidden' : '';
   document.getElementById('legend-triggered').style.display   = tab === 'executions' ? '' : 'none';
   document.getElementById('legend-no-match').style.display    = tab === 'executions' ? '' : 'none';
   document.getElementById('legend-pruned').style.display      = tab === 'executions' ? '' : 'none';
   document.getElementById('legend-precondition').style.display = tab === 'executions' ? '' : 'none';
+
+  const badge = document.getElementById('health-header-badge');
+  if (tab !== 'health') { badge.style.display = 'none'; }
 
   if (tab === 'rules') {
     clearOverlay();
     selectedTraceId = null;
     document.getElementById('detail-header').textContent = 'Rule Detail';
     clearDetail();
-  } else {
+    if (panelOpen) document.getElementById('detail').classList.remove('collapsed');
+    if (currentDomain) {
+      if (!currentData) loadDag(currentDomain);
+      else if (network) setTimeout(() => network.fit(), 0);
+    }
+  } else if (tab === 'executions') {
     document.getElementById('detail-header').textContent = 'Execution Detail';
     clearDetail();
-    if (currentDomain) loadExecutions(currentDomain);
+    if (currentDomain) {
+      if (!currentData) loadDag(currentDomain);  // loadDag calls loadExecutions when activeTab === 'executions'
+      else { loadExecutions(currentDomain); if (network) setTimeout(() => network.fit(), 0); }
+    }
+  } else if (tab === 'health') {
+    if (validationReport) {
+      renderHealthBadge(validationReport, currentDomain);
+      renderHealthPanel(validationReport);
+    } else {
+      loadValidationReport();
+    }
   }
+}
+
+// ── graph health ──────────────────────────────────────────────────────────────
+let validationReport = null;
+
+async function loadValidationReport() {
+  try {
+    const res = await fetch('/rules/validation-report');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    validationReport = await res.json();
+    if (activeTab === 'health') {
+      renderHealthBadge(validationReport, currentDomain);
+      renderHealthPanel(validationReport);
+    }
+  } catch (e) {
+    if (activeTab === 'health') {
+      const el = document.getElementById('health-header-badge');
+      el.textContent = 'unavailable'; el.className = 'health-badge health-warn'; el.style.display = '';
+    }
+  }
+}
+
+function renderHealthBadge(r, domain) {
+  if (activeTab !== 'health') return;
+  const el = document.getElementById('health-header-badge');
+  if (!domain) { el.style.display = 'none'; return; }
+  const findings = r.findings.filter(f => f.domain === domain);
+  const errors   = findings.filter(f => f.severity === 'error').length;
+  const warnings = findings.filter(f => f.severity === 'warning').length;
+  if (errors > 0) {
+    el.className = 'health-badge health-error';
+    el.textContent = `${errors} error${errors > 1 ? 's' : ''}`;
+  } else if (warnings > 0) {
+    el.className = 'health-badge health-warn';
+    el.textContent = `${warnings} warning${warnings > 1 ? 's' : ''}`;
+  } else {
+    el.className = 'health-badge health-ok';
+    el.textContent = 'valid';
+  }
+  el.style.display = '';
+}
+
+function renderHealthPanel(r) {
+  const wrap = document.getElementById('hp-table-wrap');
+
+  if (!currentDomain) {
+    document.getElementById('health-panel-badge').className = 'health-badge';
+    document.getElementById('health-panel-badge').textContent = '';
+    document.getElementById('hp-errors').textContent   = '—';
+    document.getElementById('hp-warnings').textContent = '—';
+    document.getElementById('hp-ts').textContent = `validated ${fmtDateTime(r.validated_at)}`;
+    wrap.innerHTML = '<div class="findings-empty">Select a domain from the dropdown to view findings.</div>';
+    return;
+  }
+
+  const findings = r.findings.filter(f => f.domain === currentDomain);
+  const errors   = findings.filter(f => f.severity === 'error').length;
+  const warnings = findings.filter(f => f.severity === 'warning').length;
+
+  const panelBadge = document.getElementById('health-panel-badge');
+  if (errors > 0) {
+    panelBadge.className = 'health-badge health-error';
+    panelBadge.textContent = `${errors} error${errors > 1 ? 's' : ''}`;
+  } else if (warnings > 0) {
+    panelBadge.className = 'health-badge health-warn';
+    panelBadge.textContent = `${warnings} warning${warnings > 1 ? 's' : ''}`;
+  } else {
+    panelBadge.className = 'health-badge health-ok';
+    panelBadge.textContent = 'valid';
+  }
+  document.getElementById('hp-errors').textContent   = errors;
+  document.getElementById('hp-warnings').textContent = warnings;
+  document.getElementById('hp-ts').textContent =
+    `${esc(currentDomain)} · validated ${fmtDateTime(r.validated_at)}`;
+
+  if (!findings.length) {
+    wrap.innerHTML = '<div class="findings-empty">No findings — graph is clean.</div>';
+    return;
+  }
+
+  const sorted = [...findings].sort((a, b) => {
+    if (a.severity !== b.severity) return a.severity === 'error' ? -1 : 1;
+    return a.rule_id.localeCompare(b.rule_id);
+  });
+
+  const rows = sorted.map(f => {
+    const sevCls = f.severity === 'error' ? 'finding-error' : 'finding-warn';
+    return `<tr>
+      <td><span class="finding-sev ${sevCls}">${esc(f.severity)}</span></td>
+      <td><span class="finding-kind">${esc(f.kind)}</span></td>
+      <td><span class="finding-rule">${esc(f.rule_id)}</span></td>
+      <td><span class="finding-field">${esc(f.field)}</span></td>
+      <td><span class="finding-msg">${esc(f.message)}</span></td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="findings-table">
+      <thead><tr>
+        <th>Severity</th><th>Kind</th><th>Rule</th><th>Field</th><th>Message</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 // ── DAG load ──────────────────────────────────────────────────────────────────
@@ -479,14 +672,22 @@ async function loadDag(domain, replaceWithNew = false) {
   currentDomain = domain;
   clearDetail();
   selectedTraceId = null;
-  showOverlay(replaceWithNew ? 'Rebuilding DAG…' : 'Loading…');
 
+  // Update health panel immediately — no need to wait for the DAG fetch
+  if (activeTab === 'health' && validationReport) {
+    renderHealthBadge(validationReport, domain);
+    renderHealthPanel(validationReport);
+    return;
+  }
+
+  showOverlay(replaceWithNew ? 'Rebuilding DAG…' : 'Loading…');
   try {
     const qs   = replaceWithNew ? '?replace_with_new=true' : '';
     const res  = await fetch(`/rules/dag/${domain}${qs}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     currentData = data;
+    terminalOutputs = new Set(data.terminal_outputs || []);
     updateStats(data);
     renderGraph(data);
 
@@ -983,7 +1184,7 @@ function showSessionDetail(session) {
 
   // primary disqualification reason
   if (!session.eligible) {
-    const disqualifiers = session.triggered_rules.filter(r => r.output?.includes('appeal.disqualified'));
+    const disqualifiers = session.triggered_rules.filter(r => r.output?.some(f => terminalOutputs.has(f)));
     if (disqualifiers.length) {
       const primaryReason = disqualifiers[0].reason || disqualifiers[0].id;
       h.push(`<div style="font-size:12px;color:#FF7B72;line-height:1.45;margin-bottom:10px;padding:6px 8px;background:#3D1515;border:1px solid #CF222E;border-radius:4px">${esc(primaryReason)}</div>`);
@@ -1040,7 +1241,7 @@ function showSessionDetail(session) {
       const outcome = ev.outcome;
 
       if (outcome === 'triggered') {
-        const isDisq      = rule.output?.includes('appeal.disqualified');
+        const isDisq      = rule.output?.some(f => terminalOutputs.has(f));
         const borderColor = isDisq ? '#CF222E' : '#9E6A03';
         const bgColor     = isDisq ? '#2A0D0D' : '#1E1A0E';
         const idColor     = isDisq ? '#FF7B72' : '#E3B341';
@@ -1071,7 +1272,7 @@ function showSessionDetail(session) {
 
         if (rule.output?.length) {
           h.push(`<div class="fields" style="margin-top:4px">${rule.output.map(f => {
-            const isFlag = f === 'appeal.disqualified';
+            const isFlag = terminalOutputs.has(f);
             const style  = isFlag ? 'background:#3D1515;border-color:#CF222E;color:#FF7B72'
                                   : 'background:#2D1F0D;border-color:#9E6A03;color:#E3B341';
             return `<span class="ftag" style="font-size:10px;${style}">→ ${esc(f)}</span>`;

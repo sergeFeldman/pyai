@@ -26,6 +26,9 @@ rule_registry_policy:
 rule_registry_policy_coverage:
   file_path: data/out/policy_coverage_rules.json
 
+domain_config:
+  file_path: data/out/domain_config.json
+
 policy:
   storage_type: csv
   model_type: policy

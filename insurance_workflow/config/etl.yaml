@@ -15,3 +15,7 @@ policy_coverage:
   input_file_path: data/in/policy_coverage_rules.json
   output_file_path: data/out/policy_coverage_rules.json
   updated_by: etl
+
+domain_config:
+  input_file_path: data/in/domain_config.json
+  output_file_path: data/out/domain_config.json

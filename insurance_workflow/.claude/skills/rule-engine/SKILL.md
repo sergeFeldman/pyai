@@ -7,9 +7,9 @@ description: The deterministic rule engine in src/rules and src/etl - Rule, Deci
 
 ## Responsibility
 
-Owns rule types, rule data, the registry and its DAG, execution semantics, domain output contracts, the rule ETL, the `/rules/*` API, and the `/dashboard` page.
+Owns rule types, rule data, the registry and its DAG, execution semantics, domain output contracts, the rule ETL, and the `/rules/*` API.
 
-Does not own how an agent builds the execution context or turns a result into a user message (workflow-agents), rule clients (mcp-clients), or persistence of execution results and the `/executions` API (audit-and-trace).
+Does not own how an agent builds the execution context or turns a result into a user message (workflow-agents), rule clients (mcp-clients), persistence of execution results and the `/executions` API (audit-and-trace), or the dashboard HTML/JS (see the dashboard skill).
 
 ## Rule model
 
@@ -46,7 +46,8 @@ Status: `ExtractionRule` planned; see [docs/roadmap/implementation-roadmap.md](.
 - `get_latest(id, domain)` returns the highest `metadata.version`.
 - `get_effective(domain, group="")` takes the latest version per id, then drops it if that version is not effective, and orders the rest by topological generation, then priority descending, then id. An older effective version is never used as a fallback: if the latest version has expired, the rule is out.
 - `get_dag(domain, group="")` builds an `nx.DiGraph` (node data `rule`) with one edge A to B when `A.output` and `B.input` share at least one field; the edge's `fields` lists every shared field. Graphs are cached per `domain` or `domain:group`; `load()` clears the cache and `replace_with_new=True` rebuilds. `add()` does not clear it, so a graph built before an `add()` is stale until rebuilt.
-- `load_from(*paths)` loads every file in one pass and raises `ValueError` if any domain's effective-rule graph has a cycle (expired or superseded versions are not checked). The app calls it once at startup; the MCP server subprocess calls it for the policy file.
+- `load_from(*paths, domain_config_path=None)` loads every file in one pass, raises `ValueError` if any domain's effective-rule graph has a cycle (expired or superseded versions are not checked), then runs three graph validations on the effective rules: (1) cycle detection (raises), (2) phantom consumer detection (a rule whose `input` declares a field no active rule in the same namespace produces — excluded from the DAG, logged at ERROR), (3) orphan producer detection (a field produced but consumed by no other rule — logged at WARNING; declared terminal outputs are suppressed). Namespace scoping limits phantom consumer checks to fields whose prefix matches the domain's produced-field prefixes, so external context fields such as `claim.amount` are not flagged. After validation, the registry stores `_excluded_rule_ids: set[str]` (rules excluded from execution) and `_validation_report: RuleGraphValidationReport` (all findings). Excluded rules remain in `all()` but never appear in `get_effective()` or the DAG. The app calls it once at startup with `domain_config_path`; the MCP server subprocess calls it for the policy file (no domain config needed there).
+- `terminal_outputs(domain)` returns `set[str]` of declared terminal output fields for a domain, or an empty set if no `DomainConfig` was loaded. Agents and APIs use this instead of hardcoding field names.
 
 Concurrency: the registry, its DAG cache, and `RuleFactory` are process-wide singletons with no locking. Never call `load()` while requests are being served, and never mutate a rule object held by the registry.
 
@@ -60,18 +61,35 @@ Priority orders rules only within a cascade wave. A dependent rule always runs a
 
 Pruning happens in `_cascade()` before enqueue; the in-loop prune check in `execute()` is a defensive fallback. For the pruning algorithm, outcome definitions, and worked examples, read [references/execution-semantics.md](references/execution-semantics.md) before changing `execute()` or debugging an outcome.
 
-Status: partial (evaluations record `rule_id` and `outcome` only; rule version and output values per evaluation are planned). Graph validation linter, parallel execution, decision replay, goal-directed evaluation, and incremental re-evaluation are planned.
+Status: partial (evaluations record `rule_id` and `outcome` only; rule version and output values per evaluation are planned). Parallel execution, decision replay, goal-directed evaluation, and incremental re-evaluation are planned.
+
+## DomainConfig
+
+`mdl.DomainConfig` (`src/models/workflow_models.py`, a `WorkflowBaseModel`) declares the terminal output fields for one domain. Terminal outputs are fields produced by rules but consumed by the agent rather than by other rules.
+
+- Declared in `data/in/domain_config.json` (array of `{domain, terminal_outputs}`), copied to `data/out/` by the ETL. Never version-managed; copied as-is.
+- Loaded by `load_from(domain_config_path=...)` into `_domain_configs: dict[str, mdl.DomainConfig]` via `mdl.DomainConfig.model_validate(dc)`.
+- Used in three places: (1) the graph validation linter suppresses orphan producer warnings for declared terminal fields — a misspelling in a rule's output will not match and will still warn; (2) agents call `terminal_outputs(domain)` to decide eligibility without hardcoding field names; (3) the DAG API endpoint includes `terminal_outputs` in its response so the dashboard can colour nodes correctly.
+- Adding a new terminal output: add the field to `data/in/domain_config.json` and run the ETL. No code change required.
 
 ## Domain output contracts
 
-Each domain's rules write agreed field names. Agents and APIs read only these fields.
+Each domain's rules write agreed field names. Agents and APIs read only these fields via `terminal_outputs(domain)`.
 
 **claim_appeal**
 
 - Mixes `DecisionRule`s and `LookupRule`s (for example `ca_commercial_type` matches `claim.claim_type == "commercial"`). All rules write boolean `True` to `appeal.disqualified`; lookup rules declare this in `output_values` as a JSON boolean (`true`), not a string.
 - Terminal: `appeal.disqualified`. Intermediates: `appeal.high_value_flagged` (produced by `ca_high_value_flag`, consumed by `ca_high_value_repeat_claimant`) and `appeal.low_value_flagged` (produced by `ca_low_value_flag`, consumed by `ca_low_tier_tenure_check`, `ca_low_value_escalation`, and `ca_low_value_repeat_claimant`). These two producer/consumer chains are the only DAG edges in the domain.
-- Eligibility rule: a claim is eligible for appeal if and only if executing the `claim_appeal` domain produces no `appeal.disqualified` output. Key presence decides, never its value. When it is produced, the decision reason is the `reason` of the first rule in `triggered` whose `output` contains `appeal.disqualified`.
+- Eligibility rule: a claim is eligible for appeal if and only if executing the `claim_appeal` domain produces no terminal output (checked via `terminal_outputs("claim_appeal")`). Key presence decides, never its value. When a terminal field is produced, the decision reason is the `reason` of the first rule in `triggered` whose `output` intersects the terminal set.
 - Context keys are `claim.<field>` and `customer.<field>` with native Python types.
+
+Status: implemented
+
+**policy_coverage**
+
+- Mixes `DecisionRule`s and `LookupRule`s. Rules check `policy.policy_status`, claim type vs policy type compatibility, `claim.below_deductible`, and a 2-rule DAG chain: `pc_high_value_flag` (produces `policy_coverage.high_value_flagged`) → `pc_high_value_repeat_claimant` (consumes it, produces `policy_coverage.disqualified`).
+- Terminal: `policy_coverage.disqualified`. Intermediate: `policy_coverage.high_value_flagged`.
+- Eligibility rule: coverage is verified if executing the `policy_coverage` domain produces no terminal output. Context keys are `claim.<field>`, `customer.<field>`, and `policy.<field>` with native Python types.
 
 Status: implemented
 
@@ -89,9 +107,10 @@ Raw rules live in `data/in/<domain>_rules.json`; the versioned output in `data/o
 ## Rules API and dashboard
 
 - `GET /rules/domains`: sorted list of loaded domains.
-- `GET /rules/dag/{domain}?group=&replace_with_new=`: nodes in `get_effective` order and edges `{from, to, fields}`; 404 for an unknown domain.
+- `GET /rules/dag/{domain}?group=&replace_with_new=`: nodes in `get_effective` order, edges `{from, to, fields}`, and `terminal_outputs` (list of declared terminal field names for the domain); 404 for an unknown domain.
 - `GET /rules/history/{domain}/{rule_id}`: all versions newest first with `changed_fields` against the next older version (metadata excluded); 404 if absent.
-- `GET /dashboard`: `src/ui/templates/dashboard.html`, a vis-network page with a Rules tab (DAG, rule detail, version history) and an Executions tab that reads `/executions` (owned by audit-and-trace). Keep the page consistent with both APIs when either changes.
+- `GET /rules/validation-report`: returns the `RuleGraphValidationReport` produced at startup — `is_valid`, `error_count`, `warning_count`, `validated_at`, and a `findings` list (each finding has `rule_id`, `severity`, `kind`, `domain`, `field`, `message`). Consumed by the dashboard Health tab.
+- `GET /dashboard`: `src/ui/templates/dashboard.html`, a vis-network page with a Rules tab (DAG, rule detail, version history), an Executions tab that reads `/executions` (owned by audit-and-trace), and a Health tab. The Health tab shows the validation report filtered to the selected domain (domain dropdown required to display findings); the badge in the header is only visible while on the Health tab. Keep the page consistent with all three APIs when any of them changes.
 
 ## Verification
 

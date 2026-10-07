@@ -53,6 +53,6 @@ async def list_executions(domain: str) -> dict:
             "evaluations": r.get("evaluations", []),
             "entities": r.get("entities", {}),
             "output_keys": list(outputs.keys()),
-            "eligible": "appeal.disqualified" not in outputs,
+            "eligible": not bool(set(outputs.keys()) & rls.RuleRegistry().terminal_outputs(domain)),
         })
     return {"domain": domain, "sessions": sessions}

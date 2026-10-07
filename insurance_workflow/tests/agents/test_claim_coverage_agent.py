@@ -89,6 +89,11 @@ def reset_singletons():
 
 
 class TestClaimCoverageAgent:
+    def setup_method(self):
+        RuleRegistry()._domain_configs["policy_coverage"] = mdl.DomainConfig(
+            domain="policy_coverage", terminal_outputs=["policy_coverage.disqualified"]
+        )
+
     def _agent(self) -> ClaimCoverageAgent:
         return ClaimCoverageAgent(ClaimCoverageAgentConfig())
 
@@ -300,10 +305,14 @@ class TestClaimCoverageAgentIntegration:
 
     _RULES_FILE = Path(__file__).parent.parent.parent / "data" / "out" / "policy_coverage_rules.json"
     _AUDIT_FILE = Path(__file__).parent.parent.parent / "data" / "test" / "audit" / "rule_executions.jsonl"
+    _DOMAIN_CONFIG_FILE = Path(__file__).parent.parent.parent / "data" / "out" / "domain_config.json"
 
     @pytest.fixture(autouse=True)
     def load_production_rules(self):
-        RuleRegistry.load_from(str(self._RULES_FILE))
+        RuleRegistry.load_from(
+            str(self._RULES_FILE),
+            domain_config_path=str(self._DOMAIN_CONFIG_FILE),
+        )
         yield
         if self._AUDIT_FILE.exists():
             self._AUDIT_FILE.write_text("")

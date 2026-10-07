@@ -54,6 +54,35 @@ async def get_rule_history(domain: str, rule_id: str) -> dict:
     }
 
 
+@router.get("/validation-report")
+async def get_validation_report() -> dict:
+    """Return the graph validation report produced at registry load time.
+
+    Returns:
+        JSON with is_valid, error_count, warning_count, validated_at, and a
+        findings list — each finding has rule_id, severity, kind, domain,
+        field, and message.
+    """
+    report = rls.RuleRegistry()._validation_report
+    return {
+        "is_valid":     report.is_valid(),
+        "error_count":  len(report.errors),
+        "warning_count": len(report.warnings),
+        "validated_at": report.validated_at.isoformat(),
+        "findings": [
+            {
+                "rule_id":  f.rule_id,
+                "severity": f.severity,
+                "kind":     f.kind,
+                "domain":   f.domain,
+                "field":    f.field,
+                "message":  f.message,
+            }
+            for f in report.findings
+        ],
+    }
+
+
 @router.get("/domains")
 async def get_domains() -> dict:
     """Return all domains currently loaded in the rule registry."""
@@ -101,4 +130,5 @@ async def get_dag(domain: str, group: str = "",
         "edge_count": len(edges),
         "nodes": nodes,
         "edges": edges,
+        "terminal_outputs": list(registry.terminal_outputs(domain)),
     }

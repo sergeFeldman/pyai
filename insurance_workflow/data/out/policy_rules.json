@@ -630,6 +630,64 @@
     }
   },
   {
+    "id": "pr_test_phantom_consumer",
+    "domain": "policy",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2026-01-02T00:00:00+00:00",
+    "input": [
+      "policy.coverage_tier"
+    ],
+    "output": [
+      "policy.denial_basis"
+    ],
+    "reason": "Demo phantom consumer (retired).",
+    "kind": "decision",
+    "metadata": {
+      "version": 1,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-06T17:35:24.650728+00:00",
+      "updated_by": "etl",
+      "updated_timestamp": "2026-10-06T17:40:01.521959+00:00"
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">",
+    "threshold": "5000",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "pr_test_phantom_consumer",
+    "domain": "policy",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "policy.coverage_tier"
+    ],
+    "output": [
+      "policy.denial_basis"
+    ],
+    "reason": "Demo phantom consumer: references policy.coverage_tier which no rule produces.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-06T17:35:24.650728+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">",
+    "threshold": "5000",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
     "id": "pr_th_fraud",
     "domain": "policy",
     "group": "",

@@ -1383,6 +1383,62 @@
     "logic": "AND"
   },
   {
+    "id": "ca_test_orphan_producer",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [],
+    "output": [
+      "appeal.test_orphan"
+    ],
+    "reason": "Demo orphan producer: produces appeal.test_orphan which no rule consumes and is not a declared terminal.",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-06T20:15:49.363969+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": "<",
+    "threshold": "-999999",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
+    "id": "ca_test_phantom_consumer",
+    "domain": "claim_appeal",
+    "group": "",
+    "priority": 99,
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "effective_to": "2027-12-31T23:59:59+00:00",
+    "input": [
+      "appeal.fraud_score"
+    ],
+    "output": [
+      "appeal.disqualified"
+    ],
+    "reason": "Demo phantom consumer: references appeal.fraud_score which no rule produces (likely typo for appeal.fraud_flagged).",
+    "kind": "decision",
+    "metadata": {
+      "version": 0,
+      "created_by": "etl",
+      "created_timestamp": "2026-10-06T17:35:24.614050+00:00",
+      "updated_by": "",
+      "updated_timestamp": ""
+    },
+    "subject": "claim",
+    "attribute": "amount",
+    "operator": ">",
+    "threshold": "5000",
+    "conditions": [],
+    "logic": "AND"
+  },
+  {
     "id": "ca_theft_min_tenure",
     "domain": "claim_appeal",
     "group": "",

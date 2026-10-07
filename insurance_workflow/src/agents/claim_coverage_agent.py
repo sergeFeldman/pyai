@@ -87,9 +87,10 @@ class ClaimCoverageAgent(McpEnabledAgent[ClaimCoverageAgentConfig, mcp.PolicyCov
             },
         )
         svc.RuleExecutionAuditService().log(result)
-        if "policy_coverage.disqualified" in result.outputs:
+        terminals = rls.RuleRegistry().terminal_outputs("policy_coverage")
+        if result.outputs.keys() & terminals:
             reason = next(
-                (r.reason for r in result.triggered if "policy_coverage.disqualified" in r.output),
+                (r.reason for r in result.triggered if set(r.output) & terminals),
                 None,
             )
             return mdl.PolicyCoverageResult(claim.claim_id, False, reason)

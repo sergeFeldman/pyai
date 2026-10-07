@@ -131,6 +131,12 @@ def main() -> None:
     """Run all domain ETL pipelines defined in config/etl.yaml."""
     pipelines = _load_etl_config()
     for domain, cfg in pipelines.items():
+        if domain == "domain_config":
+            Path(cfg["output_file_path"]).write_text(
+                Path(cfg["input_file_path"]).read_text()
+            )
+            print(f"Copied domain_config -> {cfg['output_file_path']}")
+            continue
         print(f"Running ETL for domain: {domain}")
         config = RuleEtlConfig(
             domain=domain,

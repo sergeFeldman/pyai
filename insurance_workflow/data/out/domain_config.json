@@ -1,0 +1,5 @@
+[
+  {"domain": "claim_appeal",    "terminal_outputs": ["appeal.disqualified"]},
+  {"domain": "policy_coverage", "terminal_outputs": ["policy_coverage.disqualified"]},
+  {"domain": "policy",          "terminal_outputs": ["policy.denial_basis", "policy.next_steps", "policy.policy_section"]}
+]

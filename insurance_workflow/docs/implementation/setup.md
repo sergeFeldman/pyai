@@ -105,18 +105,9 @@ The rule registry dashboard visualizes active rules and execution history for ea
 http://localhost:8000/dashboard
 ```
 
-**Rules tab:** Select a domain (e.g. `claim_appeal`) from the dropdown to see the dependency graph. Root rules appear on the left; rules that depend on their output appear to the right. Within each column, rules are ordered by priority descending, matching the topological execution order.
+Three tabs: **Rules** (DAG visualization and rule detail), **Executions** (audit history and execution trace), **Health** (graph validation findings). All share the domain selector in the header.
 
-**Executions tab:** Shows the audit history of rule engine runs for the selected domain, newest first. Click any session to open the detail panel. It shows every rule visited during execution with its outcome: `triggered` (condition matched), `skipped_no_match` (condition did not match), `pruned` (upstream producer failed so this rule was never evaluated, DAG branch pruning), or `skipped_precondition` (a required external field was missing from context). Entity snapshots (claim and customer) captured at execution time are also shown.
-
-Additional API endpoints:
-
-```
-GET /rules/domains                        # list all loaded domains
-GET /rules/dag/{domain}                   # raw DAG JSON (nodes + edges)
-GET /rules/history/{domain}/{rule_id}     # all versions of a rule with field-level diff
-GET /executions?domain={domain}           # execution audit history for a domain
-```
+See [docs/architecture/dashboard.md](../architecture/dashboard.md) for a full description of each tab, the DAG overlay, finding types, and the APIs each tab consumes.
 
 ---
 

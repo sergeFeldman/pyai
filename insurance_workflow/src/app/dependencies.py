@@ -132,6 +132,7 @@ rls.RuleRegistry.load_from(
     _load_config("storage.yaml", "rule_registry")["file_path"],
     _load_config("storage.yaml", "rule_registry_policy")["file_path"],
     _load_config("storage.yaml", "rule_registry_policy_coverage")["file_path"],
+    domain_config_path=_load_config("storage.yaml", "domain_config")["file_path"],
 )
 
 _AGENT_CONFIGS = {
