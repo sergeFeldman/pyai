@@ -1,36 +1,42 @@
 # Execution Semantics
 
-Read this before changing `RuleRegistry.execute()` or when explaining why a rule got a given outcome.
+Read this before changing `RuleRegistry.execute_async()` or when explaining why a rule got a given outcome.
 
 ## Order
 
-`execute()` uses a ready-queue model (Kahn's variant):
+`execute_async()` uses a wave-based ready-queue model (Kahn's variant):
 
-1. `get_dag(domain, group)` returns the cached graph. Three structures are precomputed at build time and stored on the graph: `producers` (field to producer rule IDs), `consumers` (rule ID to consumer rule IDs), and `terminal_outputs` (fields produced but consumed by no rule).
-2. `undecided[rule_id]` is the per-rule set of upstream producer IDs not yet decided. Rules with an empty set at the start form the initial queue, sorted by priority descending then id ascending.
-3. When a rule is decided, `_cascade()` immediately walks its consumers. Each consumer discards the decided rule from its `undecided` set. When the set empties, the consumer is either cascade-pruned (if prunable) or enqueued. Cascade-pruned rules record a `pruned` outcome immediately and never enter the queue.
-4. Within each cascade wave, newly ready rules are enqueued in priority descending, then id ascending order. The overall order is fully deterministic.
-5. Execution stops as soon as any terminal output appears in context. Every rule still in the queue at that point receives a `not_evaluated` entry in `evaluations`. Rules still waiting on a producer that was itself cut off never entered the queue and get no entry.
+1. `get_dag(domain, group)` returns the cached graph. Four structures are precomputed at build time and stored on the graph: `producers` (field to producer rule IDs), `consumers` (rule ID to consumer rule IDs), `terminal_outputs` (fields produced but consumed by no rule), and `pending_producers` (per-rule frozen set of upstream producer IDs).
+2. `pending_producers[rule_id]` is a mutable per-call copy of the upstream producer set. Rules with an empty set at the start form the initial queue, sorted by priority descending then id ascending.
+3. The ready queue is drained entirely into a **wave**. All rules in the wave are evaluated concurrently via `asyncio.gather`. No rule writes to context during evaluation -- each `_eval_rule` coroutine returns `(rule_id, outcome, outputs)` without mutating shared state.
+4. After `gather` completes, outputs are applied to context in priority-descending order, then `_cascade()` runs for every decided rule. Cascade walks each rule's consumers: when a consumer's `pending_producers` set empties, it is either cascade-pruned (if `_is_prunable`) or enqueued for the next wave.
+5. After cascade, early exit is checked: if any terminal output is now in context, execution stops. Every rule still in the queue at that point receives a `not_evaluated` entry.
+6. Otherwise the queue is drained into the next wave and the cycle repeats.
+
+Key consequence: all rules whose producers have settled form a single wave and run concurrently. A rule in wave N+1 always sees the complete merged outputs of wave N before it evaluates.
 
 ## Per-rule decision
 
-Rules that are cascade-pruned by `_cascade()` record `pruned` immediately and never enter the queue. For rules that do enter the queue, in order:
+Rules cascade-pruned by `_cascade()` record `pruned` immediately and never enter the queue. For rules that do enter the queue and are evaluated by `_eval_rule`:
 
-1. **Prune check (defensive).** `_is_prunable(rule)`: for each `field_name` in `rule.input`, if `field_name` is not in context, has at least one producer in the DAG, and every producer is already failed or pruned, the rule is `pruned`. In the normal ready-queue path, `_cascade()` detects prunable consumers and records them before they are ever enqueued -- this in-loop check is a defensive fallback only.
-2. **Precondition check.** If `rule.ready(context)` is false, the outcome is `skipped_precondition` and the rule joins the failed set. This happens when an external field the caller should have seeded is missing; `_cascade()` runs.
-3. **Evaluate.** On match, outputs are merged into context, the rule is appended to `triggered`, and the outcome is `triggered`. Otherwise the outcome is `skipped_no_match` and the rule joins the failed set. `_cascade()` runs in both cases.
+1. **Prune check (defensive).** `_is_prunable(rule)`: for each `field_name` in `rule.input`, if `field_name` is not in context, has at least one producer in the DAG, and every producer is in `failed` or `pruned`, the rule is `pruned`. `_cascade()` detects prunable consumers before they are enqueued -- this check is a defensive fallback for edge cases only.
+2. **Precondition check.** If `rule.ready(context)` is false, the outcome is `skipped_precondition` and the rule joins the failed set. This happens when an external field the caller should have seeded is missing; since context is sealed at call time, a missing external field never appears mid-execution.
+3. **Evaluate.** On match, outputs are returned (not yet written). Otherwise the outcome is `skipped_no_match`. In both cases the rule joins the failed set and `_cascade()` runs after the full wave.
 
-Invariants:
+Context writes happen in the outer loop after `gather`, sorted by priority descending. If two rules in the same wave produce the same field the lower-priority rule wins (last write). Same-field conflicts are a DAG design error caught by the graph linter in practice.
 
-- A rule appears in `evaluations` if and only if it entered the ready queue or was cascade-pruned. Rules still waiting on a producer that was cut off by early exit never became ready and get no entry.
+## Invariants
+
+- A rule appears in `evaluations` if and only if it entered the ready queue or was cascade-pruned. Rules still waiting on a producer cut off by early exit never became ready and get no entry.
 - Of rules that do appear, each gets exactly one evaluation entry.
+- All rules in a wave read from the same pre-wave context snapshot; no rule in a wave sees another wave-mate's outputs.
 - A field already present in context never causes pruning, even if all its producers failed.
-- A field with several producers keeps its consumers alive until every producer has failed or been pruned (the `undecided` set tracks this).
+- A field with several producers keeps its consumers alive until every producer has failed or been pruned.
 - `_cascade()` is iterative, not recursive -- avoids Python stack depth issues on deep graphs.
 - Context only grows monotonically; a field absent when cascade runs cannot appear later to save a cascade-pruned rule.
-- `outputs` contains only keys that were not in context when `execute()` started.
+- `outputs` contains only keys that were not in context when `execute_async()` started.
 - `context` is mutated in place. Pass a fresh dict per execution.
-- Guard `all()`/`any()` over rule fields against the empty-collection case: `all([])` is `True`. Prepend a non-empty check: `rule.output and all(...)`.
+- `not_evaluated` applies only to rules queued for the next wave when early exit fires; same-wave rules that co-fired with the terminal rule are fully evaluated, not skipped.
 
 ## Outcomes
 
@@ -39,8 +45,8 @@ Invariants:
 | `triggered` | yes | yes, matched | Outputs written to context |
 | `skipped_no_match` | yes | yes, no match | Rule ran and did not fire |
 | `pruned` | not checked | no | All producers of a required internal input failed or were pruned |
-| `skipped_precondition` | no | no | A required field is missing and no failed producer explains it |
-| `not_evaluated` | yes (was queued) | no | Early exit fired before this rule was dequeued |
+| `skipped_precondition` | no | no | A required external field is missing from context |
+| `not_evaluated` | yes (was queued) | no | Early exit fired after the previous wave; this rule was queued for the next wave but never started |
 
 Rules that never entered the queue because their producer was cut off by early exit get no entry at all -- they were never ready.
 
@@ -48,10 +54,11 @@ Rules that never entered the queue because their producer was cut off by early e
 
 Synthetic claim: `amount=5000.0`, `status=DENIED`, `is_fraud=True`, `claim_type="auto_collision"`, `repair_shop="shop_1"`; customer `escalation_history_count=3`, `prior_claim_count=0`, `tenure_years=6`.
 
-- **Initial queue (no upstream producers):** `ca_commercial_type` no match, `ca_blacklisted_shop` no match, `ca_fraud_check` triggers (`appeal.risk_flagged`), `ca_repeat_claimant_flag` no match, `ca_max_escalations` no match (3 < 5), `ca_status_denied` no match, `ca_amount_tier` no match, `ca_min_tenure` no match, `ca_min_amount` no match.
-- **After initial wave settles via cascade:** `ca_fraud_escalation_limit` -- last producer decided, `appeal.risk_flagged` in context, enqueued. `ca_low_tier_tenure_check` -- last producer (`ca_amount_tier`) decided as failed; cascade-pruned immediately, never enqueued.
-- **`ca_fraud_escalation_limit` dequeued:** 3 >= 2, triggers `appeal.disqualified`. Early exit fires. `ca_amount_tier`, `ca_min_tenure`, `ca_min_amount` were in the queue -- all receive `not_evaluated`.
-- **`ca_low_tier_tenure_check` gets no entry.** It consumes `appeal.amount_tier`, whose only producer `ca_amount_tier` was cut off in the queue. Because its producer was never decided, it never became ready and the engine never reached it.
-- Result: not eligible, reason "High-risk claim with multiple prior escalation attempts."
+- **Wave 1 (all root rules, no upstream producers):** `ca_commercial_type` no match, `ca_blacklisted_shop` no match, `ca_fraud_check` triggers (`appeal.risk_flagged`), `ca_repeat_claimant_flag` no match, `ca_max_escalations` no match (3 < 5), `ca_status_denied` no match, `ca_amount_tier` no match (amount not < 500), `ca_min_tenure` no match, `ca_min_amount` no match. All run concurrently; outputs merged after gather.
+- **After wave 1 cascade:** `ca_fraud_escalation_limit` -- both producers (`ca_fraud_check` triggered, `ca_repeat_claimant_flag` decided) settled, `appeal.risk_flagged` in context, enqueued for wave 2. `ca_low_tier_tenure_check` -- its producer `ca_amount_tier` failed; cascade-pruned, records `pruned`, never enqueued.
+- **Wave 2:** `ca_fraud_escalation_limit` alone. `escalation_history_count=3 >= 2`, triggers `appeal.disqualified`. Early exit fires after wave 2. Queue is empty -- no `not_evaluated` entries.
+- **Result:** not eligible, reason from `ca_fraud_escalation_limit`.
 
-Change `is_fraud` to `False`: both `ca_fraud_check` and `ca_repeat_claimant_flag` fail. When the last producer of `appeal.risk_flagged` is decided, `_cascade()` finds `ca_fraud_escalation_limit` prunable and cascade-prunes it immediately. The claim is then eligible.
+Change `is_fraud` to `False`: `ca_fraud_check` fails in wave 1. When the last producer of `appeal.risk_flagged` is decided, `_cascade()` finds `ca_fraud_escalation_limit` prunable (all producers failed) and cascade-prunes it immediately. No terminal output is ever produced. Claim is eligible.
+
+**Demonstrating `not_evaluated`:** Add a second root rule `ca_unlock` that produces `d.unlock` (not a terminal output), and a dependent rule `ca_next` that consumes `d.unlock`. If `ca_fraud_check` (wave 1) produces a terminal output AND `ca_unlock` (also wave 1) fires and cascades `ca_next` into the queue, early exit fires after wave 1 and `ca_next` receives `not_evaluated` -- it was queued for wave 2 but the engine stopped.

@@ -1,5 +1,6 @@
 """Tests for ClaimAppealAgent — precondition gating and disqualification paths."""
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -100,7 +101,7 @@ class TestClaimAppealAgent:
         RuleRegistry().load([
             _rule("r1", "claim", "amount", "<", "0", out=["appeal.disqualified"]),
         ])
-        result = self._agent().check_eligibility(_claim(), _customer())
+        result = asyncio.run(self._agent().check_eligibility(_claim(), _customer()))
         assert result.eligible is True
 
     def test_simple_rule_match_disqualifies(self):
@@ -109,7 +110,7 @@ class TestClaimAppealAgent:
                   out=["appeal.disqualified"],
                   reason="Claim amount too low for appeal."),
         ])
-        result = self._agent().check_eligibility(_claim(amount=500.0), _customer())
+        result = asyncio.run(self._agent().check_eligibility(_claim(amount=500.0), _customer()))
         assert result.eligible is False
         assert result.reason == "Claim amount too low for appeal."
 
@@ -119,7 +120,7 @@ class TestClaimAppealAgent:
                   out=["appeal.disqualified"],
                   reason="Fraud claims are not eligible for appeal."),
         ])
-        result = self._agent().check_eligibility(_claim(is_fraud=True), _customer())
+        result = asyncio.run(self._agent().check_eligibility(_claim(is_fraud=True), _customer()))
         assert result.eligible is False
         assert result.reason == "Fraud claims are not eligible for appeal."
 
@@ -132,10 +133,10 @@ class TestClaimAppealAgent:
                 reason="Repeat claimant with multiple escalation attempts.",
             ),
         ])
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(),
             _customer(prior_claim_count=6, escalation_history_count=2),
-        )
+        ))
         assert result.eligible is False
         assert result.reason == "Repeat claimant with multiple escalation attempts."
 
@@ -147,10 +148,10 @@ class TestClaimAppealAgent:
                  _cond("customer", "escalation_history_count", ">=", "2")],
             ),
         ])
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(),
             _customer(prior_claim_count=6, escalation_history_count=1),
-        )
+        ))
         assert result.eligible is True
 
     def test_low_amount_low_tenure_disqualifies(self):
@@ -162,7 +163,9 @@ class TestClaimAppealAgent:
                 reason="Low-value claim requires minimum 5 years customer tenure for appeal.",
             ),
         ])
-        result = self._agent().check_eligibility(_claim(amount=400.0), _customer(tenure_years=3))
+        result = asyncio.run(self._agent().check_eligibility(
+            _claim(amount=400.0), _customer(tenure_years=3),
+        ))
         assert result.eligible is False
         assert result.reason == "Low-value claim requires minimum 5 years customer tenure for appeal."
 
@@ -174,7 +177,9 @@ class TestClaimAppealAgent:
                  _cond("customer", "tenure_years", "<", "5")],
             ),
         ])
-        result = self._agent().check_eligibility(_claim(amount=400.0), _customer(tenure_years=10))
+        result = asyncio.run(self._agent().check_eligibility(
+            _claim(amount=400.0), _customer(tenure_years=10),
+        ))
         assert result.eligible is True
 
     def test_nested_or_group_and_leaf_disqualifies(self):
@@ -191,10 +196,10 @@ class TestClaimAppealAgent:
                 reason="High-risk claimant with escalation history.",
             ),
         ])
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(is_fraud=True),
             _customer(prior_claim_count=1, escalation_history_count=2),
-        )
+        ))
         assert result.eligible is False
         assert result.reason == "High-risk claimant with escalation history."
 
@@ -211,15 +216,15 @@ class TestClaimAppealAgent:
                      "customer.escalation_history_count"],
             ),
         ])
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(is_fraud=True),
             _customer(prior_claim_count=1, escalation_history_count=1),
-        )
+        ))
         assert result.eligible is True
 
     def test_result_claim_id_matches_input(self):
         RuleRegistry().load([])
-        result = self._agent().check_eligibility(_claim(claim_id="claim_42"), _customer())
+        result = asyncio.run(self._agent().check_eligibility(_claim(claim_id="claim_42"), _customer()))
         assert result.claim_id == "claim_42"
 
 
@@ -242,14 +247,14 @@ class TestClaimAppealAgentEvaluations:
             _rule("r1", "claim", "amount", "<", "0", out=["appeal.disqualified"]),
             _rule("r2", "claim", "status", "==", "open", out=["appeal.x"]),
         ])
-        self._agent().check_eligibility(_claim(), _customer(), trace_id="t1")
+        asyncio.run(self._agent().check_eligibility(_claim(), _customer(), trace_id="t1"))
         assert len(self._last_record()["evaluations"]) == 2
 
     def test_all_evaluations_have_rule_id_and_outcome(self):
         RuleRegistry().load([
             _rule("r1", "claim", "amount", "<", "9999", out=["appeal.disqualified"]),
         ])
-        self._agent().check_eligibility(_claim(), _customer(), trace_id="t1")
+        asyncio.run(self._agent().check_eligibility(_claim(), _customer(), trace_id="t1"))
         for ev in self._last_record()["evaluations"]:
             assert "rule_id" in ev
             assert ev["outcome"] in {"triggered", "skipped_no_match", "skipped_precondition"}
@@ -258,25 +263,25 @@ class TestClaimAppealAgentEvaluations:
         RuleRegistry().load([
             _rule("r1", "claim", "amount", "<", "9999", out=["appeal.disqualified"]),
         ])
-        self._agent().check_eligibility(_claim(amount=100.0), _customer(), trace_id="t1")
+        asyncio.run(self._agent().check_eligibility(_claim(amount=100.0), _customer(), trace_id="t1"))
         outcomes = {e["rule_id"]: e["outcome"] for e in self._last_record()["evaluations"]}
         assert outcomes["r1"] == "triggered"
 
     def test_entities_contains_claim_and_customer_keys(self):
         RuleRegistry().load([])
-        self._agent().check_eligibility(_claim(), _customer(), trace_id="t1")
+        asyncio.run(self._agent().check_eligibility(_claim(), _customer(), trace_id="t1"))
         record = self._last_record()
         assert "claim" in record["entities"]
         assert "customer" in record["entities"]
 
     def test_entities_claim_id_matches_input(self):
         RuleRegistry().load([])
-        self._agent().check_eligibility(_claim(claim_id="claim_xyz"), _customer(), trace_id="t1")
+        asyncio.run(self._agent().check_eligibility(_claim(claim_id="claim_xyz"), _customer(), trace_id="t1"))
         assert self._last_record()["entities"]["claim"]["claim_id"] == "claim_xyz"
 
     def test_entities_customer_id_matches_input(self):
         RuleRegistry().load([])
-        self._agent().check_eligibility(_claim(), _customer(customer_id="cust_xyz"), trace_id="t1")
+        asyncio.run(self._agent().check_eligibility(_claim(), _customer(customer_id="cust_xyz"), trace_id="t1"))
         assert self._last_record()["entities"]["customer"]["customer_id"] == "cust_xyz"
 
 
@@ -302,52 +307,52 @@ class TestClaimAppealAgentIntegration:
         return ClaimAppealAgent(ClaimAppealAgentConfig())
 
     def test_commercial_claim_disqualified(self):
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(claim_type="commercial"),
             _customer(tenure_years=10, prior_claim_count=0),
-        )
+        ))
         assert result.eligible is False
 
     def test_blacklisted_shop_disqualified(self):
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(repair_shop="shop_rouge"),
             _customer(tenure_years=10),
-        )
+        ))
         assert result.eligible is False
 
     def test_fraud_claim_disqualified(self):
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(is_fraud=True),
             _customer(tenure_years=10, escalation_history_count=0),
-        )
+        ))
         assert result.eligible is False
 
     def test_theft_low_tenure_disqualified(self):
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(claim_type="theft"),
             _customer(tenure_years=3),
-        )
+        ))
         assert result.eligible is False
 
     def test_theft_sufficient_tenure_not_disqualified_by_tenure_rule(self):
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(claim_type="theft", amount=5000.0, is_fraud=False,
                    repair_shop="shop_1", status=mdl.ClaimStatus.DENIED),
             _customer(tenure_years=5, prior_claim_count=0, escalation_history_count=0),
-        )
+        ))
         assert result.eligible is True
 
     def test_non_denied_status_disqualified(self):
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(status=mdl.ClaimStatus.UNDER_REVIEW),
             _customer(tenure_years=10),
-        )
+        ))
         assert result.eligible is False
 
     def test_standard_clean_claim_eligible(self):
-        result = self._agent().check_eligibility(
+        result = asyncio.run(self._agent().check_eligibility(
             _claim(claim_type="auto_collision", amount=5000.0, is_fraud=False,
                    repair_shop="shop_1", status=mdl.ClaimStatus.DENIED),
             _customer(tenure_years=10, prior_claim_count=0, escalation_history_count=0),
-        )
+        ))
         assert result.eligible is True

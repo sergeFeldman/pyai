@@ -35,11 +35,11 @@ Complete.
 
 ### Scope
 
-- `RuleRegistry.execute()`: walks the DAG using a ready-queue model (Kahn's variant); a rule enters the queue only when all upstream producers have settled; cascade-prunes consumers whose required inputs will never arrive; stops on first terminal output; records every rule that entered the queue or was cascade-pruned with one of five outcomes: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated`
+- `RuleRegistry.execute_async()`: walks the DAG using a wave-based ready-queue model (Kahn's variant); a rule enters the queue only when all upstream producers have settled; cascade-prunes consumers whose required inputs will never arrive; stops on first terminal output; records every rule that entered the queue or was cascade-pruned with one of five outcomes: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated`
 - `ExecutionMetadata`: trace ID, executor name, UTC timestamp; mirrors `EntityMetadata` on persistent entities
 - `RuleExecutionResult`: carries `ExecutionMetadata`, the domain, triggered rules in execution order, and intermediate/terminal outputs; seeded claim/customer context excluded from result
 - `ClaimAppealAgent._build_context()`: builds the execution context from claim and customer using `dataclasses.fields()` + `getattr()` to preserve Python types for correct threshold coercion
-- `RuleExecutionAuditService`: Singleton audit service; appends one `RuleExecutionResult` record per `execute()` call to `data/audit/rule_executions.jsonl` via `JsonlDataStorage`; trace ID threaded from the orchestrator through `ClaimAppealAgent` into `ExecutionMetadata`
+- `RuleExecutionAuditService`: Singleton audit service; appends one `RuleExecutionResult` record per `execute_async()` call to `data/audit/rule_executions.jsonl` via `JsonlDataStorage`; trace ID threaded from the orchestrator through `ClaimAppealAgent` into `ExecutionMetadata`
 - `JsonlDataStorage`: append-only `DataStorage` subclass; `read()` returns raw dicts; `read_by_key()` supports dot-notation path traversal for nested fields; registered in `DataStorageFactory` as `"jsonl"`
 - Test coverage: `TestExecute` (DAG branch pruning, output propagation, metadata, domain) and `TestClaimAppealAgent` (fraud-check-alone vs fraud-with-escalation, amount-tier chains)
 
@@ -53,7 +53,7 @@ Complete.
 
 ### Scope
 
-- **Ready-queue + eager cascade**: Replace the topological generation sweep in `RuleRegistry.execute()` with a queue-based model (Kahn's variant). A rule enters the queue only when all its producers are settled (evaluated, failed, or pruned). When a rule enters `failed` or `pruned`, immediately walk its consumers and cascade pruning to any whose remaining producers are all decided; pruned rules never enter the queue at all. Precompute and cache the producers map, consumers map, and sorted generation lists on the DAG at build time rather than rebuilding on every `execute()` call. A hard disqualifier firing in an early generation causes immediate early exit without visiting any downstream rules; cascade pruning completes before the next rule is dequeued
+- **Ready-queue + eager cascade**: Replace the topological generation sweep in `RuleRegistry.execute()` with a queue-based model (Kahn's variant), now implemented as `execute_async()`. A rule enters the queue only when all its producers are settled (evaluated, failed, or pruned). When a rule enters `failed` or `pruned`, immediately walk its consumers and cascade pruning to any whose remaining producers are all decided; pruned rules never enter the queue at all. Precompute and cache the producers map, consumers map, and sorted generation lists on the DAG at build time rather than rebuilding on every `execute_async()` call. A hard disqualifier firing in an early generation causes immediate early exit without visiting any downstream rules; cascade pruning completes before the next rule is dequeued
 - Compound `DecisionRule`: replace the single `operator`/`threshold` pair with a condition list supporting AND/OR/IN logic; `matches()` evaluates the condition tree
 ### Status
 
@@ -65,7 +65,7 @@ Complete.
 
 ### Scope
 
-- **Policy domain migration (5.1)**: migrated `PolicyRuleRegistryClient.find()` from a linear `matches()` loop to `RuleRegistry.execute()`; fixed the `input` field on all policy rules from dot-notation claim fields (`["claim.claim_type", "claim.is_fraud"]`) to `[]`, since policy LookupRules are roots with no upstream producers and `LookupRule.ready()` already validates context via `match_keys`; `find()` calls `execute()` with a context copy, logs the result via `RuleExecutionAuditService`, and returns the first triggered rule; public API and MCP server are unchanged
+- **Policy domain migration (5.1)**: migrated `PolicyRuleRegistryClient.find()` from a linear `matches()` loop to `RuleRegistry.execute_async()`; fixed the `input` field on all policy rules from dot-notation claim fields (`["claim.claim_type", "claim.is_fraud"]`) to `[]`, since policy LookupRules are roots with no upstream producers and `LookupRule.ready()` already validates context via `match_keys`; `find()` calls `execute_async()` with a context copy, logs the result via `RuleExecutionAuditService`, and returns the first triggered rule; public API and MCP server are unchanged
 - **Coverage Verification (5.2)** (`policy_coverage`): new domain; 6 disqualifier rules and a 2-rule DAG chain (pc_high_value_flag → pc_high_value_repeat_claimant) evaluate claim, customer, and policy context; negative-gating model: if `policy_coverage.disqualified` fires, coverage is denied; otherwise verified; new endpoint `POST /claim-coverage`; `PolicyMcpClient` reads `data/in/policy.csv` keyed by `customer_id`
 
 ### Status
@@ -136,7 +136,7 @@ Pending.
 - **PII tokenization**: tokenize sensitive customer and claim field values in rule inputs and audit records before persistence to `rule_executions.jsonl`; required before audit records are used for governance replay
 - **Per-rule audit detail**: Extend each entry in the execution audit record's `evaluations` list with the rule version and the output values written on trigger. Required by decision replay to reconstruct exactly which version of a rule produced which output at the time of the original decision.
 - **Decision replay / shadow testing**: Before a rule change goes live, re-run all historical decisions stored in `rule_executions.jsonl` against a candidate rule set and report which outcomes flip; for example, "37 appeals would move from eligible to disqualified." The `entities` snapshot already stored in every `RuleExecutionResult` provides the frozen claim/customer context required for replay. Combined with `nx.descendants` to show the structural blast radius (which rules in the graph a given change touches), this is the compliance checkpoint before any rule deployment in a regulated environment
-- **Goal-directed evaluation**: Accept a `goal` parameter on `execute()`. Use `nx.ancestors` to build the subgraph of rules that can contribute to the requested output, then run only that subgraph. At production scale different call sites need different slices of the graph (a fraud check API, a quick eligibility pre-check, a full appeal evaluation), and each should traverse only the rules it actually needs. Enables partial evaluation for mid-workflow agent checks without running the full domain
+- **Goal-directed evaluation**: Accept a `goal` parameter on `execute_async()`. Use `nx.ancestors` to build the subgraph of rules that can contribute to the requested output, then run only that subgraph. At production scale different call sites need different slices of the graph (a fraud check API, a quick eligibility pre-check, a full appeal evaluation), and each should traverse only the rules it actually needs. Enables partial evaluation for mid-workflow agent checks without running the full domain
 
 ### Status
 

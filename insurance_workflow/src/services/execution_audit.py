@@ -38,7 +38,7 @@ class RuleExecutionAuditService(metaclass=shd_core.Singleton):
         """Append a rule execution result to the audit file.
 
         Args:
-            result: Execution result from RuleRegistry.execute().
+            result: Execution result from RuleRegistry.execute_async().
         """
         self._storage.append(result.to_dict())
 

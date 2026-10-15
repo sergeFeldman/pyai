@@ -26,7 +26,4 @@ async def claim_explanation(
         attributes=payload.attributes,
     )
 
-    return mdl.ClaimExplanationHttpResponse(
-        message=response.message,
-        trace_id=response.trace_id,
-    )
+    return mdl.ClaimExplanationHttpResponse(message=response.message, trace_id=response.trace_id)

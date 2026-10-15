@@ -18,7 +18,7 @@ class ClaimCoverageAgent(McpEnabledAgent[ClaimCoverageAgentConfig, mcp.PolicyCov
     """Agent responsible for policy coverage verification against the policy_coverage rule domain.
 
     Builds a shared execution context from claim, customer, and policy objects, then
-    delegates to RuleRegistry.execute() which walks the DAG in topological order.
+    delegates to RuleRegistry.execute_async() which walks the DAG in wave-based topological order.
     Uses the negative-gating model: if policy_coverage.disqualified is written by any
     rule, coverage is denied; if no disqualifier fires, coverage is verified.
     """
@@ -59,8 +59,8 @@ class ClaimCoverageAgent(McpEnabledAgent[ClaimCoverageAgentConfig, mcp.PolicyCov
         ctx["claim.below_deductible"] = claim.amount < policy.deductible_amount
         return ctx
 
-    def check_coverage(self, claim: mdl.Claim, customer: mdl.Customer,
-                       policy: mdl.Policy, trace_id: str = "") -> mdl.PolicyCoverageResult:
+    async def check_coverage(self, claim: mdl.Claim, customer: mdl.Customer,
+                             policy: mdl.Policy, trace_id: str = "") -> mdl.PolicyCoverageResult:
         """Verify whether the claim is covered by the associated policy.
 
         Executes the policy_coverage rule domain via RuleRegistry. Rules are
@@ -78,7 +78,7 @@ class ClaimCoverageAgent(McpEnabledAgent[ClaimCoverageAgentConfig, mcp.PolicyCov
             mdl.PolicyCoverageResult: Coverage result with reason.
         """
         context = self._build_context(claim, customer, policy)
-        result = rls.RuleRegistry().execute(
+        result = await rls.RuleRegistry().execute_async(
             "policy_coverage", context, trace_id=trace_id, executed_by="claim_coverage_agent",
             entities={
                 "claim": claim.to_dict(),
@@ -96,8 +96,8 @@ class ClaimCoverageAgent(McpEnabledAgent[ClaimCoverageAgentConfig, mcp.PolicyCov
             return mdl.PolicyCoverageResult(claim.claim_id, False, reason)
         return mdl.PolicyCoverageResult(claim.claim_id, True, "Claim is covered under the active policy.")
 
-    def get_coverage_message(self, claim: mdl.Claim, customer: mdl.Customer,
-                             policy: mdl.Policy, trace_id: str = "") -> str:
+    async def get_coverage_message(self, claim: mdl.Claim, customer: mdl.Customer,
+                                   policy: mdl.Policy, trace_id: str = "") -> str:
         """Build a user-facing coverage verification message.
 
         Args:
@@ -109,7 +109,7 @@ class ClaimCoverageAgent(McpEnabledAgent[ClaimCoverageAgentConfig, mcp.PolicyCov
         Returns:
             str: User-facing coverage verification message.
         """
-        result = self.check_coverage(claim, customer, policy, trace_id=trace_id)
+        result = await self.check_coverage(claim, customer, policy, trace_id=trace_id)
         covered_str = "covered" if result.verified else "not covered"
         message = f"Claim {result.claim_id} is {covered_str} under the policy."
         if not result.verified:

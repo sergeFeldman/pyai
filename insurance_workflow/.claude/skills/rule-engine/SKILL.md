@@ -1,6 +1,6 @@
 ---
 name: rule-engine
-description: The deterministic rule engine in src/rules and src/etl - Rule, DecisionRule and LookupRule semantics, RuleFactory type detection, RuleRegistry versioning, effective-date filtering, DAG construction and topological/priority ordering, execute() with branch pruning and the four evaluation outcomes, domain output contracts (including the claim appeal eligibility rule), the versioning ETL from data/in to data/out, and the /rules API and /dashboard page. Use when adding or editing rules or rule data, adding a rule type, changing execution or pruning, debugging why a rule fired, was skipped, or was pruned, running the ETL, or changing the DAG dashboard.
+description: The deterministic rule engine in src/rules and src/etl - Rule, DecisionRule and LookupRule semantics, RuleFactory type detection, RuleRegistry versioning, effective-date filtering, DAG construction and topological/priority ordering, execute_async() with wave-based parallel evaluation, branch pruning and the five evaluation outcomes, domain output contracts (including the claim appeal eligibility rule), the versioning ETL from data/in to data/out, and the /rules API and /dashboard page. Use when adding or editing rules or rule data, adding a rule type, changing execution or pruning, debugging why a rule fired, was skipped, or was pruned, running the ETL, or changing the DAG dashboard.
 ---
 
 # Rule Engine
@@ -24,7 +24,7 @@ All rules are `@dataclass(kw_only=True)` subclasses of `Rule` (`src/rules/rule.p
 Rule types:
 
 - `DecisionRule` supports two modes. **Simple mode** (empty `conditions`): compares `context["<subject>.<attribute>"]` with `threshold` using `operator` (`>=`, `<=`, `==`, `!=`, `>`, `<`). **Compound mode** (non-empty `conditions`): evaluates a `RuleCondition` tree where leaf nodes are scalar comparisons and group nodes combine sub-conditions with `RuleLogic.AND` or `RuleLogic.OR`; groups nest arbitrarily (e.g. `(fraud == True OR prior_claim_count >= 5) AND escalation_history_count >= 2`). In both modes the threshold is coerced to the value's type via module-level `_coerce()`: `"true"`/`"1"` for bool (never `bool(str)`), `type(value)(threshold)` otherwise. `RuleOperator` and `RuleLogic` are `StrEnum`s; `RuleCondition` is a dataclass with leaf fields (`subject`, `attribute`, `operator: RuleOperator`, `threshold`) and group fields (`logic: RuleLogic`, `conditions: list[RuleCondition]`). Module-level `_eval_condition()` recurses the tree. `RuleFactory._build_conditions()` converts raw condition dicts to `RuleCondition` trees on deserialization. On match every `output` field is set to `True`.
-- `LookupRule` matches when every `match_keys` entry equals the context value, and writes a copy of `output_values`. It writes the `output_values` keys, not the declared `output` list, so when a lookup rule feeds another rule in `execute()`, its `output_values` keys must equal its `output` fields.
+- `LookupRule` matches when every `match_keys` entry equals the context value, and writes a copy of `output_values`. It writes the `output_values` keys, not the declared `output` list, so when a lookup rule feeds another rule in `execute_async()`, its `output_values` keys must equal its `output` fields.
 
 Callers check `ready(context)` before `evaluate(context)`. `ready` requires every `input` key to be present. For `DecisionRule` in simple mode, it also requires `subject.attribute` to be present. For `LookupRule`, it also requires every `match_keys` key. `evaluate` assumes `ready` passed.
 
@@ -53,15 +53,17 @@ Concurrency: the registry, its DAG cache, and `RuleFactory` are process-wide sin
 
 ## Execution
 
-`execute(domain, context, trace_id, executed_by, group, entities)` walks the DAG and returns a `RuleExecutionResult` with `metadata`, `domain`, `triggered` (in execution order), `evaluations`, `entities`, and `outputs` (only keys added during execution). It mutates `context` in place.
+`execute_async(domain, context, trace_id, executed_by, group, entities)` walks the DAG using a wave-based ready-queue model and returns a `RuleExecutionResult` with `metadata`, `domain`, `triggered` (in execution order), `evaluations`, `entities`, and `outputs` (only keys added during execution). It mutates `context` in place.
 
-A rule appears in `evaluations` if and only if it entered the ready queue or was cascade-pruned. Rules still waiting on a producer that was cut off by early exit never became ready and get no entry. Of rules that do appear, each gets exactly one outcome: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated` (was queued when early exit fired).
+Each wave drains the entire ready queue and evaluates all rules in it concurrently via `asyncio.gather`. No rule writes to context during evaluation; outputs are merged after the full wave completes. Consumers are then cascaded and early exit is checked. Because all rules whose producers have settled form a single wave, independent rules always run in parallel within their topological generation.
 
-Priority orders rules only within a cascade wave. A dependent rule always runs after all its producers regardless of its own priority, so the first triggered disqualifier depends on graph depth first and priority second.
+A rule appears in `evaluations` if and only if it entered the ready queue or was cascade-pruned. Rules still waiting on a producer cut off by early exit never became ready and get no entry. Of rules that do appear, each gets exactly one outcome: `triggered`, `skipped_no_match`, `pruned`, `skipped_precondition`, or `not_evaluated` (was in the ready queue for the next wave when early exit fired after the previous wave).
 
-Pruning happens in `_cascade()` before enqueue; the in-loop prune check in `execute()` is a defensive fallback. For the pruning algorithm, outcome definitions, and worked examples, read [references/execution-semantics.md](references/execution-semantics.md) before changing `execute()` or debugging an outcome.
+Priority orders rules within a wave for deterministic output-application order and evaluation ordering; it does not change which wave a rule runs in. A dependent rule always runs in a later wave than its producers regardless of priority.
 
-Status: partial (evaluations record `rule_id` and `outcome` only; rule version and output values per evaluation are planned). Parallel execution, decision replay, goal-directed evaluation, and incremental re-evaluation are planned.
+Pruning happens in `_cascade()` before enqueue; the in-loop prune check in `_eval_rule` is a defensive fallback. For the pruning algorithm, outcome definitions, and worked examples, read [references/execution-semantics.md](references/execution-semantics.md) before changing `execute_async()` or debugging an outcome.
+
+Status: partial (evaluations record `rule_id` and `outcome` only; rule version and output values per evaluation are planned). Decision replay, goal-directed evaluation, and incremental re-evaluation are planned.
 
 ## DomainConfig
 
@@ -97,7 +99,7 @@ Status: implemented
 **policy**
 
 - `LookupRule`s with `match_keys` `claim_type`, `attribute`, `value` (strings, bools as `"true"`/`"false"`) and `output_values` `denial_basis`, `next_steps`, `policy_section`.
-- Not run through `execute()`. `PolicyRuleRegistryClient.find(context)` calls `matches()` on each rule in `get_effective` order and returns the first match, without `ready()`.
+- Run through `execute_async()` via `PolicyRuleRegistryClient.find(context)`, which awaits `execute_async()` on the policy domain and returns the first triggered rule. All policy rules are roots (no upstream producers), so they form a single wave and are evaluated concurrently.
 
 Status: implemented
 
@@ -115,9 +117,9 @@ Raw rules live in `data/in/<domain>_rules.json`; the versioned output in `data/o
 
 ## Verification
 
-- `python -m pytest tests/rules tests/agents -q`. `tests/rules/test_rule_registry.py::TestExecute` covers pruning and propagation; `tests/agents/test_claim_appeal_agent.py` covers appeal chains end to end.
+- `python -m pytest tests/rules tests/agents -q`. `tests/rules/test_rule_registry.py::TestExecute` covers pruning and propagation; `tests/agents/test_claim_appeal_agent.py` covers appeal chains end to end. All agent test calls are wrapped in `asyncio.run(agent.method(...))`.
 - For rule data changes, run the ETL, then `GET /rules/dag/claim_appeal` and confirm node count, edges, and order.
-- When writing tests for `execute()`: a field produced by a rule but consumed by no other rule in the test DAG is a terminal output -- if it appears in context, execution stops immediately and any rules still in the queue get no evaluation entry. To prevent early exit before all intended rules run, ensure each intermediate output is consumed by at least one downstream rule in the test DAG.
+- When writing tests for `execute_async()`: a field produced by a rule but consumed by no other rule in the test DAG is a terminal output -- if it appears in context after a wave, execution stops and any rules queued for the next wave receive `not_evaluated`. Rules in the same wave as the triggering rule are still evaluated (the full wave completes before early exit is checked). To prevent early exit before all intended rules run, ensure each intermediate output is consumed by at least one downstream rule in the test DAG.
 
 ## Examples
 

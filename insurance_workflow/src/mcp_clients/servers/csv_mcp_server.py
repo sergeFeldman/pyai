@@ -73,7 +73,7 @@ def get_policy_rule(policy_rule_id: str) -> dict:
 
 
 @mcp.tool()
-def get_policy_rule_by_filter(claim_type: str, attribute: str, value: str) -> dict:
+async def get_policy_rule_by_filter(claim_type: str, attribute: str, value: str) -> dict:
     """Retrieve the applicable policy rule for a given claim type, attribute, and value.
 
     Args:
@@ -85,7 +85,7 @@ def get_policy_rule_by_filter(claim_type: str, attribute: str, value: str) -> di
         Matching policy rule fields (denial_basis, next_steps, policy_section), or empty dict.
     """
     context = {"claim_type": claim_type, "attribute": attribute, "value": value}
-    rule = _policy_client.find(context)
+    rule = await _policy_client.find(context)
     if rule is None:
         return {}
     return {

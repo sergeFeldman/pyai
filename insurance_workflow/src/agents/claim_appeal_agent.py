@@ -18,8 +18,8 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
     """Configurable agent class responsible for claim appeal eligibility checks.
 
     Builds a shared execution context from the claim and customer objects, then
-    delegates to RuleRegistry.execute() which walks the DAG in topological order,
-    prunes rules on dead branches, and propagates intermediate outputs.
+    delegates to RuleRegistry.execute_async() which walks the DAG in wave-based
+    topological order, prunes rules on dead branches, and propagates intermediate outputs.
     """
 
     _config_data_type = ClaimAppealAgentConfig
@@ -52,9 +52,9 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
                     for f in dataclasses.fields(customer)})
         return ctx
 
-    def check_eligibility(self, claim: mdl.Claim,
-                          customer: mdl.Customer,
-                          trace_id: str = "") -> mdl.ClaimAppealResult:
+    async def check_eligibility(self, claim: mdl.Claim,
+                               customer: mdl.Customer,
+                               trace_id: str = "") -> mdl.ClaimAppealResult:
         """Check whether the claim is eligible for appeal.
 
         Executes the claim_appeal rule domain via RuleRegistry. Rules are evaluated
@@ -74,7 +74,7 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
             mdl.ClaimAppealResult: Eligibility result with reason.
         """
         context = self._build_context(claim, customer)
-        result = rls.RuleRegistry().execute(
+        result = await rls.RuleRegistry().execute_async(
             "claim_appeal", context, trace_id=trace_id, executed_by="claim_appeal_agent",
             entities={"claim": claim.to_dict(), "customer": customer.to_dict()},
         )
@@ -88,8 +88,8 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
             return mdl.ClaimAppealResult(claim.claim_id, False, reason)
         return mdl.ClaimAppealResult(claim.claim_id, True, "Claim is eligible for appeal.")
 
-    def get_eligibility_message(self, claim: mdl.Claim, customer: mdl.Customer,
-                                trace_id: str = "") -> str:
+    async def get_eligibility_message(self, claim: mdl.Claim, customer: mdl.Customer,
+                                      trace_id: str = "") -> str:
         """Build a user-facing appeal eligibility message for the given claim and customer.
 
         Args:
@@ -100,7 +100,7 @@ class ClaimAppealAgent(McpEnabledAgent[ClaimAppealAgentConfig, mcp.ClaimAppealRu
         Returns:
             str: User-facing appeal eligibility message.
         """
-        result = self.check_eligibility(claim, customer, trace_id=trace_id)
+        result = await self.check_eligibility(claim, customer, trace_id=trace_id)
         eligible_str = "eligible" if result.eligible else "not eligible"
         message = f"Claim {result.claim_id} is {eligible_str} for appeal."
         if not result.eligible:

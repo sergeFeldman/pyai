@@ -47,7 +47,7 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
         ))
         return response
 
-    def get_claim_appeal_eligibility(self, request: mdl.UserRequest) -> mdl.UserResponse:
+    async def get_claim_appeal_eligibility(self, request: mdl.UserRequest) -> mdl.UserResponse:
         """Execute claim appeal eligibility workflow.
 
         Fetches the claim and its customer context, then delegates to
@@ -75,7 +75,7 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
             return mdl.UserResponse(message=f"Customer context for claim {request.message} was not found.",
                                     trace_id=context.trace_id)
 
-        message = appeal_agent.get_eligibility_message(claim, customer, trace_id=context.trace_id)  # type: ignore[union-attr]
+        message = await appeal_agent.get_eligibility_message(claim, customer, trace_id=context.trace_id)  # type: ignore[union-attr]
         response = mdl.UserResponse(message=message, trace_id=context.trace_id)
         self._audit_service.log(mdl.AuditRecord(
             trace_id=context.trace_id,
@@ -86,7 +86,7 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
         ))
         return response
 
-    def get_claim_coverage_verification(self, request: mdl.UserRequest) -> mdl.UserResponse:
+    async def get_claim_coverage_verification(self, request: mdl.UserRequest) -> mdl.UserResponse:
         """Execute claim coverage verification workflow.
 
         Fetches the claim, its customer context, and the customer's active policy,
@@ -121,7 +121,7 @@ class WorkflowOrchestrator(metaclass=shd_core.Singleton):
             return mdl.UserResponse(message=f"No policy found for claim {request.message}.",
                                     trace_id=context.trace_id)
 
-        message = coverage_agent.get_coverage_message(claim, customer, policy, trace_id=context.trace_id)  # type: ignore[union-attr]
+        message = await coverage_agent.get_coverage_message(claim, customer, policy, trace_id=context.trace_id)  # type: ignore[union-attr]
         response = mdl.UserResponse(message=message, trace_id=context.trace_id)
         self._audit_service.log(mdl.AuditRecord(
             trace_id=context.trace_id,

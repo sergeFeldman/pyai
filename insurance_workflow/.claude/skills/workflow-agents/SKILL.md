@@ -24,7 +24,7 @@ All agents are `Configurable` components with a `<Agent>Config` model and `_conf
 Rules:
 
 - An agent reaches data and rules only through its own MCP client, never through `DataStorage`, `DataStorageFactory`, or `RuleRegistry` directly.
-  Status: partial (`ClaimAppealAgent` calls `RuleRegistry().execute()` directly; its `ClaimAppealRuleMcpClient` is created but unused)
+  Status: partial (`ClaimAppealAgent` calls `RuleRegistry().execute_async()` directly; its `ClaimAppealRuleMcpClient` is created but unused)
 - Each agent constructs its own client in `__init__`, from a nested client config when the client needs one (rule clients take none). Clients are not factory-managed; `AgentFactory` caching keeps one client per agent.
 - Agents hold no per-request state. One cached instance serves every request.
 

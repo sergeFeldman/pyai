@@ -118,7 +118,7 @@ Most rules produce `appeal.disqualified` directly. Two producer/consumer chains 
 
 **Level 1 consumers (run after their producer fires):** `ca_high_value_repeat_claimant` (12, unlocked by `ca_high_value_flag`); `ca_low_value_escalation` (6), `ca_low_value_repeat_claimant` (5), `ca_low_tier_tenure_check` (3) (all unlocked by `ca_low_value_flag`).
 
-`ClaimAppealAgent.check_eligibility()` builds a flat execution context from the claim and customer objects using `dataclasses.fields()` + `getattr()`, preserving Python types (`bool`, `Enum`) required for correct threshold coercion. It also captures entity snapshots (`claim.to_dict()`, `customer.to_dict()`) and passes them as `entities` to `RuleRegistry.execute()` so the audit record carries the full domain object state at the time of evaluation. The executor:
+`ClaimAppealAgent.check_eligibility()` builds a flat execution context from the claim and customer objects using `dataclasses.fields()` + `getattr()`, preserving Python types (`bool`, `Enum`) required for correct threshold coercion. It also captures entity snapshots (`claim.to_dict()`, `customer.to_dict()`) and passes them as `entities` to `RuleRegistry.execute_async()` so the audit record carries the full domain object state at the time of evaluation. The executor:
 
 1. Enqueues all rules immediately (no upstream dependencies)
 2. Gates each rule on its declared `input` fields before evaluating it
@@ -153,10 +153,10 @@ Terminal output: `policy_coverage.disqualified`. Coverage is verified if and onl
 | Phase 5 | `policy_coverage` domain with DAG chain and coverage verification | ✅ Done |
 | Phase 7 | Graph validation linter: phantom consumer and orphan producer detection | ✅ Done |
 | Phase 7 | `DomainConfig`: per-domain terminal output declaration; eliminates hardcoded field names | ✅ Done |
-| Phase 7 | Parallel execution: fire ready-queue rules concurrently via `asyncio.gather` | 🔲 Pending |
+| Phase 7 | Parallel execution: fire ready-queue rules concurrently via `asyncio.gather` | ✅ Done |
 | Phase 7 | `claim_routing` domain: non-boolean string outputs, exercises parallel execution | 🔲 Pending |
 | Phase 8 | Tokenization service for PII in rule inputs and audit output | 🔲 Pending |
-| Current | Execution audit trail: `RuleExecutionResult` persisted to JSONL per `execute()` call; trace ID threaded from orchestrator | ✅ Done |
+| Current | Execution audit trail: `RuleExecutionResult` persisted to JSONL per `execute_async()` call; trace ID threaded from orchestrator | ✅ Done |
 | Current | Per-rule evaluation log: ordered `evaluations` list with outcome per rule (triggered / skipped_no_match / pruned / skipped_precondition / not_evaluated) | ✅ Done |
 | Current | Entity snapshots: claim and customer objects captured at execution time and included in the audit record | ✅ Done |
 | Phase 3 | Extraction rules for nested backend payloads | 🔲 Pending |

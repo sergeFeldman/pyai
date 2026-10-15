@@ -1,5 +1,6 @@
 """Tests for ClaimCoverageAgent — negative-gating model and DAG chain paths."""
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -102,7 +103,7 @@ class TestClaimCoverageAgent:
             _decision("r1", "policy", "policy_status", "==", "cancelled",
                       out=["policy_coverage.disqualified"]),
         ])
-        result = self._agent().check_coverage(_claim(), _customer(), _policy())
+        result = asyncio.run(self._agent().check_coverage(_claim(), _customer(), _policy()))
         assert result.verified is True
 
     def test_cancelled_policy_disqualifies(self):
@@ -111,7 +112,9 @@ class TestClaimCoverageAgent:
                       out=["policy_coverage.disqualified"],
                       reason="Policy has been cancelled."),
         ])
-        result = self._agent().check_coverage(_claim(), _customer(), _policy(policy_status="cancelled"))
+        result = asyncio.run(self._agent().check_coverage(
+            _claim(), _customer(), _policy(policy_status="cancelled"),
+        ))
         assert result.verified is False
         assert result.reason == "Policy has been cancelled."
 
@@ -121,7 +124,9 @@ class TestClaimCoverageAgent:
                       out=["policy_coverage.disqualified"],
                       reason="Policy has lapsed."),
         ])
-        result = self._agent().check_coverage(_claim(), _customer(), _policy(policy_status="lapsed"))
+        result = asyncio.run(self._agent().check_coverage(
+            _claim(), _customer(), _policy(policy_status="lapsed"),
+        ))
         assert result.verified is False
         assert result.reason == "Policy has lapsed."
 
@@ -130,7 +135,9 @@ class TestClaimCoverageAgent:
             _decision("pc_cancelled", "policy", "policy_status", "==", "cancelled",
                       out=["policy_coverage.disqualified"]),
         ])
-        result = self._agent().check_coverage(_claim(), _customer(), _policy(policy_status="active"))
+        result = asyncio.run(self._agent().check_coverage(
+            _claim(), _customer(), _policy(policy_status="active"),
+        ))
         assert result.verified is True
 
     def test_auto_collision_third_party_only_disqualifies(self):
@@ -138,11 +145,11 @@ class TestClaimCoverageAgent:
             _lookup("pc_auto_tp", {"claim.claim_type": "auto_collision", "policy.policy_type": "third_party_only"},
                     reason="Auto collision not covered under third-party-only."),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision"),
             _customer(),
             _policy(policy_type="third_party_only"),
-        )
+        ))
         assert result.verified is False
         assert result.reason == "Auto collision not covered under third-party-only."
 
@@ -151,11 +158,11 @@ class TestClaimCoverageAgent:
             _lookup("pc_theft_basic", {"claim.claim_type": "theft", "policy.policy_type": "basic_auto"},
                     reason="Theft not covered under basic auto."),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="theft"),
             _customer(),
             _policy(policy_type="basic_auto"),
-        )
+        ))
         assert result.verified is False
         assert result.reason == "Theft not covered under basic auto."
 
@@ -163,11 +170,11 @@ class TestClaimCoverageAgent:
         RuleRegistry().load([
             _lookup("pc_auto_tp", {"claim.claim_type": "auto_collision", "policy.policy_type": "third_party_only"}),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision"),
             _customer(),
             _policy(policy_type="comprehensive"),
-        )
+        ))
         assert result.verified is True
 
     def test_below_deductible_disqualifies(self):
@@ -176,11 +183,11 @@ class TestClaimCoverageAgent:
                       out=["policy_coverage.disqualified"],
                       reason="Claim amount is below the policy deductible."),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(amount=300.0),
             _customer(),
             _policy(deductible_amount=500.0),
-        )
+        ))
         assert result.verified is False
         assert result.reason == "Claim amount is below the policy deductible."
 
@@ -189,16 +196,16 @@ class TestClaimCoverageAgent:
             _decision("pc_below_ded", "claim", "below_deductible", "==", "True",
                       out=["policy_coverage.disqualified"]),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(amount=1500.0),
             _customer(),
             _policy(deductible_amount=500.0),
-        )
+        ))
         assert result.verified is True
 
     def test_result_claim_id_matches_input(self):
         RuleRegistry().load([])
-        result = self._agent().check_coverage(_claim(claim_id="claim_42"), _customer(), _policy())
+        result = asyncio.run(self._agent().check_coverage(_claim(claim_id="claim_42"), _customer(), _policy()))
         assert result.claim_id == "claim_42"
 
     def test_high_value_chain_no_prior_claims_verified(self):
@@ -211,11 +218,11 @@ class TestClaimCoverageAgent:
                       out=["policy_coverage.disqualified"], priority=3,
                       reason="High-value repeat claimant."),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(amount=15000.0),
             _customer(prior_claim_count=2),
             _policy(),
-        )
+        ))
         assert result.verified is True
 
     def test_high_value_chain_with_prior_claims_disqualifies(self):
@@ -228,11 +235,11 @@ class TestClaimCoverageAgent:
                       out=["policy_coverage.disqualified"], priority=3,
                       reason="High-value repeat claimant."),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(amount=15000.0),
             _customer(prior_claim_count=5),
             _policy(),
-        )
+        ))
         assert result.verified is False
         assert result.reason == "High-value repeat claimant."
 
@@ -245,11 +252,11 @@ class TestClaimCoverageAgent:
                       inp=["policy_coverage.high_value_flagged"],
                       out=["policy_coverage.disqualified"], priority=3),
         ])
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(amount=5000.0),
             _customer(prior_claim_count=10),
             _policy(),
-        )
+        ))
         assert result.verified is True
 
 
@@ -272,13 +279,13 @@ class TestClaimCoverageAgentAudit:
             _decision("r1", "policy", "policy_status", "==", "cancelled",
                       out=["policy_coverage.disqualified"]),
         ])
-        self._agent().check_coverage(_claim(), _customer(), _policy(), trace_id="t1")
+        asyncio.run(self._agent().check_coverage(_claim(), _customer(), _policy(), trace_id="t1"))
         record = self._last_record()
         assert record["domain"] == "policy_coverage"
 
     def test_entities_contain_claim_customer_policy(self):
         RuleRegistry().load([])
-        self._agent().check_coverage(_claim(), _customer(), _policy(), trace_id="t1")
+        asyncio.run(self._agent().check_coverage(_claim(), _customer(), _policy(), trace_id="t1"))
         record = self._last_record()
         assert "claim" in record["entities"]
         assert "customer" in record["entities"]
@@ -286,7 +293,7 @@ class TestClaimCoverageAgentAudit:
 
     def test_entities_claim_id_matches_input(self):
         RuleRegistry().load([])
-        self._agent().check_coverage(_claim(claim_id="claim_xyz"), _customer(), _policy(), trace_id="t1")
+        asyncio.run(self._agent().check_coverage(_claim(claim_id="claim_xyz"), _customer(), _policy(), trace_id="t1"))
         assert self._last_record()["entities"]["claim"]["claim_id"] == "claim_xyz"
 
     def test_all_evaluations_have_rule_id_and_outcome(self):
@@ -294,7 +301,7 @@ class TestClaimCoverageAgentAudit:
             _decision("r1", "policy", "policy_status", "==", "active",
                       out=["policy_coverage.disqualified"]),
         ])
-        self._agent().check_coverage(_claim(), _customer(), _policy(), trace_id="t1")
+        asyncio.run(self._agent().check_coverage(_claim(), _customer(), _policy(), trace_id="t1"))
         for ev in self._last_record()["evaluations"]:
             assert "rule_id" in ev
             assert ev["outcome"] in {"triggered", "skipped_no_match", "skipped_precondition", "pruned"}
@@ -321,81 +328,81 @@ class TestClaimCoverageAgentIntegration:
         return ClaimCoverageAgent(ClaimCoverageAgentConfig())
 
     def test_cancelled_policy_disqualified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision", amount=2000.0),
             _customer(),
             _policy(policy_status="cancelled"),
-        )
+        ))
         assert result.verified is False
 
     def test_lapsed_policy_disqualified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision", amount=2000.0),
             _customer(),
             _policy(policy_status="lapsed"),
-        )
+        ))
         assert result.verified is False
 
     def test_auto_collision_third_party_only_disqualified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision", amount=2000.0),
             _customer(),
             _policy(policy_type="third_party_only"),
-        )
+        ))
         assert result.verified is False
 
     def test_theft_basic_auto_disqualified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="theft", amount=2000.0),
             _customer(),
             _policy(policy_type="basic_auto"),
-        )
+        ))
         assert result.verified is False
 
     def test_property_damage_third_party_only_disqualified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="property_damage", amount=2000.0),
             _customer(),
             _policy(policy_type="third_party_only"),
-        )
+        ))
         assert result.verified is False
 
     def test_below_deductible_disqualified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision", amount=300.0),
             _customer(),
             _policy(policy_type="comprehensive", deductible_amount=500.0),
-        )
+        ))
         assert result.verified is False
 
     def test_high_value_repeat_claimant_disqualified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision", amount=15000.0),
             _customer(prior_claim_count=5),
             _policy(policy_type="comprehensive", deductible_amount=500.0),
-        )
+        ))
         assert result.verified is False
 
     def test_clean_claim_comprehensive_verified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision", amount=2000.0),
             _customer(prior_claim_count=0),
             _policy(policy_type="comprehensive", policy_status="active", deductible_amount=500.0),
-        )
+        ))
         assert result.verified is True
 
     def test_theft_comprehensive_verified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="theft", amount=2000.0),
             _customer(prior_claim_count=0),
             _policy(policy_type="comprehensive", policy_status="active", deductible_amount=500.0),
-        )
+        ))
         assert result.verified is True
 
     def test_high_value_low_prior_claims_verified(self):
-        result = self._agent().check_coverage(
+        result = asyncio.run(self._agent().check_coverage(
             _claim(claim_type="auto_collision", amount=15000.0),
             _customer(prior_claim_count=2),
             _policy(policy_type="comprehensive", policy_status="active", deductible_amount=500.0),
-        )
+        ))
         assert result.verified is True

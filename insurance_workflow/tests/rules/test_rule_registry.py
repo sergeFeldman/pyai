@@ -1,5 +1,6 @@
 """Tests for RuleRegistry — effective rule resolution, graph construction, and execution order."""
 
+import asyncio
 import json
 from datetime import datetime, timedelta, timezone
 
@@ -189,7 +190,7 @@ class TestExecute:
         reg = RuleRegistry()
         rule = _drule("r1", "claim", "amount", "<", "500", out=["appeal.amount_tier"])
         reg.load([rule])
-        result = reg.execute("d", {"claim.amount": 400})
+        result = asyncio.run(reg.execute_async("d", {"claim.amount": 400}))
         assert result.triggered == [rule]
         assert result.outputs == {"appeal.amount_tier": True}
 
@@ -200,8 +201,8 @@ class TestExecute:
         r2 = _drule("r2", "customer", "escalation_history_count", ">=", "2",
                     inp=["appeal.fraud_flagged"], out=["appeal.disqualified"], priority=1)
         reg.load([r1, r2])
-        result = reg.execute("d", {"claim.is_fraud": False,
-                                   "customer.escalation_history_count": 3})
+        result = asyncio.run(reg.execute_async("d", {"claim.is_fraud": False,
+                                                     "customer.escalation_history_count": 3}))
         assert result.triggered == []
         assert "appeal.disqualified" not in result.outputs
 
@@ -212,8 +213,8 @@ class TestExecute:
         r2 = _drule("r2", "customer", "escalation_history_count", ">=", "2",
                     inp=["appeal.fraud_flagged"], out=["appeal.disqualified"], priority=1)
         reg.load([r1, r2])
-        result = reg.execute("d", {"claim.is_fraud": True,
-                                   "customer.escalation_history_count": 3})
+        result = asyncio.run(reg.execute_async("d", {"claim.is_fraud": True,
+                                                     "customer.escalation_history_count": 3}))
         assert [r.id for r in result.triggered] == ["r1", "r2"]
         assert result.outputs == {"appeal.fraud_flagged": True, "appeal.disqualified": True}
 
@@ -221,7 +222,7 @@ class TestExecute:
         reg = RuleRegistry()
         rule = _drule("r1", "claim", "amount", "<", "500", out=["appeal.disqualified"])
         reg.load([rule])
-        result = reg.execute("d", {"claim.amount": 5000})
+        result = asyncio.run(reg.execute_async("d", {"claim.amount": 5000}))
         assert result.triggered == []
         assert result.outputs == {}
 
@@ -230,7 +231,7 @@ class TestExecute:
         rule = _drule("r1", "claim", "is_fraud", "==", "True",
                       out=["appeal.fraud_flagged"])
         reg.load([rule])
-        result = reg.execute("d", {"claim.is_fraud": True})
+        result = asyncio.run(reg.execute_async("d", {"claim.is_fraud": True}))
         assert result.triggered == [rule]
         assert "appeal.fraud_flagged" in result.outputs
         assert "appeal.disqualified" not in result.outputs
@@ -239,15 +240,15 @@ class TestExecute:
         reg = RuleRegistry()
         rule = _drule("r1", "claim", "amount", "<", "500", out=["appeal.disqualified"])
         reg.load([rule])
-        result = reg.execute("d", {"claim.status": "denied"})
+        result = asyncio.run(reg.execute_async("d", {"claim.status": "denied"}))
         assert result.triggered == []
         assert result.outputs == {}
 
     def test_execution_metadata_populated(self):
         reg = RuleRegistry()
         reg.load([_rule("r1")])
-        result = reg.execute("d", {"claim.status": "open"},
-                             trace_id="trace-123", executed_by="test_agent")
+        result = asyncio.run(reg.execute_async("d", {"claim.status": "open"},
+                                               trace_id="trace-123", executed_by="test_agent"))
         assert result.metadata.trace_id == "trace-123"
         assert result.metadata.executed_by == "test_agent"
         assert result.metadata.executed_timestamp != ""
@@ -255,7 +256,7 @@ class TestExecute:
     def test_result_domain_set(self):
         reg = RuleRegistry()
         reg.load([_rule("r1")])
-        result = reg.execute("d", {})
+        result = asyncio.run(reg.execute_async("d", {}))
         assert result.domain == "d"
 
     def test_lookup_rule_triggers_and_writes_output_values(self):
@@ -263,7 +264,7 @@ class TestExecute:
         rule = _lrule("l1", match_keys={"claim.claim_type": "theft"},
                       output_values={"appeal.tier": "high"})
         reg.load([rule])
-        result = reg.execute("d", {"claim.claim_type": "theft"})
+        result = asyncio.run(reg.execute_async("d", {"claim.claim_type": "theft"}))
         assert result.triggered == [rule]
         assert result.outputs == {"appeal.tier": "high"}
 
@@ -272,7 +273,7 @@ class TestExecute:
         rule = _lrule("l1", match_keys={"claim.claim_type": "theft"},
                       output_values={"appeal.tier": "high"})
         reg.load([rule])
-        result = reg.execute("d", {"claim.claim_type": "auto"})
+        result = asyncio.run(reg.execute_async("d", {"claim.claim_type": "auto"}))
         assert result.triggered == []
         assert result.outputs == {}
         assert result.evaluations == [{"rule_id": "l1", "outcome": "skipped_no_match"}]
@@ -282,7 +283,7 @@ class TestExecute:
         rule = _lrule("l1", match_keys={"claim.claim_type": "theft"},
                       output_values={"appeal.tier": "high"})
         reg.load([rule])
-        result = reg.execute("d", {"claim.status": "denied"})
+        result = asyncio.run(reg.execute_async("d", {"claim.status": "denied"}))
         assert result.triggered == []
         assert result.evaluations == [{"rule_id": "l1", "outcome": "skipped_precondition"}]
 
@@ -294,7 +295,7 @@ class TestExecute:
                     output_values={"appeal.disqualified": True},
                     inp=["appeal.fraud_flagged"], priority=1)
         reg.load([r1, l1])
-        result = reg.execute("d", {"claim.is_fraud": True})
+        result = asyncio.run(reg.execute_async("d", {"claim.is_fraud": True}))
         assert [r.id for r in result.triggered] == ["r1", "l1"]
         assert result.outputs == {"appeal.fraud_flagged": True, "appeal.disqualified": True}
 
@@ -303,7 +304,7 @@ class TestExecute:
         rule = _lrule("l1", match_keys={"claim.claim_type": "theft"},
                       output_values={"appeal.tier": "high"})
         reg.load([rule])
-        result = reg.execute("d", {"claim.claim_type": "theft"})
+        result = asyncio.run(reg.execute_async("d", {"claim.claim_type": "theft"}))
         assert "claim.claim_type" not in result.outputs
         assert result.outputs == {"appeal.tier": "high"}
 
@@ -318,8 +319,8 @@ class TestExecuteEvaluations:
         r3 = _drule("r3", "customer", "tenure_years", "<", "3",
                     inp=["appeal.amount_tier", "appeal.x"], out=["appeal.disqualified"])
         reg.load([r1, r2, r3])
-        result = reg.execute("d", {"claim.amount": 400, "claim.status": "denied",
-                                   "customer.tenure_years": 2})
+        result = asyncio.run(reg.execute_async("d", {"claim.amount": 400, "claim.status": "denied",
+                                                     "customer.tenure_years": 2}))
         assert len(result.evaluations) == 3
         assert {e["rule_id"] for e in result.evaluations} == {"r1", "r2", "r3"}
 
@@ -327,14 +328,14 @@ class TestExecuteEvaluations:
         reg = RuleRegistry()
         rule = _drule("r1", "claim", "amount", "<", "500", out=["appeal.flag"])
         reg.load([rule])
-        result = reg.execute("d", {"claim.amount": 400})
+        result = asyncio.run(reg.execute_async("d", {"claim.amount": 400}))
         assert result.evaluations == [{"rule_id": "r1", "outcome": "triggered"}]
 
     def test_skipped_no_match_outcome_string(self):
         reg = RuleRegistry()
         rule = _drule("r1", "claim", "amount", "<", "500", out=["appeal.flag"])
         reg.load([rule])
-        result = reg.execute("d", {"claim.amount": 5000})
+        result = asyncio.run(reg.execute_async("d", {"claim.amount": 5000}))
         assert result.evaluations == [{"rule_id": "r1", "outcome": "skipped_no_match"}]
 
     def test_pruned_outcome_when_upstream_fails(self):
@@ -344,8 +345,8 @@ class TestExecuteEvaluations:
         r2 = _drule("r2", "customer", "escalation_history_count", ">=", "2",
                     inp=["appeal.fraud_flagged"], out=["appeal.disqualified"], priority=1)
         reg.load([r1, r2])
-        result = reg.execute("d", {"claim.is_fraud": False,
-                                   "customer.escalation_history_count": 3})
+        result = asyncio.run(reg.execute_async("d", {"claim.is_fraud": False,
+                                                     "customer.escalation_history_count": 3}))
         outcomes = {e["rule_id"]: e["outcome"] for e in result.evaluations}
         assert outcomes["r1"] == "skipped_no_match"
         assert outcomes["r2"] == "pruned"
@@ -359,7 +360,7 @@ class TestExecuteEvaluations:
         r_dep = _drule("r_dep", "claim", "amount", ">", "0",
                        inp=["appeal.flag", "appeal.x"], out=["appeal.disqualified"],  priority=5)
         reg.load([r_hi, r_lo, r_dep])
-        result = reg.execute("d", {"claim.amount": 100, "claim.status": "denied"})
+        result = asyncio.run(reg.execute_async("d", {"claim.amount": 100, "claim.status": "denied"}))
         ids = [e["rule_id"] for e in result.evaluations]
         assert ids.index("r_hi") < ids.index("r_lo"),  "higher priority executes first within level"
         assert ids.index("r_hi") < ids.index("r_dep"), "level-0 rules execute before level-1"
@@ -370,27 +371,49 @@ class TestExecuteEvaluations:
         reg.load([_rule("r1")])
         entities = {"claim": {"claim_id": "c1", "amount": 500},
                     "customer": {"customer_id": "cust_1"}}
-        result = reg.execute("d", {}, entities=entities)
+        result = asyncio.run(reg.execute_async("d", {}, entities=entities))
         assert result.entities == entities
 
     def test_entities_defaults_to_empty_dict(self):
         reg = RuleRegistry()
         reg.load([_rule("r1")])
-        result = reg.execute("d", {})
+        result = asyncio.run(reg.execute_async("d", {}))
         assert result.entities == {}
 
-    def test_not_evaluated_for_rules_in_queue_at_early_exit(self):
+    def test_same_wave_rules_all_evaluated_when_terminal_fires(self):
         reg = RuleRegistry()
-        # r1 fires first (higher priority) and writes the terminal output; early exit fires
+        # r1 and r2 are both root rules in the same initial wave.
+        # r1 (higher priority) produces a terminal output; in wave mode r2 is still
+        # evaluated because the whole wave runs before early exit is checked.
         r1 = _drule("r1", "claim", "is_fraud", "==", "True",
                     out=["appeal.disqualified"], priority=2)
-        # r2 is in the initial queue but early exit fires before it is dequeued
         r2 = _drule("r2", "claim", "amount", "<", "500",
                     out=["appeal.flag"], priority=1)
         reg.load([r1, r2])
-        result = reg.execute("d", {"claim.is_fraud": True, "claim.amount": 400})
+        result = asyncio.run(reg.execute_async("d", {"claim.is_fraud": True, "claim.amount": 400}))
         outcomes = {e["rule_id"]: e["outcome"] for e in result.evaluations}
         assert outcomes["r1"] == "triggered"
+        assert outcomes["r2"] == "triggered"  # evaluated in same wave, not skipped
+
+    def test_not_evaluated_for_rule_queued_for_next_wave_at_early_exit(self):
+        reg = RuleRegistry()
+        # r1 and r_unlock are both root rules in wave 1.
+        # r1 fires and produces the terminal output (appeal.disqualified).
+        # r_unlock fires and produces d.unlock, which cascades r2 into the queue.
+        # Early exit fires after wave 1; r2 was queued for wave 2 but never starts.
+        r1 = _drule("r1", "claim", "is_fraud", "==", "True",
+                    out=["appeal.disqualified"], priority=2)
+        r_unlock = _drule("r_unlock", "claim", "amount", ">", "0",
+                          out=["d.unlock"], priority=1)
+        r2 = _drule("r2", "claim", "amount", "<", "9999",
+                    inp=["d.unlock"], out=["d.result"])
+        reg.load([r1, r_unlock, r2])
+        result = asyncio.run(reg.execute_async(
+            "d", {"claim.is_fraud": True, "claim.amount": 400}
+        ))
+        outcomes = {e["rule_id"]: e["outcome"] for e in result.evaluations}
+        assert outcomes["r1"] == "triggered"
+        assert outcomes["r_unlock"] == "triggered"
         assert outcomes["r2"] == "not_evaluated"
 
 

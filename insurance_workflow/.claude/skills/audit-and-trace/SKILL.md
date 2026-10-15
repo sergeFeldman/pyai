@@ -32,7 +32,7 @@ Does not own rule execution itself or the shape of `RuleExecutionResult` (rule-e
 
 `RuleExecutionAuditService` (`src/services/execution_audit.py`) is a singleton over a `JsonlDataStorage` at `data/audit/rule_executions.jsonl` (`key_field="metadata.trace_id"`).
 
-- `log(result)` appends `RuleExecutionResult.to_dict()`: metadata, domain, triggered rules, evaluations, entity snapshots, outputs. Call it once per `execute()` from the calling agent.
+- `log(result)` appends `RuleExecutionResult.to_dict()`: metadata, domain, triggered rules, evaluations, entity snapshots, outputs. Call it once per `execute_async()` from the calling agent.
 - `list(domain)` returns that domain's records newest first and skips records with an empty `trace_id`.
 - The file is append-only. Never rewrite or delete records outside tests.
 - Entity snapshots are persisted customer and claim data.

@@ -25,7 +25,4 @@ async def claim_coverage(
         session_id=payload.session_id,
     )
 
-    return mdl.ClaimCoverageHttpResponse(
-        message=response.message,
-        trace_id=response.trace_id,
-    )
+    return mdl.ClaimCoverageHttpResponse(message=response.message, trace_id=response.trace_id)
