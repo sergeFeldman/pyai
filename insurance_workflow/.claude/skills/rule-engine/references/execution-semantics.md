@@ -19,9 +19,9 @@ Key consequence: all rules whose producers have settled form a single wave and r
 
 Rules cascade-pruned by `_cascade()` record `pruned` immediately and never enter the queue. For rules that do enter the queue and are evaluated by `_eval_rule`:
 
-1. **Prune check (defensive).** `_is_prunable(rule)`: for each `field_name` in `rule.input`, if `field_name` is not in context, has at least one producer in the DAG, and every producer is in `failed` or `pruned`, the rule is `pruned`. `_cascade()` detects prunable consumers before they are enqueued -- this check is a defensive fallback for edge cases only.
-2. **Precondition check.** If `rule.ready(context)` is false, the outcome is `skipped_precondition` and the rule joins the failed set. This happens when an external field the caller should have seeded is missing; since context is sealed at call time, a missing external field never appears mid-execution.
-3. **Evaluate.** On match, outputs are returned (not yet written). Otherwise the outcome is `skipped_no_match`. In both cases the rule joins the failed set and `_cascade()` runs after the full wave.
+1. **Prune check (defensive).** `_is_prunable(rule)`: for each `field_name` in `rule.input`, if `field_name` is not in context, has at least one producer in the DAG, and every producer's outcome in `decided` is one of `skipped_no_match`, `skipped_precondition`, or `pruned`, the rule is `pruned`. `_cascade()` detects prunable consumers before they are enqueued -- this check is a defensive fallback for edge cases only.
+2. **Precondition check.** If `rule.ready(context)` is false, the outcome is `skipped_precondition` and `decided[rule_id]` is set accordingly. This happens when an external field the caller should have seeded is missing; since context is sealed at call time, a missing external field never appears mid-execution.
+3. **Evaluate.** On match, outputs are returned (not yet written). Otherwise the outcome is `skipped_no_match`. In both cases `decided[rule_id]` is set and `_cascade()` runs after the full wave.
 
 Context writes happen in the outer loop after `gather`, sorted by priority descending. If two rules in the same wave produce the same field the lower-priority rule wins (last write). Same-field conflicts are a DAG design error caught by the graph linter in practice.
 
