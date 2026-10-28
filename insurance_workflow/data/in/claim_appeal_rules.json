@@ -5,18 +5,10 @@
     "priority": 10,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.claim_type"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
-    "match_keys": {
-      "claim.claim_type": "commercial"
-    },
-    "output_values": {
-      "appeal.disqualified": true
-    },
+    "input": ["claim.claim_type"],
+    "output": ["appeal.disqualified"],
+    "match_keys": {"claim.claim_type": "commercial"},
+    "output_values": {"appeal.disqualified": true},
     "reason": "Commercial claims are not eligible for appeal."
   },
   {
@@ -25,12 +17,8 @@
     "priority": 8,
     "effective_from": "2026-10-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.is_fraud"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["claim.is_fraud"],
+    "output": ["appeal.disqualified"],
     "subject": "claim",
     "attribute": "is_fraud",
     "operator": "==",
@@ -43,27 +31,12 @@
     "priority": 11,
     "effective_from": "2026-10-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.claim_type",
-      "customer.tenure_years"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["claim.claim_type", "customer.tenure_years"],
+    "output": ["appeal.disqualified"],
     "logic": "AND",
     "conditions": [
-      {
-        "subject": "claim",
-        "attribute": "claim_type",
-        "operator": "==",
-        "threshold": "theft"
-      },
-      {
-        "subject": "customer",
-        "attribute": "tenure_years",
-        "operator": "<",
-        "threshold": "4"
-      }
+      {"subject": "claim", "attribute": "claim_type", "operator": "==", "threshold": "theft"},
+      {"subject": "customer", "attribute": "tenure_years", "operator": "<", "threshold": "4"}
     ],
     "reason": "Theft claims require a minimum of 4 years customer tenure to be eligible for appeal."
   },
@@ -73,18 +46,10 @@
     "priority": 9,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.repair_shop"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
-    "match_keys": {
-      "claim.repair_shop": "shop_rouge"
-    },
-    "output_values": {
-      "appeal.disqualified": true
-    },
+    "input": ["claim.repair_shop"],
+    "output": ["appeal.disqualified"],
+    "match_keys": {"claim.repair_shop": "shop_rouge"},
+    "output_values": {"appeal.disqualified": true},
     "reason": "Claim filed through a repair shop with active fraud flags."
   },
   {
@@ -93,27 +58,12 @@
     "priority": 7,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "customer.prior_claim_count",
-      "customer.escalation_history_count"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["customer.prior_claim_count", "customer.escalation_history_count"],
+    "output": ["appeal.disqualified"],
     "logic": "AND",
     "conditions": [
-      {
-        "subject": "customer",
-        "attribute": "prior_claim_count",
-        "operator": ">=",
-        "threshold": "5"
-      },
-      {
-        "subject": "customer",
-        "attribute": "escalation_history_count",
-        "operator": ">=",
-        "threshold": "2"
-      }
+      {"subject": "customer", "attribute": "prior_claim_count", "operator": ">=", "threshold": "5"},
+      {"subject": "customer", "attribute": "escalation_history_count", "operator": ">=", "threshold": "2"}
     ],
     "reason": "Repeat claimant with multiple escalation attempts."
   },
@@ -123,12 +73,8 @@
     "priority": 6,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "customer.escalation_history_count"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["customer.escalation_history_count"],
+    "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
@@ -141,12 +87,8 @@
     "priority": 5,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.status"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["claim.status"],
+    "output": ["appeal.disqualified"],
     "subject": "claim",
     "attribute": "status",
     "operator": "!=",
@@ -159,12 +101,8 @@
     "priority": 4,
     "effective_from": "2026-10-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "customer.prior_claim_count"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["customer.prior_claim_count"],
+    "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
@@ -177,12 +115,8 @@
     "priority": 14,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.amount"
-    ],
-    "output": [
-      "appeal.low_value_flagged"
-    ],
+    "input": ["claim.amount"],
+    "output": ["appeal.low_value_flagged"],
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
@@ -195,13 +129,8 @@
     "priority": 3,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "appeal.low_value_flagged",
-      "customer.tenure_years"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["appeal.low_value_flagged", "customer.tenure_years"],
+    "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
@@ -214,13 +143,8 @@
     "priority": 6,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "appeal.low_value_flagged",
-      "customer.escalation_history_count"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["appeal.low_value_flagged", "customer.escalation_history_count"],
+    "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "escalation_history_count",
     "operator": ">=",
@@ -233,13 +157,8 @@
     "priority": 5,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "appeal.low_value_flagged",
-      "customer.prior_claim_count"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["appeal.low_value_flagged", "customer.prior_claim_count"],
+    "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
@@ -252,12 +171,8 @@
     "priority": 2,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "customer.tenure_years"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["customer.tenure_years"],
+    "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "tenure_years",
     "operator": "<",
@@ -270,12 +185,8 @@
     "priority": 1,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.amount"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["claim.amount"],
+    "output": ["appeal.disqualified"],
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
@@ -288,12 +199,8 @@
     "priority": 13,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.amount"
-    ],
-    "output": [
-      "appeal.high_value_flagged"
-    ],
+    "input": ["claim.amount"],
+    "output": ["appeal.high_value_flagged"],
     "subject": "claim",
     "attribute": "amount",
     "operator": ">=",
@@ -306,14 +213,8 @@
     "priority": 12,
     "effective_from": "2026-10-02T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "claim.amount",
-      "customer.prior_claim_count",
-      "appeal.high_value_flagged"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["claim.amount", "customer.prior_claim_count", "appeal.high_value_flagged"],
+    "output": ["appeal.disqualified"],
     "subject": "customer",
     "attribute": "prior_claim_count",
     "operator": ">=",
@@ -327,9 +228,7 @@
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
     "input": [],
-    "output": [
-      "appeal.test_orphan"
-    ],
+    "output": ["appeal.test_orphan"],
     "subject": "claim",
     "attribute": "amount",
     "operator": "<",
@@ -342,16 +241,100 @@
     "priority": 99,
     "effective_from": "2026-01-01T00:00:00+00:00",
     "effective_to": "2027-12-31T23:59:59+00:00",
-    "input": [
-      "appeal.fraud_score"
-    ],
-    "output": [
-      "appeal.disqualified"
-    ],
+    "input": ["appeal.fraud_score"],
+    "output": ["appeal.disqualified"],
     "subject": "claim",
     "attribute": "amount",
     "operator": ">",
     "threshold": "5000",
     "reason": "Demo phantom consumer: references appeal.fraud_score which no rule produces (likely typo for appeal.fraud_flagged)."
-  }
+  },
+
+  {"id": "ca_siu_history_flag", "group": "", "priority": 20, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.prior_siu_referral"], "output": ["appeal.fraud_flagged"], "subject": "claim", "attribute": "prior_siu_referral", "operator": "==", "threshold": "True", "reason": "Prior SIU referral on this customer signals elevated fraud suspicion."},
+  {"id": "ca_filing_delay_flag", "group": "", "priority": 21, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.filing_delay_days"], "output": ["appeal.timing_flagged"], "subject": "claim", "attribute": "filing_delay_days", "operator": ">", "threshold": "60", "reason": "Claim filed more than 60 days after the loss event."},
+  {"id": "ca_new_policy_flag", "group": "", "priority": 22, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.days_since_inception"], "output": ["appeal.timing_flagged"], "subject": "claim", "attribute": "days_since_inception", "operator": "<", "threshold": "90", "reason": "Claim occurred within 90 days of policy inception."},
+  {"id": "ca_very_new_policy_flag", "group": "", "priority": 23, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.days_since_inception"], "output": ["appeal.timing_flagged"], "subject": "claim", "attribute": "days_since_inception", "operator": "<", "threshold": "30", "reason": "Claim occurred within 30 days of policy inception — extreme early-loss pattern."},
+  {"id": "ca_address_instability_flag", "group": "", "priority": 24, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.address_change_recency_months"], "output": ["appeal.identity_flagged"], "subject": "customer", "attribute": "address_change_recency_months", "operator": "<", "threshold": "6", "reason": "Customer changed address within the past 6 months."},
+  {"id": "ca_recent_address_change_flag", "group": "", "priority": 25, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.address_change_recency_months"], "output": ["appeal.identity_flagged"], "subject": "customer", "attribute": "address_change_recency_months", "operator": "<", "threshold": "3", "reason": "Customer changed address within the past 3 months — high-recency identity instability."},
+  {"id": "ca_theft_no_police_flag", "group": "", "priority": 26, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.claim_type", "claim.police_report_filed"], "output": ["appeal.doc_flagged"], "logic": "AND", "conditions": [{"subject": "claim", "attribute": "claim_type", "operator": "==", "threshold": "theft"}, {"subject": "claim", "attribute": "police_report_filed", "operator": "==", "threshold": "False"}], "reason": "Theft claim filed without a police report."},
+  {"id": "ca_collision_no_witness_flag", "group": "", "priority": 27, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.claim_type", "claim.witness_count"], "output": ["appeal.doc_flagged"], "logic": "AND", "conditions": [{"subject": "claim", "attribute": "claim_type", "operator": "==", "threshold": "auto_collision"}, {"subject": "claim", "attribute": "witness_count", "operator": "==", "threshold": "0"}], "reason": "Auto collision claim with no witnesses recorded."},
+  {"id": "ca_zero_witnesses_flag", "group": "", "priority": 28, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.witness_count"], "output": ["appeal.doc_flagged"], "subject": "claim", "attribute": "witness_count", "operator": "==", "threshold": "0", "reason": "No witnesses recorded for this claim."},
+  {"id": "ca_prior_denials_flag", "group": "", "priority": 29, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.prior_denial_count"], "output": ["appeal.history_flagged"], "subject": "customer", "attribute": "prior_denial_count", "operator": ">=", "threshold": "2", "reason": "Customer has had 2 or more prior claims denied."},
+  {"id": "ca_same_peril_flag", "group": "", "priority": 30, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.same_peril_claim_count"], "output": ["appeal.history_flagged"], "subject": "customer", "attribute": "same_peril_claim_count", "operator": ">=", "threshold": "2", "reason": "Customer has filed 2 or more prior claims for the same peril type."},
+  {"id": "ca_high_prior_claims_flag", "group": "", "priority": 31, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.prior_claim_count"], "output": ["appeal.history_flagged"], "subject": "customer", "attribute": "prior_claim_count", "operator": ">=", "threshold": "7", "reason": "Customer claim frequency elevated — 7 or more lifetime claims."},
+  {"id": "ca_late_payments_flag", "group": "", "priority": 32, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.payment_late_count"], "output": ["appeal.payment_flagged"], "subject": "customer", "attribute": "payment_late_count", "operator": ">=", "threshold": "2", "reason": "Customer has 2 or more late premium payments on record."},
+  {"id": "ca_theft_type_flag", "group": "", "priority": 33, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.claim_type"], "output": ["appeal.theft_type_flagged"], "match_keys": {"claim.claim_type": "theft"}, "output_values": {"appeal.theft_type_flagged": true}, "reason": "Claim is of type theft — activates theft-specific rule paths."},
+  {"id": "ca_collision_type_flag", "group": "", "priority": 34, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.claim_type"], "output": ["appeal.collision_type_flagged"], "match_keys": {"claim.claim_type": "auto_collision"}, "output_values": {"appeal.collision_type_flagged": true}, "reason": "Claim is of type auto_collision — activates collision-specific rule paths."},
+  {"id": "ca_liability_type_flag", "group": "", "priority": 35, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.claim_type"], "output": ["appeal.liability_type_flagged"], "match_keys": {"claim.claim_type": "liability"}, "output_values": {"appeal.liability_type_flagged": true}, "reason": "Claim is of type liability — activates liability-specific rule paths."},
+  {"id": "ca_new_customer_flag", "group": "", "priority": 36, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.tenure_years"], "output": ["appeal.new_customer_flagged"], "subject": "customer", "attribute": "tenure_years", "operator": "<", "threshold": "2", "reason": "Customer has fewer than 2 years tenure — new customer risk profile."},
+  {"id": "ca_veteran_flag", "group": "", "priority": 37, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.tenure_years"], "output": ["appeal.veteran_flagged"], "subject": "customer", "attribute": "tenure_years", "operator": ">=", "threshold": "10", "reason": "Long-tenured customer — veteran status for anomaly detection."},
+  {"id": "ca_repeat_claimant_flag", "group": "", "priority": 38, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["customer.prior_claim_count"], "output": ["appeal.repeat_claimant_flagged"], "subject": "customer", "attribute": "prior_claim_count", "operator": ">=", "threshold": "3", "reason": "Customer has filed 3 or more prior claims."},
+  {"id": "ca_mid_value_flag", "group": "", "priority": 39, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["claim.amount"], "output": ["appeal.mid_value_flagged"], "logic": "AND", "conditions": [{"subject": "claim", "attribute": "amount", "operator": ">=", "threshold": "500"}, {"subject": "claim", "attribute": "amount", "operator": "<", "threshold": "5000"}], "reason": "Mid-range claim value between $500 and $5000."},
+
+  {"id": "ca_fraud_timing_risk", "group": "", "priority": 40, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_flagged", "appeal.timing_flagged"], "output": ["appeal.fraud_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU history combined with timing anomalies indicates elevated fraud risk."},
+  {"id": "ca_fraud_identity_risk", "group": "", "priority": 41, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_flagged", "appeal.identity_flagged"], "output": ["appeal.fraud_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU history combined with address instability signals elevated fraud risk."},
+  {"id": "ca_fraud_doc_risk", "group": "", "priority": 42, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_flagged", "appeal.doc_flagged"], "output": ["appeal.fraud_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "doc_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU history combined with documentation gaps indicates elevated fraud risk."},
+  {"id": "ca_fraud_history_risk", "group": "", "priority": 43, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_flagged", "appeal.history_flagged"], "output": ["appeal.fraud_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "history_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU history combined with adverse claim history signals elevated fraud risk."},
+  {"id": "ca_veteran_fraud_risk", "group": "", "priority": 44, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.veteran_flagged", "appeal.fraud_flagged"], "output": ["appeal.fraud_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "veteran_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}], "reason": "Long-tenured customer with SIU history — unexpected pattern requiring elevated scrutiny."},
+  {"id": "ca_mid_value_fraud_risk", "group": "", "priority": 45, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.mid_value_flagged", "appeal.fraud_flagged"], "output": ["appeal.fraud_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "mid_value_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}], "reason": "Mid-value claim with SIU history — structured fraud amount pattern."},
+  {"id": "ca_fraud_high_value_risk", "group": "", "priority": 46, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_flagged", "appeal.high_value_flagged"], "output": ["appeal.fraud_risk_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU history on a high-value claim — elevated to high fraud risk tier."},
+  {"id": "ca_fraud_repeat_risk", "group": "", "priority": 47, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_flagged", "appeal.repeat_claimant_flagged"], "output": ["appeal.fraud_risk_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "repeat_claimant_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU history combined with repeat claimant pattern — high fraud risk tier."},
+  {"id": "ca_timing_high_value_risk", "group": "", "priority": 48, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.timing_flagged", "appeal.high_value_flagged"], "output": ["appeal.timing_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}], "reason": "High-value claim with early-loss or delayed-filing timing anomaly."},
+  {"id": "ca_timing_doc_combo", "group": "", "priority": 49, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.timing_flagged", "appeal.doc_flagged"], "output": ["appeal.timing_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "doc_flagged", "operator": "==", "threshold": "True"}], "reason": "Timing anomaly combined with documentation deficiency."},
+  {"id": "ca_timing_identity_combo", "group": "", "priority": 50, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.timing_flagged", "appeal.identity_flagged"], "output": ["appeal.timing_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}], "reason": "Timing anomaly combined with identity instability."},
+  {"id": "ca_timing_repeat_claimant", "group": "", "priority": 51, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.timing_flagged", "appeal.repeat_claimant_flagged"], "output": ["appeal.timing_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "repeat_claimant_flagged", "operator": "==", "threshold": "True"}], "reason": "Timing anomaly on a repeat claimant elevates timing risk."},
+  {"id": "ca_theft_doc_def", "group": "", "priority": 52, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_type_flagged", "appeal.doc_flagged"], "output": ["appeal.document_deficiency"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "doc_flagged", "operator": "==", "threshold": "True"}], "reason": "Theft claim with documentation deficiency — no police report or witnesses."},
+  {"id": "ca_collision_doc_def", "group": "", "priority": 53, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.collision_type_flagged", "appeal.doc_flagged"], "output": ["appeal.document_deficiency"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "collision_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "doc_flagged", "operator": "==", "threshold": "True"}], "reason": "Collision claim with documentation deficiency — no witnesses recorded."},
+  {"id": "ca_liability_doc_def", "group": "", "priority": 54, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.liability_type_flagged", "appeal.doc_flagged"], "output": ["appeal.document_deficiency"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "liability_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "doc_flagged", "operator": "==", "threshold": "True"}], "reason": "Liability claim with documentation deficiency."},
+  {"id": "ca_new_cust_history", "group": "", "priority": 55, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.new_customer_flagged", "appeal.history_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "new_customer_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "history_flagged", "operator": "==", "threshold": "True"}], "reason": "New customer with adverse claim history elevates customer risk."},
+  {"id": "ca_new_cust_payment", "group": "", "priority": 56, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.new_customer_flagged", "appeal.payment_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "new_customer_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "payment_flagged", "operator": "==", "threshold": "True"}], "reason": "New customer with late payment history elevates customer risk."},
+  {"id": "ca_repeat_payment_combo", "group": "", "priority": 57, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.repeat_claimant_flagged", "appeal.payment_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "repeat_claimant_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "payment_flagged", "operator": "==", "threshold": "True"}], "reason": "Repeat claimant with late payments signals elevated customer risk."},
+  {"id": "ca_address_history_combo", "group": "", "priority": 58, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.identity_flagged", "appeal.history_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "history_flagged", "operator": "==", "threshold": "True"}], "reason": "Identity instability combined with adverse claim history."},
+  {"id": "ca_payment_history_risk", "group": "", "priority": 59, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.payment_flagged", "appeal.history_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "payment_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "history_flagged", "operator": "==", "threshold": "True"}], "reason": "Late payment history combined with adverse claim history."},
+  {"id": "ca_payment_identity_risk", "group": "", "priority": 60, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.payment_flagged", "appeal.identity_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "payment_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}], "reason": "Late payment history combined with address instability."},
+  {"id": "ca_veteran_identity_risk", "group": "", "priority": 61, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.veteran_flagged", "appeal.identity_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "veteran_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}], "reason": "Long-tenured customer with recent address change — unexpected pattern."},
+  {"id": "ca_high_value_identity_risk", "group": "", "priority": 62, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.high_value_flagged", "appeal.identity_flagged"], "output": ["appeal.customer_risk_elevated"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}], "reason": "High-value claim with identity instability signals elevated customer risk."},
+  {"id": "ca_theft_timing_risk", "group": "", "priority": 63, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_type_flagged", "appeal.timing_flagged"], "output": ["appeal.theft_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}], "reason": "Theft claim with early-loss or filing-delay timing anomaly."},
+  {"id": "ca_theft_new_cust_risk", "group": "", "priority": 64, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_type_flagged", "appeal.new_customer_flagged"], "output": ["appeal.theft_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "new_customer_flagged", "operator": "==", "threshold": "True"}], "reason": "Theft claim from a customer with fewer than 2 years tenure."},
+  {"id": "ca_theft_doc_risk", "group": "", "priority": 65, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_type_flagged", "appeal.doc_flagged"], "output": ["appeal.theft_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "doc_flagged", "operator": "==", "threshold": "True"}], "reason": "Theft claim missing required documentation."},
+  {"id": "ca_theft_history_risk", "group": "", "priority": 66, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_type_flagged", "appeal.history_flagged"], "output": ["appeal.theft_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "history_flagged", "operator": "==", "threshold": "True"}], "reason": "Theft claim from a customer with adverse prior claim history."},
+  {"id": "ca_collision_repeat_risk", "group": "", "priority": 67, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.collision_type_flagged", "appeal.repeat_claimant_flagged"], "output": ["appeal.collision_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "collision_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "repeat_claimant_flagged", "operator": "==", "threshold": "True"}], "reason": "Collision claim from a repeat claimant."},
+  {"id": "ca_collision_high_value_risk", "group": "", "priority": 68, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.collision_type_flagged", "appeal.high_value_flagged"], "output": ["appeal.collision_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "collision_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}], "reason": "High-value collision claim warrants additional review."},
+  {"id": "ca_collision_timing_risk", "group": "", "priority": 69, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.collision_type_flagged", "appeal.timing_flagged"], "output": ["appeal.collision_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "collision_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}], "reason": "Collision claim with timing anomaly."},
+  {"id": "ca_liability_repeat_risk", "group": "", "priority": 70, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.liability_type_flagged", "appeal.repeat_claimant_flagged"], "output": ["appeal.liability_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "liability_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "repeat_claimant_flagged", "operator": "==", "threshold": "True"}], "reason": "Liability claim from a repeat claimant."},
+  {"id": "ca_liability_timing_risk", "group": "", "priority": 71, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.liability_type_flagged", "appeal.timing_flagged"], "output": ["appeal.liability_risk_flagged"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "liability_type_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "timing_flagged", "operator": "==", "threshold": "True"}], "reason": "Liability claim with timing anomaly."},
+
+  {"id": "ca_comp_fraud_high_val", "group": "", "priority": 72, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_risk_high", "appeal.high_value_flagged"], "output": ["appeal.composite_fraud_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_risk_high", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}], "reason": "High-tier fraud risk on a high-value claim — composite fraud threshold reached."},
+  {"id": "ca_comp_fraud_doc", "group": "", "priority": 73, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_risk_elevated", "appeal.document_deficiency"], "output": ["appeal.composite_fraud_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "document_deficiency", "operator": "==", "threshold": "True"}], "reason": "Elevated fraud risk compounded by documentation deficiency."},
+  {"id": "ca_comp_fraud_customer", "group": "", "priority": 74, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_risk_elevated", "appeal.customer_risk_elevated"], "output": ["appeal.composite_fraud_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Elevated fraud risk combined with elevated customer risk profile."},
+  {"id": "ca_comp_fraud_timing", "group": "", "priority": 75, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_risk_elevated", "appeal.timing_risk_elevated"], "output": ["appeal.composite_fraud_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "timing_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Elevated fraud risk compounded by elevated timing risk."},
+  {"id": "ca_comp_fraud_theft", "group": "", "priority": 76, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_risk_elevated", "appeal.theft_risk_flagged"], "output": ["appeal.composite_fraud_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "theft_risk_flagged", "operator": "==", "threshold": "True"}], "reason": "Elevated fraud risk on a theft claim with additional theft-specific risk indicators."},
+  {"id": "ca_comp_fraud_identity", "group": "", "priority": 77, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_risk_high", "appeal.identity_flagged"], "output": ["appeal.composite_fraud_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_risk_high", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}], "reason": "High-tier fraud risk combined with identity instability."},
+  {"id": "ca_siu_fraud_doc", "group": "", "priority": 78, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.composite_fraud_high", "appeal.document_deficiency"], "output": ["appeal.siu_warranted"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "composite_fraud_high", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "document_deficiency", "operator": "==", "threshold": "True"}], "reason": "Composite fraud indicators plus documentation deficiency warrants SIU referral."},
+  {"id": "ca_siu_fraud_customer", "group": "", "priority": 79, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.composite_fraud_high", "appeal.customer_risk_elevated"], "output": ["appeal.siu_warranted"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "composite_fraud_high", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Composite fraud indicators combined with elevated customer risk warrants SIU referral."},
+  {"id": "ca_siu_theft_fraud", "group": "", "priority": 80, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_risk_flagged", "appeal.fraud_risk_elevated"], "output": ["appeal.siu_warranted"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_risk_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Theft-specific risk combined with elevated fraud risk warrants SIU referral."},
+  {"id": "ca_siu_timing_identity", "group": "", "priority": 81, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.timing_risk_elevated", "appeal.identity_flagged"], "output": ["appeal.siu_warranted"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "timing_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "identity_flagged", "operator": "==", "threshold": "True"}], "reason": "Elevated timing risk combined with identity instability warrants SIU referral."},
+  {"id": "ca_siu_new_cust_timing", "group": "", "priority": 82, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.customer_risk_elevated", "appeal.timing_risk_elevated"], "output": ["appeal.siu_warranted"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "timing_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Elevated customer risk combined with elevated timing risk warrants SIU referral."},
+  {"id": "ca_coverage_timing_high", "group": "", "priority": 83, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.timing_risk_elevated", "appeal.high_value_flagged"], "output": ["appeal.coverage_review_needed"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "timing_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}], "reason": "High-value claim with elevated timing risk requires coverage review."},
+  {"id": "ca_coverage_doc_high", "group": "", "priority": 84, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.document_deficiency", "appeal.high_value_flagged"], "output": ["appeal.coverage_review_needed"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "document_deficiency", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}], "reason": "High-value claim with document deficiency requires coverage review."},
+  {"id": "ca_coverage_customer_mid", "group": "", "priority": 85, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.customer_risk_elevated", "appeal.mid_value_flagged"], "output": ["appeal.coverage_review_needed"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "mid_value_flagged", "operator": "==", "threshold": "True"}], "reason": "Mid-value claim with elevated customer risk requires coverage review."},
+  {"id": "ca_coverage_collision", "group": "", "priority": 86, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.collision_risk_flagged", "appeal.customer_risk_elevated"], "output": ["appeal.coverage_review_needed"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "collision_risk_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Collision risk combined with elevated customer risk requires coverage review."},
+  {"id": "ca_coverage_theft_timing", "group": "", "priority": 87, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_risk_flagged", "appeal.timing_risk_elevated"], "output": ["appeal.coverage_review_needed"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_risk_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "timing_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Theft risk combined with timing risk requires coverage review."},
+  {"id": "ca_coverage_fraud_mid", "group": "", "priority": 88, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.fraud_risk_elevated", "appeal.mid_value_flagged"], "output": ["appeal.coverage_review_needed"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "mid_value_flagged", "operator": "==", "threshold": "True"}], "reason": "Mid-value claim with elevated fraud risk requires coverage review."},
+  {"id": "ca_coverage_liability", "group": "", "priority": 89, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.liability_risk_flagged", "appeal.customer_risk_elevated"], "output": ["appeal.coverage_review_needed"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "liability_risk_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Liability risk combined with elevated customer risk requires coverage review."},
+  {"id": "ca_cust_risk_high_fraud", "group": "", "priority": 90, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.customer_risk_elevated", "appeal.fraud_risk_elevated"], "output": ["appeal.customer_risk_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Elevated customer risk combined with elevated fraud risk reaches high-risk threshold."},
+  {"id": "ca_cust_risk_high_history", "group": "", "priority": 91, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.customer_risk_elevated", "appeal.repeat_claimant_flagged"], "output": ["appeal.customer_risk_high"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "repeat_claimant_flagged", "operator": "==", "threshold": "True"}], "reason": "Elevated customer risk combined with repeat claimant pattern reaches high-risk threshold."},
+
+  {"id": "ca_disq_composite_fraud", "group": "", "priority": 92, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.composite_fraud_high", "appeal.siu_warranted"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "composite_fraud_high", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "siu_warranted", "operator": "==", "threshold": "True"}], "reason": "Composite fraud indicators and SIU referral basis — claim not eligible for appeal."},
+  {"id": "ca_disq_siu_high_value", "group": "", "priority": 93, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.siu_warranted", "appeal.high_value_flagged"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "siu_warranted", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "high_value_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU referral basis on a high-value claim — not eligible for appeal."},
+  {"id": "ca_disq_siu_repeat", "group": "", "priority": 94, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.siu_warranted", "appeal.repeat_claimant_flagged"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "siu_warranted", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "repeat_claimant_flagged", "operator": "==", "threshold": "True"}], "reason": "SIU referral basis combined with repeat claimant pattern — not eligible for appeal."},
+  {"id": "ca_disq_siu_doc", "group": "", "priority": 95, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.siu_warranted", "appeal.document_deficiency"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "siu_warranted", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "document_deficiency", "operator": "==", "threshold": "True"}], "reason": "SIU referral basis combined with documentation deficiency — not eligible for appeal."},
+  {"id": "ca_disq_coverage_fraud", "group": "", "priority": 96, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.coverage_review_needed", "appeal.fraud_risk_elevated"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "coverage_review_needed", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Coverage review required and elevated fraud risk — not eligible for appeal pending investigation."},
+  {"id": "ca_disq_coverage_theft", "group": "", "priority": 97, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.coverage_review_needed", "appeal.theft_risk_flagged"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "coverage_review_needed", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "theft_risk_flagged", "operator": "==", "threshold": "True"}], "reason": "Coverage review required on a theft claim with risk indicators — not eligible for appeal."},
+  {"id": "ca_disq_coverage_customer", "group": "", "priority": 98, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.coverage_review_needed", "appeal.customer_risk_high"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "coverage_review_needed", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "customer_risk_high", "operator": "==", "threshold": "True"}], "reason": "Coverage review required with high customer risk — not eligible for appeal."},
+  {"id": "ca_disq_customer_high_fraud", "group": "", "priority": 99, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.customer_risk_high", "appeal.fraud_risk_elevated"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "customer_risk_high", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "fraud_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "High customer risk combined with elevated fraud risk — not eligible for appeal."},
+  {"id": "ca_disq_timing_customer", "group": "", "priority": 100, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.timing_risk_elevated", "appeal.customer_risk_high"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "timing_risk_elevated", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "customer_risk_high", "operator": "==", "threshold": "True"}], "reason": "Elevated timing risk combined with high customer risk — not eligible for appeal."},
+  {"id": "ca_disq_fraud_mid_value", "group": "", "priority": 101, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.composite_fraud_high", "appeal.mid_value_flagged"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "composite_fraud_high", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "mid_value_flagged", "operator": "==", "threshold": "True"}], "reason": "Composite fraud indicators on a mid-value claim — not eligible for appeal."},
+  {"id": "ca_disq_theft_siu", "group": "", "priority": 102, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.theft_risk_flagged", "appeal.siu_warranted"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "theft_risk_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "siu_warranted", "operator": "==", "threshold": "True"}], "reason": "Theft claim risk indicators combined with SIU referral basis — not eligible for appeal."},
+  {"id": "ca_disq_collision_doc_cust", "group": "", "priority": 103, "effective_from": "2026-01-01T00:00:00+00:00", "effective_to": "2027-12-31T23:59:59+00:00", "input": ["appeal.collision_risk_flagged", "appeal.document_deficiency", "appeal.customer_risk_elevated"], "output": ["appeal.disqualified"], "logic": "AND", "conditions": [{"subject": "appeal", "attribute": "collision_risk_flagged", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "document_deficiency", "operator": "==", "threshold": "True"}, {"subject": "appeal", "attribute": "customer_risk_elevated", "operator": "==", "threshold": "True"}], "reason": "Collision risk with documentation deficiency and elevated customer risk — not eligible for appeal."}
 ]

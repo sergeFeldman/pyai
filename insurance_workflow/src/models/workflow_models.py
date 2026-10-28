@@ -80,6 +80,11 @@ class Claim(shd_core.ExplainableMixin, shd_core.SerializableMixin):
     repair_shop: str
     status: Annotated[ClaimStatus, shd_core.Explainable()]
     is_fraud: Annotated[bool, shd_core.Explainable()] = False
+    police_report_filed: bool = True
+    witness_count: int = 1
+    filing_delay_days: int = 0
+    days_since_inception: int = 365
+    prior_siu_referral: bool = False
 
 
 @dataclass
@@ -132,6 +137,10 @@ class Customer(shd_core.SerializableMixin):
     last_interaction_date: str
     preferred_contact_method: str
     escalation_history_count: int
+    prior_denial_count: int = 0
+    same_peril_claim_count: int = 0
+    payment_late_count: int = 0
+    address_change_recency_months: int = 24
 
 
 @dataclass
